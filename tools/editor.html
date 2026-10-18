@@ -870,9 +870,10 @@
     }
     numField('透明度', 'opacity', 0, 1, 0.01, 1)
     numField('缩放', 'scale', 0.2, 3, 0.01, 1)
-    numField('横向位移', 'offsetX', -600, 600, 1, 0)
-    numField('纵向位移', 'offsetY', -400, 400, 1, 0)
+    numField('位置X', 'offsetX', -600, 600, 1, 0)
+    numField('位置Y', 'offsetY', -400, 400, 1, 0)
     numField('旋转', 'rotate', -180, 180, 1, 0)
+    numField('透视', 'skew', -30, 30, 1, 0)
     if (L.type === 'line') numField('展开', 'reveal', 0, 1, 0.01, 1)
     if (L.type === 'logo') numField('绘制进度', 'draw', 0, 1, 0.01, 1)
     side.appendChild(grid)
@@ -1348,6 +1349,12 @@
         lane.appendChild(kf)
       })
       row.appendChild(nm); row.appendChild(lane); tracks.appendChild(row)
+    row.style.cursor = 'pointer'
+    row.addEventListener('click', function (e2) {
+      if (e2.target && e2.target.closest && (e2.target.closest('.tlkf') || e2.target.closest('.tlname'))) return
+      tl.selected = i
+      renderTlPanel(); renderTlTracks()
+    })
     })
     var pick = document.getElementById('tlLayerPick')
     if (pick) {
@@ -1378,6 +1385,8 @@
       var ruler = document.getElementById('tlruler')
       if (!ruler) return
       var r = ruler.getBoundingClientRect()
+      /* 点在图层名一列（轨道左侧）不跳播放头，只做选择 */
+      if (ev.clientX < r.left - 1 || (ev.target && ev.target.closest && ev.target.closest('.tlname'))) return
       var d = tlDur()
       function at(e2) { return Math.max(0, Math.min(d, (e2.clientX - r.left) / r.width * d)) }
       seekTo(at(ev))
