@@ -237,6 +237,10 @@ check('初始化不抛异常', r.thrown === null, r.thrown && (r.thrown.message 
 check('摘掉了黑幕 dsu-boot（没摘掉 = 永久黑屏）', !r.root.classList.contains('dsu-boot'), '当前 class = ' + r.root._cls)
 check('暴露了 __DSH_STARTUP_API__', !!(r.windowStub.__DSH_STARTUP_API__ && r.windowStub.__DSH_STARTUP_API__.replay))
 check('API 上有 replay / skip / finish', ['replay', 'skip', 'finish'].every((k) => typeof (r.windowStub.__DSH_STARTUP_API__ || {})[k] === 'function'))
+check('API 上有 pause / resume / paused（编辑器预览用）', (function () {
+  const a = r.windowStub.__DSH_STARTUP_API__
+  return typeof a.pause === 'function' && typeof a.resume === 'function' && typeof a.paused === 'function'
+})())
 check('没有 FAILED 兜底标记', r.windowStub.__DSH_STARTUP_FAILED__ !== true)
 
 console.log('\n[2] 生成出来的 markup 完整性')

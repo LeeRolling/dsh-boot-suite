@@ -54,7 +54,9 @@
   <h1>启动动画 · 模板编辑器</h1>
   <select id="pick" style="width:220px"><option value="">载入模板…</option></select>
   <button id="load">载入</button>
-  <button id="replay">重播预览</button>
+  <button id="play">▶ 播放</button>
+  <button id="pause">⏸ 暂停</button>
+  <button id="replay">⟲ 从头播</button>
   <span class="sp"></span>
   <button id="download">下载 JSON</button>
   <button id="save" class="primary">保存到本地</button>
@@ -279,7 +281,7 @@
       if (!r || !r.ok) { say('预览失败：' + ((r && r.error) || '未知'), 'err'); return }
       draftId = r.id
       frame.src = API + '/editor/preview?id=' + draftId + '&t=' + Date.now()
-      pbar.textContent = '预览：第 ' + ((tpl.steps || []).length) + ' 幕 · ' + (tpl.name || tpl.id || '')
+      pbar.textContent = '预览：第 ' + ((tpl.steps || []).length) + ' 幕 · ' + (tpl.name || tpl.id || '') + ' · 时间线模式（自动播完，不等点击）'
     }).catch(function (e) { say('预览失败：' + e.message, 'err') })
   }
 
@@ -290,6 +292,20 @@
     render(); scheduleDraft()
   }
 
+  /* 预览控制：直接调预览页里运行时的 API（同源 iframe，能拿到） */
+  function previewApi() {
+    try { return frame.contentWindow.__DSH_STARTUP_API__ || null } catch (e) { return null }
+  }
+  document.getElementById('play').onclick = function () {
+    var a = previewApi()
+    if (a && typeof a.resume === 'function') { a.resume(); say('继续播放', 'ok'); return }
+    pushDraft()
+  }
+  document.getElementById('pause').onclick = function () {
+    var a = previewApi()
+    if (a && typeof a.pause === 'function') { a.pause(); say('已暂停', 'ok'); return }
+    say('预览还没起来', 'err')
+  }
   document.getElementById('replay').onclick = function () { if (tpl) pushDraft() }
 
   document.getElementById('save').onclick = function () {
