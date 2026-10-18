@@ -196,6 +196,7 @@
         <button id="tlAddSeg" class="mini">+ 分段</button>
         <button id="tlAddLogo" class="mini">+ 线描</button>
         <button id="tlAddGlobe" class="mini">+ 地球仪</button>
+        <button id="tlAddChars" class="mini">+ 字符地球</button>
         <button id="tlAddCard" class="mini">+ 身份卡</button>
       </div>
       <div class="tlruler" id="tlruler"><div class="tlplayhead" id="tlplayhead"></div></div>
@@ -1128,7 +1129,7 @@
   var FX_LABELS = {
     scanline: '扫描线', vignette: '暗角', glitch: '故障抖动', codes: '伪代码雨',
     radar: '雷达扫描', sonar: '声呐波纹', grid: '透视网格', crt: 'CRT 闪烁',
-    letterbox: '电影黑边', hud: 'HUD 四角', bloom: '中心光晕'
+    letterbox: '电影黑边', hud: 'HUD 四角', bloom: '中心光晕', readout: '四角实时读数'
   }
 
   function renderFxPanel() {
@@ -1569,6 +1570,42 @@
     tl.selected = tpl.layers.length - 1
     tlSync(); renderTlPanel(); renderTlTracks()
   }
+  /* ＋字符地球：用编辑器内联的海岸线现算陆地点（点在多边形内，2.4° 网格） */
+  document.getElementById('tlAddChars').onclick = function () {
+    if (!tpl) { say('先新建或载入一个模板', 'err'); return }
+    if (!Array.isArray(tpl.layers)) tpl.layers = []
+    if (typeof GLOBE_RINGS === 'undefined' || !GLOBE_RINGS.length) { say('编辑器里没有地球数据', 'err'); return }
+    function insideRing(lon, lat, ring) {
+      var c = false
+      for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        var xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1]
+        if (((yi > lat) !== (yj > lat)) && (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) c = !c
+      }
+      return c
+    }
+    var dots = [], step = 2.4
+    for (var lat = -80; lat <= 80; lat += step) {
+      for (var lon = -180; lon < 180; lon += step) {
+        for (var ri = 0; ri < GLOBE_RINGS.length; ri++) {
+          if (insideRing(lon, lat, GLOBE_RINGS[ri])) { dots.push([Math.round(lat * 10) / 10, Math.round(lon * 10) / 10]); break }
+        }
+      }
+    }
+    tpl.layers.push({
+      id: 'chars-' + (tpl.layers.length + 1), type: 'chars', logoSize: 420, pos: [640, 360],
+      color: '#72A2EA', spinMs: 18000, rotation0: 0, dots: dots,
+      formText: 'WELCOME BACK',
+      keyframes: [
+        { t: 200, opacity: 0, assemble: 0 },
+        { t: 500, opacity: 1, assemble: 0 },
+        { t: 2400, opacity: 1, assemble: 1, ease: 'outCubic' }
+      ]
+    })
+    tl.selected = tpl.layers.length - 1
+    tlSync(); renderTlPanel(); renderTlTracks()
+    say('已添加字符地球（' + dots.length + ' 个陆地点）', 'ok')
+  }
+
   document.getElementById('tlAddCard').onclick = function () {
     if (!tpl) { say('先新建或载入一个模板', 'err'); return }
     if (!Array.isArray(tpl.layers)) tpl.layers = []

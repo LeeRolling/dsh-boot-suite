@@ -1372,3 +1372,14 @@
   box-shadow: 0 0 8px rgba(120, 200, 255, 0.35);
   will-change: transform;
 }
+/* 四角装饰读数（FUI 要素 5：看起来在处理什么，其实只是装饰） */
+.dsu-fx-readout span {
+  position: absolute; font: 11px/1.4 Consolas, Menlo, monospace;
+  letter-spacing: 0.14em; color: rgba(114, 162, 234, 0.85);
+  text-shadow: 0 0 6px rgba(114, 162, 234, 0.35);
+  white-space: nowrap;
+}
+.dsu-fx-ro-tl { left: 3.2%; top: 3.4%; }
+.dsu-fx-ro-tr { right: 3.2%; top: 3.4%; text-align: right; }
+.dsu-fx-ro-bl { left: 3.2%; bottom: 3.4%; }
+.dsu-fx-ro-br { right: 3.2%; bottom: 3.4%; text-align: right; }
