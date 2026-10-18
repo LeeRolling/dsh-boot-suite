@@ -1236,7 +1236,7 @@
 /* ══ 时间线模板（v2：layers + 关键帧）═══════════════════════════════════ */
 #dsh-startup-root.dsu-tl { background: var(--dsu-bg); }
 #dsh-startup-root.dsu-tl > *:not(.dsu-tl-stage) { display: none !important; }
-.dsu-tl-stage { position: absolute; inset: 0; overflow: hidden; z-index: 20; }
+.dsu-tl-stage { position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; overflow: hidden; z-index: 20; transform-origin: 50% 50%; }
 .dsu-tl-layer { position: absolute; will-change: transform, opacity; transform-origin: 50% 50%; }
 .dsu-tl-text { font-family: var(--dsu-din); line-height: 1.15; }
 .dsu-tl-line { height: 1px; background: var(--dsu-hair); transform-origin: left center; }

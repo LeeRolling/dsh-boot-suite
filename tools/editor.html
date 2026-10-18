@@ -82,6 +82,30 @@
   .hint { color:var(--dim); font-size:var(--fs-sm); margin:var(--sp-2) 0 0; }
   .empty { color:var(--dim); font-size:var(--fs-sm); padding:var(--sp-5) var(--sp-4); text-align:center; border:1px dashed var(--line); border-radius:var(--radius); }
 
+  /* ── M2 时间线 ─────────────────────────────────────────────── */
+  .tlbar { flex:0 0 auto; border-top:1px solid var(--line); background:#101318; padding:var(--sp-2) var(--sp-3) var(--sp-3); max-height:44vh; overflow:auto; }
+  .tlbar-row { display:flex; align-items:center; gap:var(--sp-2); margin-bottom:var(--sp-2); font-size:var(--fs-sm); color:var(--dim); }
+  .tlbar-row .sp { flex:1; }
+  .tlclock { font-family:Consolas,monospace; color:var(--ink); letter-spacing:.04em; }
+  .tllbl { display:flex; align-items:center; gap:6px; }
+  .tllbl input { width:84px; }
+  .tlruler { position:relative; height:22px; border-bottom:1px solid var(--line); margin-bottom:6px; cursor:pointer; }
+  .tlplayhead { position:absolute; top:0; bottom:-9999px; width:1px; background:var(--accent); box-shadow:0 0 6px var(--accent); pointer-events:none; z-index:5; }
+  .tltracks { display:flex; flex-direction:column; gap:3px; }
+  .tlrow { display:flex; align-items:center; gap:var(--sp-2); height:26px; }
+  .tlrow.sel { background:#1b2230; border-radius:6px; }
+  .tlname { flex:0 0 132px; font-size:var(--fs-sm); color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+  .tlname .dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:6px; background:var(--accent); opacity:.65; }
+  .tllane { position:relative; flex:1; height:26px; border-left:1px solid var(--line); background:repeating-linear-gradient(90deg,#151a21 0 1px,transparent 1px 100px); }
+  .tlkf { position:absolute; top:50%; width:11px; height:11px; margin:-5.5px 0 0 -5.5px; background:var(--ink); transform:rotate(45deg); border:1px solid #0a0c10; cursor:grab; }
+  .tlkf.sel { background:var(--accent); }
+  .tlkf:hover { background:#ffd45e; }
+  .tlhint { color:var(--dim); font-size:var(--fs-sm); padding:var(--sp-2) 0; }
+  .tlins { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-2); }
+  .tlins .field { margin:0; }
+  .tlins input[type=range] { width:100%; }
+  .tlsel { font-size:var(--fs-sm); color:var(--dim); margin-top:var(--sp-2); }
+
   /* 商店卡片：一张缩略图 + 元信息 + 一个主操作（安装） */
   .store-card { display:flex; gap:var(--sp-3); padding:var(--sp-3); border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); margin-bottom:var(--sp-3); }
   .store-card > img { width:168px; height:94px; object-fit:cover; border-radius:6px; background:#000; flex:0 0 auto; }
@@ -119,6 +143,8 @@
     <select id="pick" style="width:200px"><option value="">载入模板…</option></select>
     <button id="load">载入</button>
     <button id="storeBtn">🏪 商店</button>
+    <button id="tlBtn">⏱ 时间线</button>
+    <button id="formBtn" hidden>📝 表单</button>
   </div>
   <div class="group">
     <button id="play" class="ghost">▶ 播放</button>
@@ -134,6 +160,19 @@
 <main>
   <section class="preview">
     <iframe id="frame" src="about:blank"></iframe>
+    <div class="tlbar" id="tlbar" hidden>
+      <div class="tlbar-row">
+        <button id="tlPlay" class="mini">▶</button>
+        <button id="tlPause" class="mini">⏸</button>
+        <span class="tlclock" id="tlclock">0.00s / 0.00s</span>
+        <label class="tllbl">时长 <input id="tlDur" type="number" min="600" max="30000" step="100"></label>
+        <span class="sp"></span>
+        <button id="tlAddKf" class="mini">◆ 打关键帧</button>
+        <button id="tlAddLayer" class="mini">+ 图层</button>
+      </div>
+      <div class="tlruler" id="tlruler"><div class="tlplayhead" id="tlplayhead"></div></div>
+      <div class="tltracks" id="tltracks"></div>
+    </div>
     <div class="bar" id="pbar">还没生成预览</div>
   </section>
   <aside class="side" id="side"></aside>
@@ -399,7 +438,8 @@
     tpl = obj
     if (!Array.isArray(tpl.steps)) tpl.steps = [{}]
     if (!tpl.theme) tpl.theme = {}
-    render(); scheduleDraft()
+    if (tlView) { tl.selected = 0; tl.kfSel = -1; renderTlPanel(); renderTlTracks() } else { render() }
+    scheduleDraft()
   }
 
   /* 预览控制：直接调预览页里运行时的 API（同源 iframe，能拿到） */
@@ -543,6 +583,321 @@
       loadTemplate(j.template)
       say('已载入 ' + id, 'ok')
     }).catch(function (e) { say('读不到模板：' + e.message, 'err') })
+  }
+
+  /* ══ M2：时间线视图 ═══════════════════════════════════════════════════
+     图层列表 + 轨道 + 关键帧 + 播放头 + 属性面板。预览还是走 iframe 里的运行时，
+     通过 __DSH_STARTUP_API__.seek() 把播放头挪到任意时刻。 */
+  var tlView = false
+  var tl = { playhead: 0, selected: 0, kfSel: -1 }
+  var frameApi = function () {
+    try { return (frame.contentWindow && frame.contentWindow.__DSH_STARTUP_API__) || null } catch (e) { return null }
+  }
+
+  function tlLayers() { return (tpl && Array.isArray(tpl.layers)) ? tpl.layers : [] }
+  function tlDur() { return (tpl && Number(tpl.duration)) || 5200 }
+
+  function tlClockText() {
+    return (tl.playhead / 1000).toFixed(2) + 's / ' + (tlDur() / 1000).toFixed(2) + 's'
+  }
+
+  /** 把播放头挪到 ms：先暂停运行时，再 seek */
+  function seekTo(ms) {
+    var d = tlDur()
+    tl.playhead = Math.max(0, Math.min(d, Math.round(ms)))
+    var api = frameApi()
+    if (api) {
+      try { api.pause() } catch (e) { /* noop */ }
+      try { api.seek(tl.playhead) } catch (e2) { /* noop */ }
+    }
+    var c = document.getElementById('tlclock'); if (c) c.textContent = tlClockText()
+    var ph = document.getElementById('tlplayhead')
+    if (ph) ph.style.left = (tl.playhead / d * 100) + '%'
+  }
+
+  /** 在播放头处取某图层的属性值（用于属性面板显示与打点） */
+  function valueAt(layer, prop, fallback) {
+    var kfs = (layer && Array.isArray(layer.keyframes)) ? layer.keyframes : []
+    if (!kfs.length) return fallback
+    var prev = null
+    for (var i = 0; i < kfs.length; i++) {
+      if (kfs[i].t <= tl.playhead) prev = kfs[i]
+      else break
+    }
+    if (!prev) prev = kfs[0]
+    return prev[prop] !== undefined ? prev[prop] : fallback
+  }
+
+  /** 在播放头处写一个属性：同一时刻已有帧就改它，没有就插一个（其余属性沿用当前值） */
+  function setAt(layer, prop, value) {
+    if (!layer) return
+    if (!Array.isArray(layer.keyframes)) layer.keyframes = []
+    var kfs = layer.keyframes
+    var hit = null
+    for (var i = 0; i < kfs.length; i++) if (Math.abs(kfs[i].t - tl.playhead) <= 12) { hit = kfs[i]; break }
+    if (!hit) {
+      hit = { t: tl.playhead }
+      var props = ['opacity', 'offsetX', 'offsetY', 'scale', 'rotate', 'reveal']
+      for (var p = 0; p < props.length; p++) {
+        var v = valueAt(layer, props[p], undefined)
+        if (v !== undefined) hit[props[p]] = v
+      }
+      kfs.push(hit)
+    }
+    hit[prop] = value
+    kfs.sort(function (a, b) { return a.t - b.t })
+  }
+
+  function tlSortKf(layer) { if (layer && Array.isArray(layer.keyframes)) layer.keyframes.sort(function (a, b) { return a.t - b.t }) }
+
+  /* ── 右侧面板：图层列表 + 属性 ─────────────────────────────── */
+  function renderTlPanel() {
+    side.innerHTML = ''
+    var h = document.createElement('h2'); h.textContent = '图层（' + tlLayers().length + '）'; side.appendChild(h)
+    if (!tlLayers().length) {
+      var e = document.createElement('div'); e.className = 'empty'
+      e.textContent = '这个模板是分幕式（steps），时间线视图只编辑 v2 图层模板。可以载入「时间线演示」来试。'
+      side.appendChild(e)
+      var mk = document.createElement('button'); mk.textContent = '新建时间线模板'
+      mk.onclick = function () { makeTimelineTemplate() }
+      side.appendChild(mk)
+      return
+    }
+    tlLayers().forEach(function (L, i) {
+      var row = document.createElement('div')
+      row.className = 'store-card'
+      row.style.padding = '6px 8px'
+      row.style.marginBottom = '6px'
+      if (i === tl.selected) row.style.borderColor = 'var(--accent)'
+      var dot = document.createElement('span')
+      dot.style.cssText = 'width:8px;height:8px;border-radius:50%;background:var(--accent);flex:0 0 auto;margin-top:6px'
+      var meta = document.createElement('div'); meta.className = 'meta'
+      var nm = document.createElement('div'); nm.className = 'name'; nm.textContent = (i + 1) + '. ' + (L.text || L.id || L.type || '图层')
+      nm.style.cursor = 'pointer'
+      nm.onclick = function () { tl.selected = i; renderTlPanel(); renderTlTracks() }
+      var sub = document.createElement('div'); sub.className = 'by'
+      sub.textContent = L.type + ' · ' + (Array.isArray(L.keyframes) ? L.keyframes.length : 0) + ' 帧'
+      meta.appendChild(nm); meta.appendChild(sub)
+      var acts = document.createElement('div')
+      acts.style.cssText = 'display:flex;gap:4px;flex:0 0 auto'
+      var up = document.createElement('button'); up.className = 'mini'; up.textContent = '↑'
+      up.onclick = function () { if (i > 0) { var a = tpl.layers; var t2 = a[i - 1]; a[i - 1] = a[i]; a[i] = t2; tl.selected = i - 1; renderTlPanel(); renderTlTracks() } }
+      var dn = document.createElement('button'); dn.className = 'mini'; dn.textContent = '↓'
+      dn.onclick = function () { var a = tpl.layers; if (i < a.length - 1) { var t3 = a[i + 1]; a[i + 1] = a[i]; a[i] = t3; tl.selected = i + 1; renderTlPanel(); renderTlTracks() } }
+      var del = document.createElement('button'); del.className = 'mini danger'; del.textContent = '✕'
+      del.onclick = function () { tpl.layers.splice(i, 1); tl.selected = Math.max(0, i - 1); tlSync(); renderTlPanel(); renderTlTracks() }
+      acts.appendChild(up); acts.appendChild(dn); acts.appendChild(del)
+      row.appendChild(dot); row.appendChild(meta); row.appendChild(acts)
+      side.appendChild(row)
+    })
+
+    var L = tlLayers()[tl.selected]
+    if (!L) return
+    var h2 = document.createElement('h2'); h2.textContent = '属性 · 播放头 ' + (tl.playhead / 1000).toFixed(2) + 's'
+    side.appendChild(h2)
+    var hint = document.createElement('div'); hint.className = 'hint'
+    hint.textContent = '改值会在当前时刻自动打关键帧；想加新帧就先把播放头拖到新位置。'
+    side.appendChild(hint)
+    var grid = document.createElement('div'); grid.className = 'tlins'
+    function numField(label, prop, min, max, step, fallback) {
+      var cur = valueAt(L, prop, fallback)
+      var d = document.createElement('div'); d.className = 'field'
+      var lb = document.createElement('label'); lb.textContent = label + '（' + Number(cur).toFixed(2) + '）'
+      var inp = document.createElement('input'); inp.type = 'range'; inp.min = min; inp.max = max; inp.step = step; inp.value = cur
+      inp.oninput = function () {
+        var v = Number(inp.value)
+        setAt(L, prop, v)
+        lb.textContent = label + '（' + v.toFixed(2) + '）'
+        tlSync(); renderTlTracks()
+      }
+      d.appendChild(lb); d.appendChild(inp); grid.appendChild(d)
+    }
+    numField('透明度', 'opacity', 0, 1, 0.01, 1)
+    numField('缩放', 'scale', 0.2, 3, 0.01, 1)
+    numField('横向位移', 'offsetX', -600, 600, 1, 0)
+    numField('纵向位移', 'offsetY', -400, 400, 1, 0)
+    numField('旋转', 'rotate', -180, 180, 1, 0)
+    if (L.type === 'line') numField('展开', 'reveal', 0, 1, 0.01, 1)
+    side.appendChild(grid)
+
+    if (L.type === 'text') {
+      var tf = document.createElement('div'); tf.className = 'field'
+      var tl2 = document.createElement('label'); tl2.textContent = '文字'
+      var ti = document.createElement('input'); ti.type = 'text'; ti.value = L.text || ''
+      ti.oninput = function () { L.text = ti.value; tlSync(); renderTlTracks() }
+      tf.appendChild(tl2); tf.appendChild(ti); side.appendChild(tf)
+    }
+    var posRow = document.createElement('div'); posRow.className = 'tlsel'
+    posRow.textContent = '位置：' + (L.pos ? L.pos.join(', ') : '未设') + '（逻辑坐标 1280×720）'
+    side.appendChild(posRow)
+    var delKf = document.createElement('button'); delKf.className = 'mini'; delKf.textContent = '删除播放头附近的关键帧'
+    delKf.onclick = function () {
+      var kfs = L.keyframes || []
+      L.keyframes = kfs.filter(function (k) { return Math.abs(k.t - tl.playhead) > 12 })
+      tlSync(); renderTlTracks(); renderTlPanel()
+    }
+    side.appendChild(delKf)
+  }
+
+  /* ── 轨道区：每层一行，关键帧是菱形 ─────────────────────── */
+  function renderTlTracks() {
+    var tracks = document.getElementById('tltracks')
+    if (!tracks) return
+    tracks.innerHTML = ''
+    var d = tlDur()
+    var ruler = document.getElementById('tlruler')
+    if (ruler) {
+      ruler.innerHTML = '<div class="tlplayhead" id="tlplayhead"></div>'
+      var ticks = document.createElement('div')
+      ticks.style.cssText = 'position:absolute;inset:0;pointer-events:none;color:var(--dim);font-size:10px'
+      for (var s = 0; s <= Math.ceil(d / 1000); s++) {
+        var tick = document.createElement('span')
+        tick.style.cssText = 'position:absolute;left:' + (s * 1000 / d * 100) + '%;top:3px'
+        tick.textContent = s + 's'
+        ticks.appendChild(tick)
+      }
+      ruler.appendChild(ticks)
+      ruler.onmousedown = function (ev) { rulerDrag(ev, ruler) }
+    }
+    tlLayers().forEach(function (L, i) {
+      var row = document.createElement('div')
+      row.className = 'tlrow' + (i === tl.selected ? ' sel' : '')
+      var nm = document.createElement('div'); nm.className = 'tlname'
+      nm.innerHTML = '<span class="dot"></span>'
+      nm.appendChild(document.createTextNode((L.text || L.id || L.type || '层')))
+      nm.onclick = function () { tl.selected = i; renderTlPanel(); renderTlTracks() }
+      var lane = document.createElement('div'); lane.className = 'tllane'
+      lane.onmousedown = function (ev) {
+        tl.selected = i
+        var r = lane.getBoundingClientRect()
+        seekTo((ev.clientX - r.left) / r.width * d)
+        renderTlPanel(); renderTlTracks()
+      }
+      ;(L.keyframes || []).forEach(function (k, ki) {
+        var kf = document.createElement('div'); kf.className = 'tlkf' + (i === tl.selected && ki === tl.kfSel ? ' sel' : '')
+        kf.style.left = (k.t / d * 100) + '%'
+        kf.title = k.t + 'ms'
+        kf.onmousedown = function (ev) {
+          ev.stopPropagation()
+          tl.selected = i; tl.kfSel = ki
+          var laneRect = lane.getBoundingClientRect()
+          function move(e2) {
+            var t2 = Math.max(0, Math.min(d, Math.round((e2.clientX - laneRect.left) / laneRect.width * d / 10) * 10))
+            k.t = t2
+            kf.style.left = (t2 / d * 100) + '%'
+            tlSortKf(L)
+            seekTo(t2)
+          }
+          function up() { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); tlSync(); renderTlTracks(); renderTlPanel() }
+          document.addEventListener('mousemove', move)
+          document.addEventListener('mouseup', up)
+        }
+        lane.appendChild(kf)
+      })
+      row.appendChild(nm); row.appendChild(lane); tracks.appendChild(row)
+    })
+    var ph = document.getElementById('tlplayhead')
+    if (ph) ph.style.left = (tl.playhead / d * 100) + '%'
+  }
+
+  function rulerDrag(ev, ruler) {
+    var r = ruler.getBoundingClientRect()
+    function at(e2) { return Math.max(0, Math.min(tlDur(), (e2.clientX - r.left) / r.width * tlDur())) }
+    seekTo(at(ev))
+    function move(e2) { seekTo(at(e2)) }
+    function up() { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up) }
+    document.addEventListener('mousemove', move)
+    document.addEventListener('mouseup', up)
+  }
+
+  /* 每次改模板都推一次草稿给预览（复用表单视图那条通道） */
+  function tlSync() { scheduleDraft() }
+
+  function makeTimelineTemplate() {
+    tpl = {
+      schemaVersion: 2, id: tpl && tpl.id ? tpl.id : 'my-timeline', name: (tpl && tpl.name) || '我的时间线',
+      author: 'LeeRolling', license: 'MIT', version: '0.1.0', description: '用时间线编辑器做的模板',
+      duration: 4000,
+      theme: { mode: 'dark', bg: '#0b0f14', bg2: '#111823', ink: '#eef4ff', inkSoft: '#b9c9e0', muted: '#6d7f96', hair: 'rgba(160,200,255,0.22)', accent: '#5cc8ff' },
+      layers: [
+        { id: 'title', type: 'text', text: '我的标题', pos: [640, 330], font: { size: 46, weight: 500, tracking: 0.1 },
+          keyframes: [{ t: 200, opacity: 0, offsetY: 24, scale: 0.99, ease: 'outCubic' }, { t: 900, opacity: 1, offsetY: 0, scale: 1 }] },
+        { id: 'rule', type: 'line', pos: [400, 392], width: 480, keyframes: [{ t: 700, reveal: 0 }, { t: 1200, reveal: 1 }] }
+      ]
+    }
+    tl.selected = 0; tl.playhead = 0
+    renderTlPanel(); renderTlTracks(); tlSync()
+    say('已新建时间线模板（记得保存到本地）', 'ok')
+  }
+  /* ── 时间线视图的进入/退出与按钮 ───────────────────────────── */
+  var tlLoadHooked = false
+  function tlOnFrameLoad() {
+    if (!tlView) return
+    var api = frameApi()
+    if (!api) return
+    try { api.pause() } catch (e) { /* noop */ }
+    try { api.seek(tl.playhead) } catch (e2) { /* noop */ }
+  }
+  function enterTimeline() {
+    if (!tpl) { say('先载入一个模板', 'err'); return }
+    tlView = true
+    document.getElementById('tlbar').hidden = false
+    document.getElementById('tlBtn').hidden = true
+    document.getElementById('formBtn').hidden = false
+    tl.selected = 0; tl.kfSel = -1; tl.playhead = 0
+    var durInput = document.getElementById('tlDur')
+    if (durInput) durInput.value = tlDur()
+    var clk = document.getElementById('tlclock')
+    if (clk) clk.textContent = tlClockText()
+    if (!tlLoadHooked) { frame.addEventListener('load', tlOnFrameLoad); tlLoadHooked = true }
+    renderTlPanel(); renderTlTracks()
+    if (tlLayers().length) { pushDraft() }
+    say('时间线视图：拖播放头 / 拖菱形改时间 / 改滑块自动打关键帧', 'ok')
+  }
+  function exitTimeline() {
+    tlView = false
+    document.getElementById('tlbar').hidden = true
+    document.getElementById('tlBtn').hidden = false
+    document.getElementById('formBtn').hidden = true
+    render()
+  }
+  document.getElementById('tlBtn').onclick = function () { enterTimeline() }
+  document.getElementById('formBtn').onclick = function () { exitTimeline() }
+  document.getElementById('tlPlay').onclick = function () {
+    var api = frameApi()
+    if (api && typeof api.resume === 'function') { try { api.resume(); say('播放', 'ok'); return } catch (e) { /* noop */ } }
+    pushDraft()
+  }
+  document.getElementById('tlPause').onclick = function () {
+    var api = frameApi()
+    if (api && typeof api.pause === 'function') { try { api.pause(); say('已暂停 · 可拖播放头', 'ok') } catch (e) { /* noop */ } }
+  }
+  document.getElementById('tlAddKf').onclick = function () {
+    var L = tlLayers()[tl.selected]
+    if (!L) { say('先选一个图层', 'err'); return }
+    var props = ['opacity', 'scale', 'offsetX', 'offsetY']
+    for (var i = 0; i < props.length; i++) setAt(L, props[i], Number(valueAt(L, props[i], props[i] === 'opacity' || props[i] === 'scale' ? 1 : 0)))
+    tlSortKf(L); tlSync(); renderTlTracks(); renderTlPanel()
+    say('已在 ' + (tl.playhead / 1000).toFixed(2) + 's 打关键帧', 'ok')
+  }
+  document.getElementById('tlAddLayer').onclick = function () {
+    if (!tpl) return
+    if (!Array.isArray(tpl.layers)) tpl.layers = []
+    tpl.layers.push({
+      id: 'layer-' + (tpl.layers.length + 1), type: 'text', text: '新图层', pos: [640, 420],
+      font: { size: 28, weight: 400, tracking: 0.06 },
+      keyframes: [{ t: tl.playhead, opacity: 1, offsetY: 0, scale: 1 }]
+    })
+    tl.selected = tpl.layers.length - 1
+    tlSync(); renderTlPanel(); renderTlTracks()
+  }
+  document.getElementById('tlDur').onchange = function (ev) {
+    if (!tpl) return
+    var v = Math.max(600, Math.min(30000, Number(ev.target.value) || 4000))
+    tpl.duration = v
+    ev.target.value = v
+    seekTo(Math.min(tl.playhead, v))
+    renderTlTracks(); tlSync()
   }
 
   document.getElementById('storeBtn').onclick = function () { renderStore() }
