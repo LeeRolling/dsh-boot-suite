@@ -5,58 +5,112 @@
 <title>启动动画 · 模板编辑器</title>
 <style>
   :root {
+    /* 间距阶：4 的倍数（§3.2 值必须来自系统） */
+    --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px;
+    /* 字号阶：三档就够（§4.1 不要近似值） */
+    --fs-sm:12px; --fs-md:13px; --fs-lg:15px;
+    /* 颜色：正文只有 ink / dim 两色；ok / err 只给状态行用（§2.2.a） */
     --bg:#14161a; --panel:#1b1e24; --line:#2a2f38; --ink:#e8ecf2; --dim:#9aa4b2;
-    --accent:#3964fe; --ok:#31c48d; --err:#f06a6a;
+    --accent:#3964fe; --ok:#31c48d; --err:#f06a6a; --danger:#c0392b;
+    --radius:8px;
   }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:13px/1.6 "Segoe UI","Microsoft YaHei",sans-serif; }
-  header { display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--line); background:var(--panel); position:sticky; top:0; z-index:5; }
-  header h1 { font-size:14px; margin:0 12px 0 0; font-weight:600; letter-spacing:.02em; }
+  html, body { height:100%; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:var(--fs-md)/1.6 "Segoe UI","Microsoft YaHei",sans-serif; display:flex; flex-direction:column; }
+
+  /* 顶栏：标题是页面的第一层级，播放控制降为三级（§2.1 §2.8） */
+  header { display:flex; align-items:center; gap:var(--sp-2); padding:var(--sp-2) var(--sp-4); border-bottom:1px solid var(--line); background:var(--panel); position:sticky; top:0; z-index:5; box-shadow:0 1px 2px rgba(0,0,0,.35); }
+  header h1 { font-size:var(--fs-lg); margin:0 var(--sp-3) 0 0; font-weight:600; letter-spacing:.01em; white-space:nowrap; }
   header .sp { flex:1; }
-  button { background:#242932; color:var(--ink); border:1px solid var(--line); border-radius:7px; padding:6px 12px; font:inherit; cursor:pointer; }
-  button:hover { border-color:#3d4654; }
+  header .group { display:flex; gap:var(--sp-1); padding-left:var(--sp-2); border-left:1px solid var(--line); }
+
+  button { background:#242932; color:var(--ink); border:1px solid var(--line); border-radius:var(--radius); padding:6px var(--sp-3); font:inherit; cursor:pointer; }
+  button:hover { background:#2b313b; border-color:#3d4654; }
   button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.primary:hover { background:#4a73ff; border-color:#4a73ff; }
+  /* 播放控制是三级操作：透明底、无边框，只在 hover 时出现底色 */
+  button.ghost { background:transparent; border-color:transparent; color:var(--dim); }
+  button.ghost:hover { background:#242932; color:var(--ink); border-color:var(--line); }
   button.danger { border-color:#5a2a2a; color:#f0a0a0; }
-  main { display:flex; height:calc(100vh - 53px); }
+  /* 键盘焦点必须看得见（P0：没有焦点环 = 键盘用户没法操作） */
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+
+  main { flex:1; min-height:0; display:flex; }
   .preview { flex:1.15; border-right:1px solid var(--line); display:flex; flex-direction:column; min-width:0; }
   .preview iframe { flex:1; border:0; background:#000; width:100%; }
-  .preview .bar { padding:6px 10px; color:var(--dim); border-top:1px solid var(--line); font-size:12px; }
-  .side { width:460px; overflow:auto; padding:14px 16px 60px; }
-  h2 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); margin:18px 0 8px; }
+  .preview .bar { padding:var(--sp-2) var(--sp-3); color:var(--dim); border-top:1px solid var(--line); font-size:var(--fs-sm); }
+
+  /* 侧栏：组间 24、组内 8（§3.6 组距要明显大于组内距） */
+  .side { width:460px; overflow:auto; padding:var(--sp-4) var(--sp-4) var(--sp-6); }
+  h2 { font-size:var(--fs-sm); text-transform:uppercase; letter-spacing:.08em; color:var(--dim); margin:var(--sp-5) 0 var(--sp-2); }
   h2:first-child { margin-top:0; }
-  .row { display:flex; gap:8px; align-items:center; }
-  .field { margin:7px 0; }
-  .field > label { display:block; font-size:11px; color:var(--dim); margin-bottom:3px; }
+  .row { display:flex; gap:var(--sp-2); align-items:center; }
+  .field { margin:var(--sp-2) 0; }
+  .field > label { display:block; font-size:var(--fs-sm); color:var(--dim); margin-bottom:var(--sp-1); }
   input[type=text], input[type=number], select, textarea {
-    width:100%; background:#101318; color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:5px 8px; font:inherit;
+    width:100%; background:#101318; color:var(--ink); border:1px solid var(--line);
+    border-radius:var(--radius); padding:6px var(--sp-2); font:inherit;
   }
-  input[type=color] { width:34px; height:26px; padding:0; border:1px solid var(--line); border-radius:6px; background:transparent; }
-  .colors { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-  .colors .field { display:flex; align-items:center; gap:8px; }
-  .colors .field label { margin:0; flex:0 0 74px; }
-  .step { border:1px solid var(--line); border-radius:9px; margin:10px 0; background:var(--panel); }
-  .step > .head { display:flex; align-items:center; gap:6px; padding:7px 10px; border-bottom:1px solid var(--line); }
-  .step > .head b { flex:1; font-weight:600; font-size:12px; }
-  .step > .body { padding:8px 10px 10px; }
-  .step .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-  .flags { display:flex; gap:14px; flex-wrap:wrap; margin-top:6px; font-size:12px; color:var(--dim); }
-  .flags label { display:flex; align-items:center; gap:5px; }
-  .mini { padding:2px 7px; font-size:12px; border-radius:6px; }
-  #status { color:var(--dim); font-size:12px; max-width:34vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:0; transition:opacity .2s; }
+  input[type=text]:hover, input[type=number]:hover, select:hover { border-color:#3d4654; }
+  input::placeholder { color:#6b7482; }
+  /* 去掉 number 的原生上下箭头：那是浏览器默认控件（§8.1） */
+  input[type=number]{ -moz-appearance:textfield; }
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  input[type=color] { width:34px; height:28px; padding:0; border:1px solid var(--line); border-radius:var(--radius); background:transparent; }
+
+  .colors { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-2); }
+  .colors .field { display:flex; align-items:center; gap:var(--sp-2); margin:0; }
+  .colors .field label { margin:0; flex:0 0 76px; }
+
+  .step { border:1px solid var(--line); border-radius:calc(var(--radius) + 1px); margin:var(--sp-4) 0; background:var(--panel); }
+  .step > .head { display:flex; align-items:center; gap:var(--sp-1); padding:var(--sp-2) var(--sp-3); border-bottom:1px solid var(--line); }
+  .step > .head b { flex:1; font-weight:600; font-size:var(--fs-md); }
+  .step > .body { padding:var(--sp-3) var(--sp-3) var(--sp-4); }
+  .step .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-2) var(--sp-3); }
+  .flags { display:flex; gap:var(--sp-4); flex-wrap:wrap; margin-top:var(--sp-2); font-size:var(--fs-sm); color:var(--dim); }
+  .flags label { display:flex; align-items:center; gap:var(--sp-1); }
+  .mini { padding:3px 10px; font-size:var(--fs-sm); border-radius:6px; }
+
+  #status { color:var(--dim); font-size:var(--fs-sm); max-width:34vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:0; transition:opacity .2s; }
   #status.show { opacity:1; }
   #status.ok { color:var(--ok); }
   #status.err { color:var(--err); }
-  .hint { color:var(--dim); font-size:12px; margin:6px 0 0; }
+  .hint { color:var(--dim); font-size:var(--fs-sm); margin:var(--sp-2) 0 0; }
+  .empty { color:var(--dim); font-size:var(--fs-sm); padding:var(--sp-5) var(--sp-4); text-align:center; border:1px dashed var(--line); border-radius:var(--radius); }
+
+  /* 窄窗口：预览和侧栏上下堆叠，别把预览压成一条缝（§3.3） */
+  @media (max-width: 1100px) {
+    main { flex-direction:column; flex:1; min-height:0; }
+    .preview { height:46vh; border-right:0; border-bottom:1px solid var(--line); }
+    .side { width:auto; }
+    /* 窄窗口压缩顶栏，别让它折成两行（§3.3 响应式要设计过，不是挤出来） */
+    header { gap:var(--sp-1); padding:var(--sp-2); }
+    header h1 { font-size:var(--fs-md); margin-right:var(--sp-2); }
+    header .group { padding-left:var(--sp-1); gap:2px; }
+    #pick { width:150px !important; }
+    button { padding:5px 9px; }
+    button.ghost { padding:5px 6px; }
+  }
+  @media (max-width: 780px) {
+    header h1 { display:none; }
+  }
 </style>
 </head>
 <body>
 <header>
   <h1>启动动画 · 模板编辑器</h1>
-  <select id="pick" style="width:220px"><option value="">载入模板…</option></select>
-  <button id="load">载入</button>
-  <button id="play">▶ 播放</button>
-  <button id="pause">⏸ 暂停</button>
-  <button id="replay">⟲ 从头播</button>
+  <div class="group">
+    <select id="pick" style="width:200px"><option value="">载入模板…</option></select>
+    <button id="load">载入</button>
+  </div>
+  <div class="group">
+    <button id="play" class="ghost">▶ 播放</button>
+    <button id="pause" class="ghost">⏸ 暂停</button>
+    <button id="replay" class="ghost">⟲ 从头播</button>
+  </div>
   <span id="status"></span>
   <span class="sp"></span>
   <button id="download">下载 JSON</button>
@@ -83,7 +137,8 @@
   var status = document.getElementById('status')
 
   function say(msg, kind) {
-    status.textContent = msg
+    var mark = kind === 'ok' ? '✓ ' : (kind === 'err' ? '✕ ' : '')
+    status.textContent = mark + msg
     status.className = 'show ' + (kind || '')
     clearTimeout(say._t)
     say._t = setTimeout(function () { status.className = '' }, 3200)
@@ -394,7 +449,15 @@
   refreshPick()
   fetch(API + '/preview-template?id=archive-warm').then(function (r) { return r.json() }).then(function (j) {
     if (j && j.ok && j.template) loadTemplate(j.template)
-  })
+    else showEmpty('读不到内置模板。检查插件是否装好，或者从上面下拉框里载入一个。')
+  }).catch(function (e) { showEmpty('读不到内置模板：' + e.message) })
+  function showEmpty(text) {
+    side.innerHTML = ''
+    var d = document.createElement('div')
+    d.className = 'empty'
+    d.textContent = text
+    side.appendChild(d)
+  }
 })();
 </script>
 </body>
