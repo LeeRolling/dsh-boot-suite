@@ -920,7 +920,7 @@
       var bf = document.createElement('div'); bf.className = 'field'
       var bl = document.createElement('label'); bl.textContent = '形状'
       var bs = document.createElement('select')
-      ;[['earth', '地球'], ['moon', '月球'], ['dsh', 'DSH 文字']].forEach(function (o) {
+      ;[['whale', '鲸鱼标识'], ['earth', '地球'], ['moon', '月球'], ['dsh', '文字']].forEach(function (o) {
         var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]
         if ((L.shape || 'earth') === o[0]) op.selected = true
         bs.appendChild(op)
@@ -1412,7 +1412,7 @@
     if (!tpl) return
     if (!Array.isArray(tpl.layers)) tpl.layers = []
     tpl.layers.push({
-      id: 'blocks-' + (tpl.layers.length + 1), type: 'blocks', shape: 'dsh', text: 'DSH',
+      id: 'blocks-' + (tpl.layers.length + 1), type: 'blocks', shape: 'whale', text: 'DSH',
       count: 220, blockSize: 4, spread: 460, shapeScale: 2.4,
       pos: [640, 360],
       keyframes: [{ t: 0, assemble: 0, opacity: 1 }, { t: 2200, assemble: 1, opacity: 1, ease: 'outCubic' }]

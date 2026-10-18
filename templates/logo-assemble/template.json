@@ -149,10 +149,10 @@
     {
       "id": "dsh",
       "type": "blocks",
-      "shape": "dsh",
+      "shape": "whale",
       "text": "DSH",
-      "count": 300,
-      "color": "#ffffff",
+      "count": 520,
+      "color": "#7fb2ff",
       "pos": [
         880,
         360
@@ -193,7 +193,7 @@
           "offsetY": -20
         }
       ],
-      "shapeScale": 2.4,
+      "shapeScale": 2.6,
       "blockSize": 3
     }
   ]
