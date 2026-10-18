@@ -132,7 +132,7 @@ check('没有 Config 导出（普通对象不是 schemastery schema）', mod.Con
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 21 条路由（开机动画 14 + 聊天壁纸 7）', ROUTES.size === 21, [...ROUTES.keys()].join(' | '))
+check('注册了 22 条路由（开机动画 15 + 聊天壁纸 7）', ROUTES.size === 22, [...ROUTES.keys()].join(' | '))
 check('注册了 1 个 tapIndex', TAPS.length === 1)
 check('用了 ctx.effect 管理生命周期（开机动画 1 + 壁纸 7）', effects === 8, String(effects))
 
@@ -373,6 +373,22 @@ console.log('\n[6d] 模板商店：拉取与安装（stub 掉网络）')
   } finally {
     globalThis.fetch = realFetch
   }
+}
+
+console.log('\n[6e] 模板自带声音：template-asset 只读白名单')
+{
+  const dir = path.join(SMOKE_HOME, 'startup-templates', 'deep-sonar', 'assets')
+  fs.mkdirSync(dir, { recursive: true })
+  fs.writeFileSync(path.join(dir, 'line-1.mp3'), Buffer.from('ID3fake-mp3-bytes'))
+  const ok = await call('prefix /dsh-startup/template-asset', 'GET', undefined, '/dsh-startup/template-asset/deep-sonar/line-1.mp3')
+  check('模板自带配音能被取到', ok.statusCode === 200 && ok.body.length > 0, ok.statusCode + ' ' + ok.body.length)
+  const badName = await call('prefix /dsh-startup/template-asset', 'GET', undefined, '/dsh-startup/template-asset/deep-sonar/evil.exe')
+  check('非音频扩展名拒绝', badName.statusCode === 404)
+  const badId = await call('prefix /dsh-startup/template-asset', 'GET', undefined, '/dsh-startup/template-asset/../etc/passwd.mp3')
+  check('非法模板 id 拒绝（防穿越）', badId.statusCode === 404)
+  const missing = await call('prefix /dsh-startup/template-asset', 'GET', undefined, '/dsh-startup/template-asset/deep-sonar/line-9.mp3')
+  check('文件不存在返回 404', missing.statusCode === 404)
+  fs.rmSync(path.join(SMOKE_HOME, 'startup-templates', 'deep-sonar'), { recursive: true, force: true })
 }
 
 console.log('\n[7] XSS 边界：身份名称里的尖括号不会逃出内联脚本')
