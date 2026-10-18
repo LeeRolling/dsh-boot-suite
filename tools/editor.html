@@ -1316,10 +1316,20 @@
         kf.style.left = (k.t / d * 100) + '%'
         kf.title = k.t + 'ms'
         kf.onmousedown = function (ev) {
+          ev.preventDefault()
           ev.stopPropagation()
           tl.selected = i; tl.kfSel = ki
+          /* 点=选中这一帧并把播放头放过来；拖动超过 3px 才改时间 */
           var laneRect = lane.getBoundingClientRect()
+          var startX = ev.clientX
+          var dragging = false
+          seekTo(k.t)
+          renderTlPanel()
           function move(e2) {
+            if (!dragging) {
+              if (Math.abs(e2.clientX - startX) < 3) return
+              dragging = true
+            }
             var t2 = Math.max(0, Math.min(d, Math.round((e2.clientX - laneRect.left) / laneRect.width * d / 10) * 10))
             k.t = t2
             kf.style.left = (t2 / d * 100) + '%'
@@ -1327,11 +1337,11 @@
             seekTo(t2)
           }
           function up() {
-        document.removeEventListener('mousemove', move)
-        document.removeEventListener('mouseup', up)
-        tl.kfSel = (L.keyframes || []).indexOf(k)
-        tlSync(); renderTlTracks(); renderTlPanel()
-      }
+            document.removeEventListener('mousemove', move)
+            document.removeEventListener('mouseup', up)
+            if (dragging) tl.kfSel = (L.keyframes || []).indexOf(k)
+            tlSync(); renderTlTracks(); renderTlPanel()
+          }
           document.addEventListener('mousemove', move)
           document.addEventListener('mouseup', up)
         }
