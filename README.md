@@ -38,12 +38,25 @@ DeepSeek Harness（DSH）冷启动时会先播六幕动画，播完进聊天，�
 
 ## 安装
 
-需要 DSH 桌面端或 web profile，Node ≥ 20。
+### 方式一：双击安装（推荐，不需要命令行）
+
+1. 下载本仓库（Code → Download ZIP，或 `git clone`）并解压
+2. **完全退出** DeepSeek Harness Desktop（任务管理器里确认没有 `DeepSeek Harness` 进程）
+3. 双击根目录的 **`安装.cmd`**
+4. 重新打开桌面端
+
+脚本会自动找到 DSH 的命令行（它不在 PATH 里也没关系）、找到已初始化的 profile、
+卸掉同名旧插件、以 `link:` 方式装好并修正 `bundles` 列表，最后自检。
+只想看它要做什么、不动手：`powershell -File tools\install.ps1 -CheckOnly`
+
+### 方式二：命令行
 
     # 桌面端：先完全退出 DeepSeek Harness Desktop
     dsh plugin --profile desktop add link:<仓库路径>
 
-装完重新打开。**桌面端必须先完全退出** —— 否则 profile 的 `package.json` 被进程锁着，装不进去。
+
+**桌面端必须先完全退出** —— 否则 profile 的 `package.json` 被进程锁着，装不进去。
+（`dsh` 不在 PATH 里的话，桌面端自带的在 `%LOCALAPPDATA%\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd`）
 
 > 从旧的两个插件（`dsh-startup-screen` / `dsh-chat-wallpaper`）迁过来的话，
 > 先 `dsh plugin --profile desktop remove` 掉它们，再装本插件。
@@ -87,7 +100,8 @@ DeepSeek Harness（DSH）冷启动时会先播六幕动画，播完进聊天，�
 
 | 工具 | 干什么 | 什么时候用 |
 |---|---|---|
-| `tools/emergency-uninstall.cmd` | 把插件从 profile 里彻底卸掉 | **开机黑屏、界面点不动**，只想先恢复 |
+| **`卸载.cmd`**（根目录） | 等于 `tools/emergency-uninstall.cmd` | **开机黑屏、界面点不动**，只想先恢复 |
+| `tools/emergency-uninstall.cmd` | 把插件从 profile 里彻底卸掉 | 同上，脚本本体 |
 | `tools/rollback.cmd` | 切回 `backups/` 下最新的已知可用快照 | 想退回上一个能用的版本 |
 | `tools/make-backup.ps1` | 给当前状态留快照 | **改代码之前** |
 
