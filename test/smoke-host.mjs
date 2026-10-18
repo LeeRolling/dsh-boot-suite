@@ -55,6 +55,7 @@ process.env.DSH_HOME = SMOKE_HOME
 
 const ROUTES = new Map()
 const TAPS = []
+const INJECT_LISTENERS = []
 let effects = 0
 let rejectNext = undefined
 
@@ -66,6 +67,10 @@ const ctx = {
       return () => ROUTES.delete(route.kind + ' ' + route.path)
     },
     tapIndex(fn) { TAPS.push(fn); return () => TAPS.splice(TAPS.indexOf(fn), 1) },
+  },
+  on(name, fn) {
+    if (name === 'webserver/index-inject') INJECT_LISTENERS.push(fn)
+    return () => { const i = INJECT_LISTENERS.indexOf(fn); if (i >= 0) INJECT_LISTENERS.splice(i, 1) }
   },
   get(name) {
     if (name !== 'connection') return undefined
@@ -195,36 +200,88 @@ r = await call('exact /dsh-startup/config')
 check('connection 拒绝时返回 403 且不吐配置', r.statusCode === 403 && r.body === '', r.statusCode + ' body=' + JSON.stringify(r.body.slice(0, 40)))
 rejectNext = undefined
 
-/** 从注入结果里精确抠出内联 JSON 载荷（window.__DSH_STARTUP__= ... ;BOOTSTRAP） */
-function inlinePayload(html) {
-  const a = html.indexOf('window.__DSH_STARTUP__=')
-  const b = html.indexOf(';(function(){try{', a)
-  return a === -1 || b === -1 ? '' : html.slice(a + 'window.__DSH_STARTUP__='.length, b)
+/* ── DSH 0.2.x 的注入行渲染器（照抄 dsh-host-webserver 的 renderRow/renderIndexInjections 语义：
+      head 行插到 <head> 之后、body 行插到 <body> 之后，各自按表内顺序；末尾补 __DSH_BOOT_READY__）。
+   桌面端（file:// + IPC）拿的就是这张表，所以这里按表断言才算数。 */
+function escAttr(v) { return String(v).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;') }
+const BS = String.fromCharCode(92)
+function escLt(v) { return String(v).split('<').join(BS + 'u003c') }
+function renderRows(html, rows) {
+  let head = '', body = ''
+  for (const row of rows) {
+    let r
+    if (row.kind === 'global') r = { placement: 'head', markup: '<script>globalThis[' + escLt(JSON.stringify(row.name)) + '] = ' + (row.value === undefined ? 'undefined' : escLt(JSON.stringify(row.value))) + '</script>' }
+    else if (row.kind === 'script') r = { placement: row.placement, markup: '<script>' + row.text + '</script>' }
+    else if (row.kind === 'script-src') r = { placement: row.placement, markup: '<script src="' + escAttr(row.src) + '"></script>' }
+    else if (row.kind === 'script-preload') r = { placement: 'head', markup: '<link rel="preload" as="script" href="' + escAttr(row.src) + '">' }
+    else if (row.kind === 'style') r = { placement: 'head', markup: '<style>' + row.text + '</style>' }
+    else if (row.kind === 'html') r = { placement: row.placement, markup: row.html }
+    else throw new Error('unknown row ' + JSON.stringify(row))
+    if (r.placement === 'head') head += r.markup
+    else body += r.markup
+  }
+  body += '<script>(globalThis.__DSH_BOOT_READY__ ??= Promise.withResolvers()).resolve()</script>'
+  let out = html
+  const ho = /<head(?:\s[^>]*)?>/i.exec(out)
+  out = ho === null ? head + out : out.slice(0, ho.index + ho[0].length) + head + out.slice(ho.index + ho[0].length)
+  const bo = /<body(?:\s[^>]*)?>/i.exec(out)
+  out = bo === null ? out + body : out.slice(0, bo.index + bo[0].length) + body + out.slice(bo.index + bo[0].length)
+  return out
 }
 
-console.log('\n[6] index.html 注入（源: ' + REAL_INDEX.path + '）')
+/** 取当前注入行表（每次渲染都是新表，数据现读） */
+function collectRows() {
+  const table = []
+  for (const fn of INJECT_LISTENERS) fn(table)
+  return table
+}
+
+/** 从渲染结果里精确抠出内联 JSON 载荷 */
+function inlinePayload(html) {
+  const a = html.indexOf('globalThis["__DSH_STARTUP__"] = ')
+  if (a === -1) return ''
+  const start = a + 'globalThis["__DSH_STARTUP__"] = '.length
+  const b = html.indexOf('</script>', start)
+  return b === -1 ? '' : html.slice(start, b)
+}
+
+console.log('\n[6] index.html 注入：结构化注入行（源: ' + REAL_INDEX.path + '）')
 const before = REAL_INDEX.html
-const after = TAPS[0](before)
-check('注入了 splash.css <link>', after.includes('<link rel="stylesheet" href="/dsh-startup/splash.css">'))
-check('注入了首屏兜底 <style>', after.includes('id="dsh-startup-critical"') && after.includes('dsu-boot'))
-check('注入了挂载点 div', after.includes('<div id="dsh-startup-root" class="dsu-root dsu-boot">'))
-check('注入了 window.__DSH_STARTUP__ 配置', /^\{"enabled":/.test(inlinePayload(after)), inlinePayload(after).slice(0, 60))
+const rows = collectRows()
+check('发出了注入行（8 条）', rows.length === 8, String(rows.length))
+check('行表里有 style 行（首帧黑幕）', rows.some((r) => r.kind === 'style' && r.text.includes('#dsh-startup-root.dsu-boot')))
+check('行表里有 splash.css 的 head 行', rows.some((r) => r.kind === 'html' && r.placement === 'head' && r.html.includes('/dsh-startup/splash.css')))
+check('行表里有三个 global 行（BOOT / VERSION / 配置）',
+  rows.filter((r) => r.kind === 'global').length === 3 &&
+  rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_BOOT__' && r.value === 'index') &&
+  rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_VERSION__') &&
+  rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP__'))
+check('行表里有挂载点 / 兜底脚本 / 运行时脚本',
+  rows.some((r) => r.kind === 'html' && r.html.includes('<div id="dsh-startup-root" class="dsu-root dsu-boot">')) &&
+  rows.some((r) => r.kind === 'script' && r.text.includes('__DSH_STARTUP_SKIP__')) &&
+  rows.some((r) => r.kind === 'html' && r.html.includes('<script defer src="/dsh-startup/splash.js"></script>')))
+
+const after = renderRows(before, rows)
+check('渲染后注入了 splash.css <link>', after.includes('<link rel="stylesheet" href="/dsh-startup/splash.css">'))
+check('渲染后注入了首屏兜底 <style>', after.includes('#dsh-startup-root.dsu-boot{position:fixed'))
+check('渲染后注入了挂载点 div', after.includes('<div id="dsh-startup-root" class="dsu-root dsu-boot">'))
+check('渲染后注入了 __DSH_STARTUP__ 配置', /^\{"enabled":/.test(inlinePayload(after)), inlinePayload(after).slice(0, 60))
 check('内联载荷是合法 JSON', (() => { try { JSON.parse(inlinePayload(after)); return true } catch { return false } })())
 /* 设置面板顶部的版本号：Host 从自己的 package.json 读出来，再交给浏览器半侧 */
 const pkgVersion = JSON.parse(fs.readFileSync(path.join(PLUGIN_ROOT, 'package.json'), 'utf8')).version
-check('注入了 window.__DSH_STARTUP_VERSION__', after.includes('window.__DSH_STARTUP_VERSION__='), '')
-check('注入的版本号 = package.json 的 version', after.includes('window.__DSH_STARTUP_VERSION__=' + JSON.stringify(pkgVersion)), pkgVersion)
+check('注入了 __DSH_STARTUP_VERSION__', after.includes('globalThis["__DSH_STARTUP_VERSION__"] ='), '')
+check('注入的版本号 = package.json 的 version', after.includes('globalThis["__DSH_STARTUP_VERSION__"] = ' + JSON.stringify(pkgVersion)), pkgVersion)
 check('注入了 defer 运行时脚本', after.includes('<script defer src="/dsh-startup/splash.js"></script>'))
-check('配置落在 </head> 之前', after.indexOf('dsh-startup-critical') < after.indexOf('</head>'))
+check('配置落在 </head> 之前', after.indexOf('#dsh-startup-root.dsu-boot') < after.indexOf('</head>'))
 check('挂载点紧跟 <body>', /<body>\s*<div id="dsh-startup-root"/.test(after))
-check('幂等：二次调用不重复注入', TAPS[0](after) === after)
+check('幂等：行表已注入后 tapIndex 变成无操作', TAPS[0](after) === after)
 check('原 <div id="root"></div> 仍在（应用照常挂载）', after.includes('<div id="root"></div>'))
 check('内联载荷里没有裸的 < （防 </script> 提前闭合）', !inlinePayload(after).includes('<'))
 
 console.log('\n[7] XSS 边界：身份名称里的尖括号不会逃出内联脚本')
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { identity: '</script><img src=x onerror=alert(1)>' } }))
-const payload = inlinePayload(TAPS[0](before))
-check('尖括号被转义成 \\u003c', payload.includes('\\u003c'), payload.slice(0, 120))
+const payload = inlinePayload(renderRows(before, collectRows()))
+check('尖括号被转义成 \\u003c', payload.includes(BS + 'u003c'), payload.slice(0, 120))
 check('载荷里没有 </script>', !payload.includes('</script>'))
 check('转义后仍是合法 JSON 且值可还原', (() => {
   try { return JSON.parse(payload).identity === '</script><img src=x onerror=alert(1)>' } catch { return false }
