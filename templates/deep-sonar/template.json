@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "id": "deep-sonar",
+  "name": "深海声呐",
+  "author": "大肥鱼（AI）· LeeRolling",
+  "homepage": "https://github.com/LeeRolling/dsh-boot-suite",
+  "license": "MIT",
+  "version": "0.5.0",
+  "description": "深海军蓝底 + 声呐下潜叙事。和「档案暖白」是完全相反的两条美学路线：一个是纸质档案，一个是深海仪器。",
+  "tags": [
+    "dark",
+    "sonar",
+    "terminal",
+    "deepsea"
+  ],
+  "theme": {
+    "mode": "dark",
+    "bg": "#060b12",
+    "bg2": "#0a1622",
+    "ink": "#dff1ff",
+    "inkSoft": "#a9c6dd",
+    "muted": "#6f8ea6",
+    "hair": "rgba(90,180,240,0.18)",
+    "hairSoft": "rgba(90,180,240,0.08)",
+    "accent": "#37e0ff",
+    "glitchA": "#ff4d6d",
+    "glitchB": "#2b6cff"
+  },
+  "steps": [
+    {
+      "zh": "建立下潜通道",
+      "en": "ESTABLISHING DESCENT CHANNEL",
+      "say": "Establishing descent channel.",
+      "audio": "line-1",
+      "log": "正在建立下潜通道…",
+      "logEn": "LINKING TO HOST VESSEL",
+      "badge": "DESCENT",
+      "action": "grant",
+      "btnZh": "授权下潜",
+      "btnEn": "AUTHORIZE DESCENT",
+      "hold": 900
+    },
+    {
+      "zh": "核验操作员",
+      "en": "VERIFYING OPERATOR",
+      "say": "Verifying operator.",
+      "audio": "line-2",
+      "log": "核对操作员记录…",
+      "logEn": "MATCHING OPERATOR RECORD",
+      "badge": "IDENTITY",
+      "action": "confirm",
+      "btnZh": "确认身份",
+      "btnEn": "CONFIRM IDENTITY",
+      "hold": 700
+    },
+    {
+      "zh": "声呐校准",
+      "en": "SONAR CALIBRATION",
+      "say": "Calibrating sonar array.",
+      "audio": "line-3",
+      "log": "校准换能器阵列…",
+      "logEn": "ALIGNING TRANSDUCER ARRAY",
+      "badge": "SONAR",
+      "action": "auto",
+      "hold": 1200,
+      "assembleLogo": true
+    },
+    {
+      "zh": "扫描海域",
+      "en": "SWEEPING SECTOR",
+      "say": "Sweeping sector.",
+      "audio": "line-4",
+      "log": "扫描当前海域…",
+      "logEn": "SWEEPING CURRENT SECTOR",
+      "badge": "SWEEP",
+      "action": "auto",
+      "hold": 1200,
+      "hex": true
+    },
+    {
+      "zh": "信号锁定",
+      "en": "SIGNAL LOCKED",
+      "say": "Signal locked.",
+      "audio": "line-5",
+      "log": "目标信号已锁定，通道开启",
+      "logEn": "TARGET LOCKED · CHANNEL OPEN",
+      "badge": "LOCK",
+      "action": "auto",
+      "hold": 1600,
+      "reticle": true
+    }
+  ]
+}

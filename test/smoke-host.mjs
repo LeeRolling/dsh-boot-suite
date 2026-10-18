@@ -132,7 +132,7 @@ check('没有 Config 导出（普通对象不是 schemastery schema）', mod.Con
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 12 条路由（开机动画 5 + 聊天壁纸 7）', ROUTES.size === 12, [...ROUTES.keys()].join(' | '))
+check('注册了 13 条路由（开机动画 6 + 聊天壁纸 7）', ROUTES.size === 13, [...ROUTES.keys()].join(' | '))
 check('注册了 1 个 tapIndex', TAPS.length === 1)
 check('用了 ctx.effect 管理生命周期（开机动画 1 + 壁纸 7）', effects === 8, String(effects))
 
@@ -294,6 +294,13 @@ await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { templa
   const tplRow = rowsWithTpl.find((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_TEMPLATE__')
   check('选了模板时多一行 __DSH_STARTUP_TEMPLATE__（9 → 10）', rowsWithTpl.length === 10, String(rowsWithTpl.length))
   check('模板行带 id（来自插件自带 templates/）', !!tplRow && tplRow.value.id === 'archive-warm', tplRow && tplRow.value.id)
+}
+{
+  const r2 = await call('exact /dsh-startup/templates')
+  const list = JSON.parse(r2.body)
+  const ids = (list.templates || []).map((x) => x.id)
+  check('/dsh-startup/templates 列出内置模板', r2.statusCode === 200 && list.ok === true && ids.includes('archive-warm') && ids.includes('deep-sonar'), ids.join(','))
+  check('模板列表带 active 字段', typeof list.active === 'string')
 }
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: '../etc/passwd' } }))
 check('非法的模板 id 被忽略（不读文件、不多行）', collectRows().length === 9)
