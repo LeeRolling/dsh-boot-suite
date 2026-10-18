@@ -98,14 +98,30 @@ function check(name, ok, detail) {
   const b = await shot()
   check('画面在动（两帧不同）', a !== b)
 
-  /* 采样要够密：speed=3 时每一幕只有 300–500ms，400ms 采样会跳过中间幕 */
-  const seen = new Set([lineA])
-  for (let i = 0; i < 40; i++) {
-    seen.add(await ev('(document.querySelector(".dsu-status-zh")||{}).textContent || ""'))
-    await sleep(150)
+  /* 模型不同，断言不同：
+     - 分幕模板（steps[]）：状态行文案必须换过 ≥3 种
+     - 时间线模板（layers[]）：图层必须真的在建、且同一图层两时刻的透明度不同 */
+  const isTimeline = Array.isArray(tpl.layers) && tpl.layers.length > 0
+  if (isTimeline) {
+    const layers = await ev('document.querySelectorAll(".dsu-tl-layer").length')
+    check('时间线图层建出来了', Number(layers) >= 2, String(layers) + ' 层')
+    const snap = () => ev('[...document.querySelectorAll(".dsu-tl-layer")].map(function(n){var s=getComputedStyle(n);return s.opacity+"|"+s.transform}).join(";")')
+    const s1 = await snap()
+    await sleep(600)
+    const s2 = await snap()
+    check('图层状态随时间变化', s1 !== s2, (s1 === s2 ? '两帧完全相同' : '已变化'))
+    /* 时间线是按 duration 跑的，要等到它自己收尾 */
+    await sleep(Math.max(600, Number(tpl.duration || 6000) + 1400 - 2000))
+  } else {
+    /* 采样要够密：speed=3 时每一幕只有 300–500ms，400ms 采样会跳过中间幕 */
+    const seen = new Set([lineA])
+    for (let i = 0; i < 40; i++) {
+      seen.add(await ev('(document.querySelector(".dsu-status-zh")||{}).textContent || ""'))
+      await sleep(150)
+    }
+    seen.delete('')
+    check('分幕文案确实换过（>=3 种）', seen.size >= 3, [...seen].slice(0, 5).join(' / '))
   }
-  seen.delete('')
-  check('分幕文案确实换过（>=3 种）', seen.size >= 3, [...seen].slice(0, 5).join(' / '))
 
   const state = JSON.parse(await ev('JSON.stringify({root: !!document.getElementById("dsh-startup-root"), done: !!window.__DONE__, err: window.__ERR__})'))
   check('结束时根节点被移除', state.root === false)

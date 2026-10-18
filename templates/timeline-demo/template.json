@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 2,
+  "id": "timeline-demo",
+  "name": "时间线演示",
+  "author": "DeepSeek",
+  "adaptedBy": "LeeRolling",
+  "license": "MIT",
+  "version": "0.1.0",
+  "description": "v2 时间线模板的第一个样例：四个图层用关键帧入场，扫描线与暗角作为叠层。给编辑器 M2 用的验收对象。",
+  "tags": [
+    "timeline",
+    "demo",
+    "dark"
+  ],
+  "duration": 5200,
+  "theme": {
+    "mode": "dark",
+    "bg": "#0a0d12",
+    "bg2": "#101722",
+    "ink": "#eef4ff",
+    "inkSoft": "#b9c9e0",
+    "muted": "#6d7f96",
+    "hair": "rgba(160,200,255,0.22)",
+    "hairSoft": "rgba(160,200,255,0.10)",
+    "accent": "#5cc8ff",
+    "glitchA": "#ff6b85",
+    "glitchB": "#5b95ff"
+  },
+  "effects": [
+    {
+      "type": "vignette"
+    },
+    {
+      "type": "scanline",
+      "opacity": 0.32
+    }
+  ],
+  "layers": [
+    {
+      "id": "title",
+      "type": "text",
+      "text": "时间线开始工作",
+      "pos": [
+        640,
+        320
+      ],
+      "font": {
+        "size": 46,
+        "weight": 500,
+        "tracking": 0.12
+      },
+      "keyframes": [
+        {
+          "t": 200,
+          "opacity": 0,
+          "offsetY": 26,
+          "scale": 0.985,
+          "ease": "outCubic"
+        },
+        {
+          "t": 1000,
+          "opacity": 1,
+          "offsetY": 0,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "rule",
+      "type": "line",
+      "pos": [
+        400,
+        392
+      ],
+      "width": 480,
+      "keyframes": [
+        {
+          "t": 700,
+          "reveal": 0,
+          "opacity": 1,
+          "ease": "outCubic"
+        },
+        {
+          "t": 1250,
+          "reveal": 1,
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "sub",
+      "type": "text",
+      "text": "TIMELINE IS ALIVE",
+      "pos": [
+        640,
+        430
+      ],
+      "font": {
+        "size": 14,
+        "weight": 400,
+        "tracking": 0.34
+      },
+      "color": "#8fb6d8",
+      "keyframes": [
+        {
+          "t": 950,
+          "opacity": 0,
+          "ease": "outCubic"
+        },
+        {
+          "t": 1500,
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "foot",
+      "type": "text",
+      "text": "DSH · LAYERS DEMO",
+      "pos": [
+        640,
+        646
+      ],
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.3
+      },
+      "color": "#5a748c",
+      "keyframes": [
+        {
+          "t": 1500,
+          "opacity": 0,
+          "ease": "linear"
+        },
+        {
+          "t": 2100,
+          "opacity": 1
+        },
+        {
+          "t": 4300,
+          "opacity": 1
+        },
+        {
+          "t": 4700,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "titleOut",
+      "type": "text",
+      "text": "时间线开始工作",
+      "pos": [
+        640,
+        320
+      ],
+      "font": {
+        "size": 46,
+        "weight": 500,
+        "tracking": 0.12
+      },
+      "keyframes": [
+        {
+          "t": 4300,
+          "opacity": 0,
+          "offsetY": 0,
+          "scale": 1,
+          "ease": "inCubic"
+        },
+        {
+          "t": 4700,
+          "opacity": 0,
+          "offsetY": -18,
+          "scale": 1
+        }
+      ]
+    }
+  ]
+}

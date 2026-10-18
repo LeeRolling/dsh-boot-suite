@@ -1233,3 +1233,20 @@
 }
 #dsh-startup-root.dsu-terminal .dsu-status { letter-spacing: 0.1em; }
 #dsh-startup-root.dsu-terminal .dsu-sub-en { letter-spacing: 0.22em; }
+/* ══ 时间线模板（v2：layers + 关键帧）═══════════════════════════════════ */
+#dsh-startup-root.dsu-tl { background: var(--dsu-bg); }
+#dsh-startup-root.dsu-tl > *:not(.dsu-tl-stage) { display: none !important; }
+.dsu-tl-stage { position: absolute; inset: 0; overflow: hidden; z-index: 20; }
+.dsu-tl-layer { position: absolute; will-change: transform, opacity; transform-origin: 50% 50%; }
+.dsu-tl-text { font-family: var(--dsu-din); line-height: 1.15; }
+.dsu-tl-line { height: 1px; background: var(--dsu-hair); transform-origin: left center; }
+.dsu-tl-image { background-size: contain; background-repeat: no-repeat; background-position: center; }
+.dsu-tl-scanline {
+  position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(180deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 3px);
+  mix-blend-mode: overlay;
+}
+.dsu-tl-vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%);
+}
