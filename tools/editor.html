@@ -1633,10 +1633,27 @@
     if (!Array.isArray(tpl.segments)) tpl.segments = []
     if (tpl.segments.length >= 12) { say('分段最多 12 个', 'err'); return }
     var d = tlDur()
-    var last = tpl.segments.length ? tpl.segments[tpl.segments.length - 1].to : 0
-    var from = Math.min(d - 200, last)
-    var to = Math.min(d, from + 2000)
-    tpl.segments.push({ name: '第 ' + (tpl.segments.length + 1) + ' 幕', from: from, to: to })
+    var ph = tl.playhead
+    /* 播放头落在某一幕中间 → 就在这里把它拆成两幕（往前加幕） */
+    var hit = null
+    for (var si = 0; si < tpl.segments.length; si++) {
+      var sg = tpl.segments[si]
+      if (ph > sg.from + 100 && ph < sg.to - 100) { hit = sg; break }
+    }
+    if (hit) {
+      var tail = { name: hit.name + ' · 后段', from: ph, to: hit.to }
+      hit.to = ph
+      hit.name = hit.name + ' · 前段'
+      tpl.segments.push(tail)
+      tpl.segments.sort(function (a, b) { return a.from - b.from })
+      say('已在播放头处拆幕（' + (ph / 1000).toFixed(2) + 's）', 'ok')
+    } else {
+      var last = tpl.segments.length ? Math.max.apply(null, tpl.segments.map(function (s) { return s.to })) : 0
+      var from = Math.min(d - 200, last)
+      var to = Math.min(d, from + 2000)
+      tpl.segments.push({ name: '第 ' + (tpl.segments.length + 1) + ' 幕', from: from, to: to })
+      say('已在末尾追加一幕', 'ok')
+    }
     renderTlPanel(); renderTlTracks(); tlSync()
   }
 
