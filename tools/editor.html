@@ -88,6 +88,8 @@
   .stageWrap { position:relative; flex:1 1 auto; min-height:0; }
   .stageWrap iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
   #tlCanvasHit { position:absolute; inset:0; z-index:4; cursor:crosshair; }
+  #tlSelBox { position:absolute; z-index:5; pointer-events:none; border:1px solid var(--accent); border-radius:2px; }
+  #tlSelBox span { position:absolute; left:0; bottom:100%; margin-bottom:2px; padding:1px 6px; font-size:11px; white-space:nowrap; background:var(--accent); color:#fff; border-radius:3px; }
   #tlCanvasHit.hidden { display:none; }
   .tlbar-row { display:flex; align-items:center; gap:var(--sp-2); margin-bottom:var(--sp-2); font-size:var(--fs-sm); color:var(--dim); }
   .tlbar-row .sp { flex:1; }
@@ -173,6 +175,7 @@
     <div class="stageWrap">
       <iframe id="frame" src="about:blank"></iframe>
       <div id="tlCanvasHit" hidden></div>
+      <div id="tlSelBox" hidden><span></span></div>
     </div>
     <div class="tlbar" id="tlbar" hidden>
       <div class="tlbar-row">
@@ -180,6 +183,7 @@
         <button id="tlPause" class="mini">⏸</button>
         <span class="tlclock" id="tlclock">0.00s / 0.00s</span>
         <label class="tllbl">时长 <input id="tlDur" type="number" min="600" max="30000" step="100"></label>
+        <label class="tllbl">当前图层 <select id="tlLayerPick" style="width:170px"></select></label>
         <span class="sp"></span>
         <button id="tlAddKf" class="mini">◆ 打关键帧</button>
         <button id="tlAddLayer" class="mini">+ 图层</button>
@@ -428,7 +432,7 @@
       if (!r || !r.ok) { say('预览失败：' + ((r && r.error) || '未知'), 'err'); return }
       if (mySeq !== draftSeq) return   /* 后面还有更新的请求，这次结果作废 */
       draftId = r.id
-      var q = '?id=' + draftId + '&t=' + Date.now()
+      var q = '?id=' + draftId + '&edit=1&t=' + Date.now()
       if (typeof opts.start === 'number') q += '&start=' + opts.start
       if (typeof opts.count === 'number') q += '&count=' + opts.count
       frame.src = API + '/editor/preview' + q
@@ -620,14 +624,14 @@
     var d = tlDur()
     tl.playhead = Math.max(0, Math.min(d, Math.round(ms)))
     var api = frameApi()
-    if (api) {
-      try { api.pause() } catch (e) { /* noop */ }
-      try { api.seek(tl.playhead) } catch (e2) { /* noop */ }
-    }
+    if (!api) { pushDraft(); return }   /* 预览已经被卸掉了：重新载一份再 seek */
+    try { api.pause() } catch (e) { /* noop */ }
+    try { api.seek(tl.playhead) } catch (e2) { /* noop */ }
     var c = document.getElementById('tlclock'); if (c) c.textContent = tlClockText()
     var pct = (tl.playhead / d * 100) + '%'
     var ph = document.getElementById('tlplayhead'); if (ph) ph.style.left = pct
     var hd3 = document.getElementById('tlhead'); if (hd3) hd3.style.left = pct
+    updateSelBox()
   }
 
   /** 在播放头处取某图层的属性值（用于属性面板显示与打点） */
@@ -664,6 +668,62 @@
   }
 
   function tlSortKf(layer) { if (layer && Array.isArray(layer.keyframes)) layer.keyframes.sort(function (a, b) { return a.t - b.t }) }
+
+  /* ── 画布上的选中框 ─────────────────────────────────────── */
+  function updateSelBox() {
+    var box = document.getElementById('tlSelBox')
+    if (!box) return
+    var L = tlLayers()[tl.selected]
+    if (!tlView || !L) { box.hidden = true; return }
+    var label = box.querySelector('span')
+    if (label) label.textContent = (L.text || L.id || L.type || '图层') + (L.type ? '  ·  ' + L.type : '')
+    var placed = false
+    try {
+      var doc = frame.contentDocument
+      var el = doc && doc.querySelector('[data-layer="' + ((L.id || '').replace(/"/g, '')) + '"]')
+      if (el) {
+        var r = el.getBoundingClientRect()
+        box.style.left = Math.round(r.left) + 'px'
+        box.style.top = Math.round(r.top) + 'px'
+        box.style.width = Math.round(r.width) + 'px'
+        box.style.height = Math.round(r.height) + 'px'
+        placed = true
+      }
+    } catch (e) { /* iframe 还没起来 */ }
+    if (!placed) {
+      var fr = frame.getBoundingClientRect()
+      var s = Math.min(fr.width / 1280, fr.height / 720)
+      var ox = (fr.width - 1280 * s) / 2, oy = (fr.height - 720 * s) / 2
+      var p = (L.pos && L.pos.length) ? L.pos : [640, 360]
+      var w = (L.size && L.size[0]) ? L.size[0] : 240
+      var h = (L.size && L.size[1]) ? L.size[1] : 48
+      box.style.left = Math.round(ox + (p[0] - w / 2) * s) + 'px'
+      box.style.top = Math.round(oy + (p[1] - h / 2) * s) + 'px'
+      box.style.width = Math.round(w * s) + 'px'
+      box.style.height = Math.round(h * s) + 'px'
+    }
+    box.hidden = false
+  }
+
+  /* 缓动曲线缩略图（12×36 采样画成 SVG） */
+  var EASE_FNS = {
+    linear: function (t) { return t },
+    inCubic: function (t) { return t * t * t },
+    outCubic: function (t) { return 1 - Math.pow(1 - t, 3) },
+    inOutCubic: function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2 },
+    outQuint: function (t) { return 1 - Math.pow(1 - t, 5) },
+    outBack: function (t) { var c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2) }
+  }
+  function easePreview(name) {
+    var fn = EASE_FNS[name] || EASE_FNS.outCubic
+    var pts = []
+    for (var i = 0; i <= 12; i++) {
+      var t = i / 12
+      var y = fn(t)
+      pts.push((t * 54 + 3).toFixed(1) + ',' + ((1 - Math.max(-0.15, Math.min(1.15, y))) * 34 + 3).toFixed(1))
+    }
+    return '<svg width="60" height="40" viewBox="0 0 60 40"><polyline fill="none" stroke="#5cc8ff" stroke-width="1.5" points="' + pts.join(' ') + '"/></svg>'
+  }
 
   /* ── 右侧面板：图层列表 + 属性 ─────────────────────────────── */
   function renderTlPanel() {
@@ -735,20 +795,67 @@
     if (L.type === 'line') numField('展开', 'reveal', 0, 1, 0.01, 1)
     side.appendChild(grid)
 
-    /* 当前时刻如果有帧，给它挑缓动曲线（M2.5） */
-    var kfHere = null
-    ;(L.keyframes || []).forEach(function (k) { if (!kfHere && Math.abs(k.t - tl.playhead) <= 12) kfHere = k })
+    /* 关键帧块：点轨道上的菱形才会出现（不再靠"播放头刚好落在帧上"） */
+    var kfsArr = L.keyframes || []
+    var kfHere = (tl.kfSel >= 0 && kfsArr[tl.kfSel]) ? kfsArr[tl.kfSel] : null
+    if (!kfHere) {
+      var tip = document.createElement('div'); tip.className = 'hint'
+      tip.textContent = '想调过渡曲线？点上方的菱形选中一个关键帧，这里会出现「从这一帧到下一帧」的曲线。'
+      side.appendChild(tip)
+    }
     if (kfHere) {
-      var ef = document.createElement('div'); ef.className = 'field'
-      var el2 = document.createElement('label'); el2.textContent = '这一帧到下一帧的曲线'
+      var kfBox = document.createElement('div')
+      kfBox.style.cssText = 'border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:8px'
+      var kfTitle = document.createElement('div')
+      kfTitle.style.cssText = 'font-size:12px;color:var(--ink);margin-bottom:6px'
+      kfTitle.textContent = '关键帧 #' + (tl.kfSel + 1) + ' · ' + (kfHere.t / 1000).toFixed(2) + 's'
+      kfBox.appendChild(kfTitle)
+
+      var rowT = document.createElement('div'); rowT.className = 'field'
+      var lbT = document.createElement('label'); lbT.textContent = '这一帧的时刻（ms）'
+      var inT = document.createElement('input'); inT.type = 'number'; inT.min = 0; inT.max = tlDur(); inT.step = 10; inT.value = kfHere.t
+      inT.onchange = function () {
+        kfHere.t = Math.max(0, Math.min(tlDur(), Number(inT.value) || 0))
+        tlSortKf(L); tl.selected2 = 0; tl.kfSel = L.keyframes.indexOf(kfHere)
+        seekTo(kfHere.t); tlSync(); renderTlTracks(); renderTlPanel()
+      }
+      rowT.appendChild(lbT); rowT.appendChild(inT); kfBox.appendChild(rowT)
+
+      var rowE = document.createElement('div'); rowE.className = 'field'
+      var lbE = document.createElement('label'); lbE.textContent = '从这一帧到下一帧'
+      var wrapE = document.createElement('div'); wrapE.style.cssText = 'display:flex;gap:8px;align-items:center'
       var sel = document.createElement('select')
       ;[['outCubic', '先快后慢（默认）'], ['inOutCubic', '两头慢中间快'], ['linear', '匀速'], ['outQuint', '很快到、慢慢停'], ['outBack', '带一点回弹'], ['inCubic', '先慢后快']].forEach(function (o) {
         var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]
         if ((kfHere.ease || 'outCubic') === o[0]) op.selected = true
         sel.appendChild(op)
       })
-      sel.onchange = function () { kfHere.ease = sel.value; tlSync(); say('曲线已改', 'ok') }
-      ef.appendChild(el2); ef.appendChild(sel); side.appendChild(ef)
+      var curveBox = document.createElement('div')
+      curveBox.innerHTML = easePreview(kfHere.ease || 'outCubic')
+      sel.onchange = function () {
+        kfHere.ease = sel.value
+        curveBox.innerHTML = easePreview(sel.value)
+        tlSync()
+        say('曲线已改：' + sel.options[sel.selectedIndex].textContent, 'ok')
+      }
+      wrapE.appendChild(sel); wrapE.appendChild(curveBox)
+      rowE.appendChild(lbE); rowE.appendChild(wrapE); kfBox.appendChild(rowE)
+
+      var playSeg = document.createElement('button')
+      playSeg.className = 'mini'
+      playSeg.textContent = '▶ 试播这一段'
+      playSeg.onclick = function () {
+        var api = frameApi()
+        seekTo(kfHere.t)
+        var next = (L.keyframes || [])[tl.kfSel + 1]
+        var segMs = next ? (next.t - kfHere.t) : 700
+        if (api && api.resume) {
+          try { api.resume() } catch (e2) { /* noop */ }
+          setTimeout(function () { try { api.pause() } catch (e3) { /* noop */ } }, Math.max(300, segMs))
+        }
+      }
+      kfBox.appendChild(playSeg)
+      side.appendChild(kfBox)
     }
 
     if (L.type === 'text') {
@@ -808,7 +915,7 @@
       var nm = document.createElement('div'); nm.className = 'tlname'
       nm.innerHTML = '<span class="dot"></span>'
       nm.appendChild(document.createTextNode((L.text || L.id || L.type || '层')))
-      nm.onclick = function () { tl.selected = i; renderTlPanel(); renderTlTracks() }
+      nm.onclick = function () { tl.selected = i; tl.kfSel = -1; renderTlPanel(); renderTlTracks() }
       var lane = document.createElement('div'); lane.className = 'tllane'
       lane.onmousedown = function (ev) {
         tl.selected = i
@@ -831,7 +938,12 @@
             tlSortKf(L)
             seekTo(t2)
           }
-          function up() { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); tlSync(); renderTlTracks(); renderTlPanel() }
+          function up() {
+        document.removeEventListener('mousemove', move)
+        document.removeEventListener('mouseup', up)
+        tl.kfSel = (L.keyframes || []).indexOf(k)
+        tlSync(); renderTlTracks(); renderTlPanel()
+      }
           document.addEventListener('mousemove', move)
           document.addEventListener('mouseup', up)
         }
@@ -839,9 +951,25 @@
       })
       row.appendChild(nm); row.appendChild(lane); tracks.appendChild(row)
     })
+    var pick = document.getElementById('tlLayerPick')
+    if (pick) {
+      pick.innerHTML = ''
+      tlLayers().forEach(function (L2, i2) {
+        var op2 = document.createElement('option'); op2.value = String(i2)
+        op2.textContent = (i2 + 1) + '. ' + (L2.text || L2.id || L2.type || '图层')
+        if (i2 === tl.selected) op2.selected = true
+        pick.appendChild(op2)
+      })
+      pick.onchange = function () {
+        tl.selected = Number(pick.value) || 0
+        tl.kfSel = -1
+        renderTlPanel(); renderTlTracks(); updateSelBox()
+      }
+    }
     var pct2 = (tl.playhead / d * 100) + '%'
     var ph = document.getElementById('tlplayhead'); if (ph) ph.style.left = pct2
     var hd4 = document.getElementById('tlhead'); if (hd4) hd4.style.left = pct2
+    updateSelBox()
   }
 
   /** 任意点击/拖动时间线 → 播放头跳过去（用刻度尺的横向映射，与轨道对齐） */
@@ -936,6 +1064,7 @@
         var p2 = canvasToLogical(e2)
         L.pos = [Math.round(Math.max(0, Math.min(1280, p2.x - startX))), Math.round(Math.max(0, Math.min(720, p2.y - startY)))]
         renderTlPanel()   /* 拖动中只更新面板数字，松手才让预览重载 */
+        updateSelBox()
       }
       function up2() { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up2); tlSync(); renderTlTracks() }
       document.addEventListener('mousemove', move)
