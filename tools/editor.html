@@ -1315,6 +1315,33 @@
     hitBound = true
     hit.onmousedown = function (ev) {
       var pt = canvasToLogical(ev)
+      /* 地球层：拖动 = 旋转（改 rotation0 / tilt），不挪位置 */
+      var cur = tlLayers()[tl.selected]
+      if (cur && cur.type === 'globe') {
+        var gp = (cur.pos && cur.pos.length) ? cur.pos : [640, 360]
+        var gr = (Number(cur.logoSize) || 520) / 2
+        if (Math.pow(pt.x - gp[0], 2) + Math.pow(pt.y - gp[1], 2) <= gr * gr) {
+          ev.preventDefault()
+          var lx = ev.clientX, ly = ev.clientY, syncAt = 0
+          function rotMove(e2) {
+            cur.rotation0 = Number(cur.rotation0 || -0.32) + (e2.clientX - lx) * 0.009
+            var t2 = Number(cur.tilt || 0.12) + (e2.clientY - ly) * 0.006
+            cur.tilt = Math.max(-1.1, Math.min(1.1, t2))
+            lx = e2.clientX; ly = e2.clientY
+            var now2 = Date.now()
+            if (now2 - syncAt > 220) { syncAt = now2; tlSync() }   /* 节流：别把预览重载成幻灯片 */
+          }
+          function rotUp() {
+            document.removeEventListener('mousemove', rotMove)
+            document.removeEventListener('mouseup', rotUp)
+            tlSync(); renderTlPanel()
+            say('地球视角已改：起始经度 ' + Number(cur.rotation0).toFixed(2) + ' / 倾角 ' + Number(cur.tilt).toFixed(2), 'ok')
+          }
+          document.addEventListener('mousemove', rotMove)
+          document.addEventListener('mouseup', rotUp)
+          return
+        }
+      }
       var idx = tlPickLayer(pt.x, pt.y)
       if (idx < 0) return
       ev.preventDefault()
