@@ -195,6 +195,7 @@
         <button id="tlAddLayer" class="mini">+ 图层</button>
         <button id="tlAddSeg" class="mini">+ 分段</button>
         <button id="tlAddBlocks" class="mini">+ 方块</button>
+        <button id="tlAddLogo" class="mini">+ 鲸鱼</button>
       </div>
       <div class="tlruler" id="tlruler"><div class="tlplayhead" id="tlplayhead"></div></div>
       <div class="tltracks" id="tltracks"></div>
@@ -688,7 +689,7 @@
     for (var i = 0; i < kfs.length; i++) if (Math.abs(kfs[i].t - tl.playhead) <= 12) { hit = kfs[i]; break }
     if (!hit) {
       hit = { t: tl.playhead }
-      var props = ['opacity', 'offsetX', 'offsetY', 'scale', 'rotate', 'reveal', 'assemble']
+      var props = ['opacity', 'offsetX', 'offsetY', 'scale', 'rotate', 'reveal', 'assemble', 'draw']
       for (var p = 0; p < props.length; p++) {
         var v = valueAt(layer, props[p], undefined)
         if (v !== undefined) hit[props[p]] = v
@@ -851,6 +852,7 @@
     numField('纵向位移', 'offsetY', -400, 400, 1, 0)
     numField('旋转', 'rotate', -180, 180, 1, 0)
     if (L.type === 'line') numField('展开', 'reveal', 0, 1, 0.01, 1)
+    if (L.type === 'logo') numField('绘制进度', 'draw', 0, 1, 0.01, 1)
     side.appendChild(grid)
 
     /* 关键帧块：点轨道上的菱形才会出现（不再靠"播放头刚好落在帧上"） */
@@ -914,6 +916,16 @@
       }
       kfBox.appendChild(playSeg)
       side.appendChild(kfBox)
+    }
+
+    if (L.type === 'logo') {
+      var lf = document.createElement('div'); lf.className = 'field'
+      var llb = document.createElement('label')
+      var lcur = L.logoSize === undefined ? 260 : L.logoSize
+      llb.textContent = '鲸鱼尺寸（' + lcur + 'px）'
+      var lin = document.createElement('input'); lin.type = 'range'; lin.min = 80; lin.max = 620; lin.step = 10; lin.value = lcur
+      lin.oninput = function () { L.logoSize = Number(lin.value); llb.textContent = '鲸鱼尺寸（' + lin.value + 'px）'; tlSync() }
+      lf.appendChild(llb); lf.appendChild(lin); side.appendChild(lf)
     }
 
     if (L.type === 'blocks') {
@@ -1408,6 +1420,18 @@
     tl.selected = tpl.layers.length - 1
     tlSync(); renderTlPanel(); renderTlTracks()
   }
+  document.getElementById('tlAddLogo').onclick = function () {
+    if (!tpl) return
+    if (!Array.isArray(tpl.layers)) tpl.layers = []
+    tpl.layers.push({
+      id: 'logo-' + (tpl.layers.length + 1), type: 'logo', logoSize: 260,
+      pos: [640, 360],
+      keyframes: [{ t: 300, draw: 0, opacity: 1 }, { t: 2000, draw: 1, opacity: 1, ease: 'outCubic' }]
+    })
+    tl.selected = tpl.layers.length - 1
+    tlSync(); renderTlPanel(); renderTlTracks()
+  }
+
   document.getElementById('tlAddBlocks').onclick = function () {
     if (!tpl) return
     if (!Array.isArray(tpl.layers)) tpl.layers = []
