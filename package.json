@@ -25,6 +25,7 @@
   "files": [
     "lib",
     "templates",
+    "tools",
     "test",
     "preview/index.html",
     "open-preview.sh",

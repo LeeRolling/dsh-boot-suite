@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>启动动画 · 模板编辑器</title>
+<style>
+  :root {
+    --bg:#14161a; --panel:#1b1e24; --line:#2a2f38; --ink:#e8ecf2; --dim:#9aa4b2;
+    --accent:#3964fe; --ok:#31c48d; --err:#f06a6a;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:13px/1.6 "Segoe UI","Microsoft YaHei",sans-serif; }
+  header { display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid var(--line); background:var(--panel); position:sticky; top:0; z-index:5; }
+  header h1 { font-size:14px; margin:0 12px 0 0; font-weight:600; letter-spacing:.02em; }
+  header .sp { flex:1; }
+  button { background:#242932; color:var(--ink); border:1px solid var(--line); border-radius:7px; padding:6px 12px; font:inherit; cursor:pointer; }
+  button:hover { border-color:#3d4654; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.danger { border-color:#5a2a2a; color:#f0a0a0; }
+  main { display:flex; height:calc(100vh - 53px); }
+  .preview { flex:1.15; border-right:1px solid var(--line); display:flex; flex-direction:column; min-width:0; }
+  .preview iframe { flex:1; border:0; background:#000; width:100%; }
+  .preview .bar { padding:6px 10px; color:var(--dim); border-top:1px solid var(--line); font-size:12px; }
+  .side { width:460px; overflow:auto; padding:14px 16px 60px; }
+  h2 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); margin:18px 0 8px; }
+  h2:first-child { margin-top:0; }
+  .row { display:flex; gap:8px; align-items:center; }
+  .field { margin:7px 0; }
+  .field > label { display:block; font-size:11px; color:var(--dim); margin-bottom:3px; }
+  input[type=text], input[type=number], select, textarea {
+    width:100%; background:#101318; color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:5px 8px; font:inherit;
+  }
+  input[type=color] { width:34px; height:26px; padding:0; border:1px solid var(--line); border-radius:6px; background:transparent; }
+  .colors { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .colors .field { display:flex; align-items:center; gap:8px; }
+  .colors .field label { margin:0; flex:0 0 74px; }
+  .step { border:1px solid var(--line); border-radius:9px; margin:10px 0; background:var(--panel); }
+  .step > .head { display:flex; align-items:center; gap:6px; padding:7px 10px; border-bottom:1px solid var(--line); }
+  .step > .head b { flex:1; font-weight:600; font-size:12px; }
+  .step > .body { padding:8px 10px 10px; }
+  .step .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .flags { display:flex; gap:14px; flex-wrap:wrap; margin-top:6px; font-size:12px; color:var(--dim); }
+  .flags label { display:flex; align-items:center; gap:5px; }
+  .mini { padding:2px 7px; font-size:12px; border-radius:6px; }
+  #status { position:fixed; right:16px; bottom:14px; padding:7px 12px; border-radius:8px; background:#222833; border:1px solid var(--line); color:var(--dim); opacity:0; transition:opacity .2s; max-width:60vw; }
+  #status.show { opacity:1; }
+  #status.ok { border-color:#1f6b4c; color:var(--ok); }
+  #status.err { border-color:#6b2a2a; color:var(--err); }
+  .hint { color:var(--dim); font-size:12px; margin:6px 0 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>启动动画 · 模板编辑器</h1>
+  <select id="pick" style="width:220px"><option value="">载入模板…</option></select>
+  <button id="load">载入</button>
+  <button id="replay">重播预览</button>
+  <span class="sp"></span>
+  <button id="download">下载 JSON</button>
+  <button id="save" class="primary">保存到本地</button>
+</header>
+
+<main>
+  <section class="preview">
+    <iframe id="frame" src="about:blank"></iframe>
+    <div class="bar" id="pbar">还没生成预览</div>
+  </section>
+  <aside class="side" id="side"></aside>
+</main>
+<div id="status"></div>
+
+<script>
+(function () {
+  var API = '/dsh-startup'
+  var tpl = null
+  var draftId = ''
+  var timer = 0
+  var side = document.getElementById('side')
+  var frame = document.getElementById('frame')
+  var pbar = document.getElementById('pbar')
+  var status = document.getElementById('status')
+
+  function say(msg, kind) {
+    status.textContent = msg
+    status.className = 'show ' + (kind || '')
+    clearTimeout(say._t)
+    say._t = setTimeout(function () { status.className = '' }, 3200)
+  }
+
+  function json(url, init) {
+    return fetch(API + url, init).then(function (r) { return r.json() })
+  }
+
+  function esc(v) { return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }
+
+  function get(path) {
+    var parts = path.split('.'), cur = tpl
+    for (var i = 0; i < parts.length; i++) { if (cur == null) return undefined; cur = cur[parts[i]] }
+    return cur
+  }
+  function set(path, value) {
+    var parts = path.split('.'), cur = tpl
+    for (var i = 0; i < parts.length - 1; i++) {
+      var k = parts[i]
+      if (cur[k] == null || typeof cur[k] !== 'object') cur[k] = /^\d+$/.test(parts[i + 1]) ? [] : {}
+      cur = cur[k]
+    }
+    cur[parts[parts.length - 1]] = value
+    scheduleDraft()
+  }
+
+  /* 输入框绑定：改完不重绘整张表单（否则会丢焦点），只更新状态 + 排一次预览 */
+  function bindText(el, path, numeric) {
+    el.value = get(path) == null ? '' : get(path)
+    el.addEventListener('input', function () {
+      set(path, numeric ? (Number(el.value) || 0) : el.value)
+      if (path.indexOf('steps.') === 0 && /(zh|badge|en)$/.test(path)) updateStepTitle(path.split('.')[1])
+    })
+  }
+  function updateStepTitle(i) {
+    var box = side.querySelector('[data-step-title="' + i + '"]')
+    if (box) box.textContent = '第 ' + (Number(i) + 1) + ' 幕 · ' + (get('steps.' + i + '.zh') || '（未命名）')
+  }
+
+  function field(label, inputEl) {
+    var d = document.createElement('div')
+    d.className = 'field'
+    var l = document.createElement('label')
+    l.textContent = label
+    d.appendChild(l)
+    d.appendChild(inputEl)
+    return d
+  }
+
+  function renderColors() {
+    var keys = [['mode', '明暗模式'], ['bg', '底色'], ['bg2', '次级底色'], ['ink', '主文字'], ['inkSoft', '次级文字'], ['muted', '灰字'], ['hair', '纱（可 rgba）'], ['hairSoft', '细纱（可 rgba）'], ['accent', '强调色'], ['glitchA', '故障色 A'], ['glitchB', '故障色 B']]
+    var wrap = document.createElement('div')
+    wrap.className = 'colors'
+    if (!tpl.theme) tpl.theme = {}
+    keys.forEach(function (pair) {
+      var key = pair[0], label = pair[1]
+      var d = document.createElement('div')
+      d.className = 'field'
+      var l = document.createElement('label'); l.textContent = label
+      d.appendChild(l)
+      if (key === 'mode') {
+        var sel = document.createElement('select')
+        ;[['light', '浅色版式'], ['dark', '深色版式']].forEach(function (o) {
+          var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]
+          if ((tpl.theme.mode || 'light') === o[0]) op.selected = true
+          sel.appendChild(op)
+        })
+        sel.onchange = function () { tpl.theme.mode = sel.value; scheduleDraft() }
+        d.appendChild(sel)
+      } else {
+        var inp = document.createElement('input')
+        inp.type = 'text'; inp.placeholder = '#rrggbb 或 rgba(...)'
+        inp.value = tpl.theme[key] || ''
+        inp.oninput = function () { tpl.theme[key] = inp.value; scheduleDraft() }
+        d.appendChild(inp)
+        if (/^#[0-9a-fA-F]{6}$/.test(inp.value)) {
+          var cp = document.createElement('input')
+          cp.type = 'color'; cp.value = inp.value
+          cp.oninput = function () { inp.value = cp.value; tpl.theme[key] = cp.value; scheduleDraft() }
+          d.appendChild(cp)
+        }
+      }
+      wrap.appendChild(d)
+    })
+    return wrap
+  }
+
+  function renderStep(step, i) {
+    var box = document.createElement('div')
+    box.className = 'step'
+    var head = document.createElement('div')
+    head.className = 'head'
+    var b = document.createElement('b')
+    b.setAttribute('data-step-title', String(i))
+    b.textContent = '第 ' + (i + 1) + ' 幕 · ' + (step.zh || '（未命名）')
+    head.appendChild(b)
+    var up = document.createElement('button'); up.className = 'mini'; up.textContent = '↑'
+    up.onclick = function () { if (i === 0) return; var a = tpl.steps; var t = a[i - 1]; a[i - 1] = a[i]; a[i] = t; render() }
+    var dn = document.createElement('button'); dn.className = 'mini'; dn.textContent = '↓'
+    dn.onclick = function () { var a = tpl.steps; if (i >= a.length - 1) return; var t = a[i + 1]; a[i + 1] = a[i]; a[i] = t; render() }
+    var del = document.createElement('button'); del.className = 'mini danger'; del.textContent = '✕'
+    del.onclick = function () { if (tpl.steps.length <= 1) { say('至少要留一幕', 'err'); return } tpl.steps.splice(i, 1); render() }
+    head.appendChild(up); head.appendChild(dn); head.appendChild(del)
+    box.appendChild(head)
+
+    var body = document.createElement('div')
+    body.className = 'body'
+    var g = document.createElement('div'); g.className = 'grid2'
+    function pair(label, key, numeric, ph) {
+      var inp = document.createElement('input'); inp.type = numeric ? 'number' : 'text'
+      if (ph) inp.placeholder = ph
+      bindText(inp, 'steps.' + i + '.' + key, numeric)
+      g.appendChild(field(label, inp))
+    }
+    pair('中文主字', 'zh', false, '需要访问许可')
+    pair('英文副标题', 'en', false, 'ACCESS PERMISSION REQUIRED')
+    pair('状态日志', 'log', false, '等待用户授权…')
+    pair('日志英文', 'logEn', false, 'AWAITING OPERATOR CONSENT')
+    pair('标记词', 'badge', false, 'AUTHORIZATION')
+    pair('停留毫秒', 'hold', true, '900')
+    body.appendChild(g)
+
+    var act = document.createElement('select')
+    ;[['auto', '自动过'], ['grant', '停下来等点击（授权）'], ['confirm', '停下来等点击（确认）']].forEach(function (o) {
+      var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]
+      if ((step.action || 'auto') === o[0]) op.selected = true
+      act.appendChild(op)
+    })
+    act.onchange = function () { step.action = act.value; scheduleDraft() }
+    body.appendChild(field('这一幕要操作吗', act))
+
+    var audio = document.createElement('select')
+    ;['', 'line-1', 'line-2', 'line-3', 'line-4', 'line-5', 'line-6'].forEach(function (v) {
+      var op = document.createElement('option'); op.value = v; op.textContent = v || '（不挂真声）'
+      if ((step.audio || '') === v) op.selected = true
+      audio.appendChild(op)
+    })
+    audio.onchange = function () { step.audio = audio.value; scheduleDraft() }
+    body.appendChild(field('真声素材槽', audio))
+
+    var flags = document.createElement('div')
+    flags.className = 'flags'
+    ;[['assembleLogo', '组装标识'], ['reticle', '准星'], ['hex', '六边形']].forEach(function (p) {
+      var lab = document.createElement('label')
+      var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = step[p[0]] === true
+      cb.onchange = function () { step[p[0]] = cb.checked; scheduleDraft() }
+      lab.appendChild(cb)
+      lab.appendChild(document.createTextNode(p[1]))
+      flags.appendChild(lab)
+    })
+    body.appendChild(flags)
+    box.appendChild(body)
+    return box
+  }
+
+  function render() {
+    side.innerHTML = ''
+    var h = document.createElement('h2'); h.textContent = '模板信息'; side.appendChild(h)
+    var info = document.createElement('div')
+    ;[['id', '模板 id（小写字母/数字/连字符）'], ['name', '显示名称'], ['author', '作者'], ['description', '一句话描述']].forEach(function (p) {
+      var inp = document.createElement('input'); inp.type = 'text'
+      bindText(inp, p[0], false)
+      info.appendChild(field(p[1], inp))
+    })
+    side.appendChild(info)
+
+    var h2 = document.createElement('h2'); h2.textContent = '配色'; side.appendChild(h2)
+    side.appendChild(renderColors())
+
+    var h3 = document.createElement('h2'); h3.textContent = '分幕（' + (tpl.steps || []).length + ' 幕）'; side.appendChild(h3)
+    ;(tpl.steps || []).forEach(function (s, i) { side.appendChild(renderStep(s, i)) })
+
+    var add = document.createElement('button')
+    add.textContent = '＋ 添加一幕'
+    add.onclick = function () {
+      if (!tpl.steps) tpl.steps = []
+      if (tpl.steps.length >= 24) { say('最多 24 幕', 'err'); return }
+      tpl.steps.push({ zh: '新的一幕', en: 'NEW ACT', log: '进行中…', logEn: 'IN PROGRESS', badge: 'ACT', action: 'auto', hold: 1200 })
+      render(); scheduleDraft()
+    }
+    side.appendChild(add)
+  }
+
+  function scheduleDraft() {
+    clearTimeout(timer)
+    pbar.textContent = '预览中…'
+    timer = setTimeout(pushDraft, 350)
+  }
+
+  function pushDraft() {
+    json('/editor/draft', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ template: tpl })
+    }).then(function (r) {
+      if (!r || !r.ok) { say('预览失败：' + ((r && r.error) || '未知'), 'err'); return }
+      draftId = r.id
+      frame.src = API + '/editor/preview?id=' + draftId + '&t=' + Date.now()
+      pbar.textContent = '预览：第 ' + ((tpl.steps || []).length) + ' 幕 · ' + (tpl.name || tpl.id || '')
+    }).catch(function (e) { say('预览失败：' + e.message, 'err') })
+  }
+
+  function loadTemplate(obj) {
+    tpl = obj
+    if (!Array.isArray(tpl.steps)) tpl.steps = [{}]
+    if (!tpl.theme) tpl.theme = {}
+    render(); scheduleDraft()
+  }
+
+  document.getElementById('replay').onclick = function () { if (tpl) pushDraft() }
+
+  document.getElementById('save').onclick = function () {
+    if (!tpl) return
+    json('/templates/save', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ template: tpl })
+    }).then(function (r) {
+      if (r && r.ok) say('已保存到本地：' + r.file, 'ok')
+      else say('保存失败：' + ((r && r.error) || '未知'), 'err')
+    }).catch(function (e) { say('保存失败：' + e.message, 'err') })
+  }
+
+  document.getElementById('download').onclick = function () {
+    if (!tpl) return
+    var blob = new Blob([JSON.stringify(tpl, null, 2)], { type: 'application/json' })
+    var a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = (tpl.id || 'template') + '.json'
+    a.click()
+    setTimeout(function () { URL.revokeObjectURL(a.href) }, 1000)
+  }
+
+  function refreshPick() {
+    json('/templates').then(function (r) {
+      var sel = document.getElementById('pick')
+      sel.innerHTML = '<option value="">载入模板…</option>'
+      ;((r && r.templates) || []).forEach(function (t) {
+        var op = document.createElement('option')
+        op.value = t.id
+        op.textContent = t.name + '（' + (t.source === 'user' ? '本地' : '内置') + '）'
+        sel.appendChild(op)
+      })
+    })
+  }
+  document.getElementById('load').onclick = function () {
+    var id = document.getElementById('pick').value
+    if (!id) { say('先选一个模板', 'err'); return }
+    fetch(API + '/preview-template?id=' + encodeURIComponent(id)).then(function (r) { return r.json() }).then(function (j) {
+      if (!j || !j.ok || !j.template) { say('读不到模板：' + ((j && j.error) || id), 'err'); return }
+      loadTemplate(j.template)
+      say('已载入 ' + id, 'ok')
+    }).catch(function (e) { say('读不到模板：' + e.message, 'err') })
+  }
+
+  refreshPick()
+  fetch(API + '/preview-template?id=archive-warm').then(function (r) { return r.json() }).then(function (j) {
+    if (j && j.ok && j.template) loadTemplate(j.template)
+  })
+})();
+</script>
+</body>
+</html>

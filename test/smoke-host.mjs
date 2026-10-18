@@ -132,7 +132,7 @@ check('没有 Config 导出（普通对象不是 schemastery schema）', mod.Con
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 13 条路由（开机动画 6 + 聊天壁纸 7）', ROUTES.size === 13, [...ROUTES.keys()].join(' | '))
+check('注册了 19 条路由（开机动画 12 + 聊天壁纸 7）', ROUTES.size === 19, [...ROUTES.keys()].join(' | '))
 check('注册了 1 个 tapIndex', TAPS.length === 1)
 check('用了 ctx.effect 管理生命周期（开机动画 1 + 壁纸 7）', effects === 8, String(effects))
 
@@ -304,7 +304,7 @@ await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { templa
   const r3 = await call('exact /dsh-startup/config')
   const cfgNow = JSON.parse(r3.body)
   check('/config 带上当前模板的整份数据（预览换模板用）',
-    !!cfgNow.template && cfgNow.template.id === 'archive-warm' && Array.isArray(cfgNow.template.steps) === false,
+    !!cfgNow.template && cfgNow.template.id === 'archive-warm' && Array.isArray(cfgNow.template.steps) && cfgNow.template.steps.length === 5,
     cfgNow.template && cfgNow.template.id)
   check('模板列表带 active 字段', typeof list.active === 'string')
 }
@@ -313,6 +313,28 @@ check('非法的模板 id 被忽略（不读文件、不多行）', collectRows(
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: 'no-such-template' } }))
 check('模板不存在时回落内置（不报错、不多行）', collectRows().length === 9)
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: '' } }))
+
+console.log('\n[6c] 编辑器：模板读写')
+{
+  const mine = { id: 'my-test', name: '测试模板', author: 'smoke', steps: [{ zh: '一', en: 'ONE' }, { zh: '二', en: 'TWO' }, { zh: '三', en: 'THREE' }] }
+  const saved = await call('exact /dsh-startup/templates/save', 'POST', JSON.stringify({ template: mine }))
+  const savedJson = JSON.parse(saved.body)
+  check('保存模板成功', saved.statusCode === 200 && savedJson.ok === true && savedJson.id === 'my-test', saved.body.slice(0, 120))
+  check('文件真的落到 ~/.dsh/startup-templates/ 下', fs.existsSync(path.join(SMOKE_HOME, 'startup-templates', 'my-test', 'template.json')))
+  const listUser = JSON.parse((await call('exact /dsh-startup/templates')).body)
+  const mineEntry = listUser.templates.find((x) => x.id === 'my-test')
+  check('列表里能看到它、且标成本地', !!mineEntry && mineEntry.source === 'user', JSON.stringify(mineEntry))
+  const preview = await call('exact /dsh-startup/preview-template', 'GET', undefined, '/dsh-startup/preview-template?id=my-test')
+  const pv = JSON.parse(preview.body)
+  check('按 id 能读回模板整份数据', preview.statusCode === 200 && pv.ok === true && pv.template.steps.length === 3)
+  const bad = await call('exact /dsh-startup/templates/save', 'POST', JSON.stringify({ template: { id: '../evil' } }))
+  check('非法 id 拒写（防目录穿越）', bad.statusCode === 400)
+  const editor = await call('exact /dsh-startup/editor')
+  check('编辑器页面能发出来', editor.statusCode === 200 && editor.body.includes('模板编辑器') && editor.body.includes('/dsh-startup'), editor.body.length + ' bytes')
+  const del = await call('exact /dsh-startup/templates/delete', 'POST', JSON.stringify({ id: 'my-test' }))
+  check('删除模板成功', del.statusCode === 200 && JSON.parse(del.body).ok === true)
+  check('文件确实删掉了', !fs.existsSync(path.join(SMOKE_HOME, 'startup-templates', 'my-test')))
+}
 
 console.log('\n[7] XSS 边界：身份名称里的尖括号不会逃出内联脚本')
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { identity: '</script><img src=x onerror=alert(1)>' } }))
