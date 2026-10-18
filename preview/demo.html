@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>dsh-boot-suite · 纯净演示页</title>
+<link rel="stylesheet" href="../lib/splash.css">
+<style>
+  html.dsu-lock, html.dsu-lock body { overflow: hidden !important; }
+  #dsh-startup-root.dsu-boot { position: fixed; inset: 0; z-index: 2147483000; background: #000; }
+  /* 截图 / 录屏用：不显示跳过按钮 */
+  .dsu-skip, .dsu-hint { display: none !important; }
+</style>
+</head>
+<body>
+<div id="dsh-startup-root" class="dsu-root dsu-boot"></div>
+<script>
+/* 最简配置：不要求交互、不播语音和音效 —— 纯视觉演示，方便截图/录屏 */
+window.__DSH_STARTUP__ = {
+  enabled: true, mode: 'always', theme: 'light', speed: 1,
+  requireInteraction: false, allowSkip: false,
+  sound: false, voice: false,
+  identity: 'JOYCE MOORE', identityId: '0087', accessLevel: '3',
+  accent: '#ff7500', glitchA: '#ff3b30', glitchB: '#2971b8'
+}
+</script>
+<script src="../lib/splash.js"></script>
+</body>
+</html>
