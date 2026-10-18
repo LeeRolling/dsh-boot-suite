@@ -91,10 +91,12 @@ function check(name, ok, detail) {
   const shot = async () => (await send('Page.captureScreenshot', { format: 'png' })).data
   const ev = async (expr) => (await send('Runtime.evaluate', { expression: expr, returnByValue: true })).result.value
 
-  await sleep(1200)
+  /* 采样点要早：不少模板 1 秒内就把入场演完了，晚采样会误判"没动" */
+  await sleep(420)
   const a = await shot()
   const lineA = await ev('(document.querySelector(".dsu-status-zh")||{}).textContent || ""')
-  await sleep(500)
+  const snapA = await ev('[...document.querySelectorAll(".dsu-tl-layer")].map(function(n){var s=getComputedStyle(n);return s.opacity+"|"+s.transform}).join(";")')
+  await sleep(900)
   const b = await shot()
   check('画面在动（两帧不同）', a !== b)
 
@@ -105,13 +107,9 @@ function check(name, ok, detail) {
   if (isTimeline) {
     const layers = await ev('document.querySelectorAll(".dsu-tl-layer").length')
     check('时间线图层建出来了', Number(layers) >= 2, String(layers) + ' 层')
-    const snap = () => ev('[...document.querySelectorAll(".dsu-tl-layer")].map(function(n){var s=getComputedStyle(n);return s.opacity+"|"+s.transform}).join(";")')
-    const s1 = await snap()
-    await sleep(600)
-    const s2 = await snap()
-    check('图层状态随时间变化', s1 !== s2, (s1 === s2 ? '两帧完全相同' : '已变化'))
-    /* 时间线是按 duration 跑的，要等到它自己收尾 */
-    await sleep(Math.max(600, Number(tpl.duration || 6000) + 1400 - 2000))
+    const s2 = await ev('[...document.querySelectorAll(".dsu-tl-layer")].map(function(n){var s=getComputedStyle(n);return s.opacity+"|"+s.transform}).join(";")')
+    check('图层状态随时间变化', snapA !== s2, (snapA === s2 ? '两帧完全相同' : '已变化'))
+    /* 时间线按 duration 跑：这里只做粗等，真正收尾下面用轮询等 */
   } else {
     /* 采样要够密：speed=3 时每一幕只有 300–500ms，400ms 采样会跳过中间幕 */
     const seen = new Set([lineA])
@@ -123,6 +121,13 @@ function check(name, ok, detail) {
     check('分幕文案确实换过（>=3 种）', seen.size >= 3, [...seen].slice(0, 5).join(' / '))
   }
 
+  /* 收尾用轮询等，别赌固定 sleep：不同模型的时长/收尾节奏差很多 */
+  const deadline = Date.now() + (isTimeline ? (Number(tpl.duration || 6000) + 6000) : 12000)
+  while (Date.now() < deadline) {
+    const gone = await ev('!document.getElementById("dsh-startup-root")')
+    if (gone) break
+    await sleep(250)
+  }
   const state = JSON.parse(await ev('JSON.stringify({root: !!document.getElementById("dsh-startup-root"), done: !!window.__DONE__, err: window.__ERR__})'))
   check('结束时根节点被移除', state.root === false)
   check('done 事件触发', state.done === true)
