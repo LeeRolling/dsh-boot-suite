@@ -1250,3 +1250,97 @@
   position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(120% 100% at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%);
 }
+/* ══ 效果层（M3）══════════════════════════════════════════════════════════
+   全部是纯 CSS/DOM：没有图片、没有 canvas、没有 WebGL。
+   每个 .dsu-fx-* 只吃两个东西：opacity（由时间窗控制）与 --fx-speed。 */
+.dsu-fx { position: absolute; inset: 0; pointer-events: none; z-index: 60; will-change: opacity; }
+.dsu-fx-scanline { background: repeating-linear-gradient(180deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 3px); mix-blend-mode: overlay; }
+.dsu-fx-vignette { background: radial-gradient(120% 100% at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%); }
+
+/* 故障：横向切片抖动 + 色偏条 */
+.dsu-fx-glitch::before, .dsu-fx-glitch::after {
+  content: ""; position: absolute; inset: 0;
+  background: repeating-linear-gradient(180deg, rgba(255,60,90,0.12) 0 2px, transparent 2px 9px);
+  animation: dsu-fx-jitter calc(2.4s / var(--fx-speed, 1)) steps(1) infinite;
+}
+.dsu-fx-glitch::after { background: repeating-linear-gradient(180deg, rgba(80,220,255,0.10) 0 2px, transparent 2px 13px); animation-delay: -1.1s; }
+@keyframes dsu-fx-jitter {
+  0%, 82%, 100% { transform: translateX(0); }
+  84% { transform: translateX(-6px); } 86% { transform: translateX(5px); }
+  88% { transform: translateX(-3px); } 90% { transform: translateX(4px); }
+}
+
+/* 伪代码雨 */
+.dsu-fx-codes { overflow: hidden; }
+.dsu-fx-code-col {
+  position: absolute; top: -40%;
+  font: 12px/1.5 Consolas, monospace;
+  color: rgba(120, 240, 170, 0.55);
+  white-space: pre; letter-spacing: 0.08em;
+  animation: dsu-fx-rain calc(9s / var(--fx-speed, 1)) linear infinite;
+}
+@keyframes dsu-fx-rain { from { transform: translateY(0); } to { transform: translateY(75%); } }
+
+/* 雷达：扫描扇面 + 同心圆 */
+.dsu-fx-radar-sweep {
+  position: absolute; inset: 0;
+  background: conic-gradient(from 0deg, rgba(90,240,160,0.00) 0deg, rgba(90,240,160,0.00) 300deg, rgba(90,240,160,0.28) 360deg);
+  animation: dsu-fx-spin calc(4s / var(--fx-speed, 1)) linear infinite;
+}
+@keyframes dsu-fx-spin { to { transform: rotate(360deg); } }
+.dsu-fx-radar-ring {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  border: 1px solid rgba(90, 240, 160, 0.28); border-radius: 50%;
+}
+
+/* 声呐：一圈圈扩散 */
+.dsu-fx-sonar-ring {
+  position: absolute; left: 50%; top: 50%; width: 4%; height: 4%;
+  transform: translate(-50%, -50%); border: 1px solid rgba(120, 220, 255, 0.55); border-radius: 50%;
+  animation: dsu-fx-ping calc(3.3s / var(--fx-speed, 1)) ease-out infinite;
+}
+@keyframes dsu-fx-ping {
+  0% { width: 4%; height: 4%; opacity: 0.85; }
+  100% { width: 120%; height: 120%; opacity: 0; }
+}
+
+/* 透视网格地面 */
+.dsu-fx-grid {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(120,200,255,0.12) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(0deg, rgba(120,200,255,0.12) 0 1px, transparent 1px 64px);
+  transform: perspective(520px) rotateX(58deg);
+  transform-origin: 50% 100%;
+  opacity: inherit;
+  animation: dsu-fx-gridrun calc(6s / var(--fx-speed, 1)) linear infinite;
+}
+@keyframes dsu-fx-gridrun { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 0 64px; } }
+
+/* CRT：闪烁 + 细噪点 */
+.dsu-fx-crt {
+  background:
+    repeating-linear-gradient(180deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 4px),
+    radial-gradient(120% 100% at 50% 50%, transparent 60%, rgba(0,0,0,0.35) 100%);
+  animation: dsu-fx-flicker calc(0.9s / var(--fx-speed, 1)) steps(2) infinite;
+}
+@keyframes dsu-fx-flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.92; } }
+
+/* 电影黑边 */
+.dsu-fx-letterbox::before, .dsu-fx-letterbox::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 9%; background: #000;
+  animation: dsu-fx-bars calc(0.9s / var(--fx-speed, 1)) cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+.dsu-fx-letterbox::before { top: 0; }
+.dsu-fx-letterbox::after { bottom: 0; animation-direction: reverse; }
+@keyframes dsu-fx-bars { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* HUD 四角框 */
+.dsu-fx-hud-corner { position: absolute; width: 26px; height: 26px; border: 1px solid rgba(180, 220, 255, 0.55); }
+.dsu-fx-hud-corner.tl { left: 3%; top: 3%; border-right: 0; border-bottom: 0; }
+.dsu-fx-hud-corner.tr { right: 3%; top: 3%; border-left: 0; border-bottom: 0; }
+.dsu-fx-hud-corner.bl { left: 3%; bottom: 3%; border-right: 0; border-top: 0; }
+.dsu-fx-hud-corner.br { right: 3%; bottom: 3%; border-left: 0; border-top: 0; }
+
+/* 中心光晕脉冲 */
+.dsu-fx-bloom { background: radial-gradient(circle at 50% 50%, rgba(120, 200, 255, 0.22), transparent 55%); animation: dsu-fx-pulse calc(3.2s / var(--fx-speed, 1)) ease-in-out infinite; }
+@keyframes dsu-fx-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }

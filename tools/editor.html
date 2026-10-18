@@ -89,6 +89,9 @@
   .stageWrap iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
   #tlCanvasHit { position:absolute; inset:0; z-index:4; cursor:crosshair; }
   #tlSelBox { position:absolute; z-index:5; pointer-events:none; border:1px solid var(--accent); border-radius:2px; }
+  .tlguide { position:absolute; z-index:6; pointer-events:none; background:#ffd45e; }
+  .tlguide.v { top:0; bottom:0; width:1px; }
+  .tlguide.h { left:0; right:0; height:1px; }
   #tlSelBox span { position:absolute; left:0; bottom:100%; margin-bottom:2px; padding:1px 6px; font-size:11px; white-space:nowrap; background:var(--accent); color:#fff; border-radius:3px; }
   #tlCanvasHit.hidden { display:none; }
   .tlbar-row { display:flex; align-items:center; gap:var(--sp-2); margin-bottom:var(--sp-2); font-size:var(--fs-sm); color:var(--dim); }
@@ -176,6 +179,8 @@
       <iframe id="frame" src="about:blank"></iframe>
       <div id="tlCanvasHit" hidden></div>
       <div id="tlSelBox" hidden><span></span></div>
+      <div id="tlGuideV" class="tlguide v" hidden></div>
+      <div id="tlGuideH" class="tlguide h" hidden></div>
     </div>
     <div class="tlbar" id="tlbar" hidden>
       <div class="tlbar-row">
@@ -790,6 +795,8 @@
       side.appendChild(row)
     })
 
+    renderFxPanel()
+
     var L = tlLayers()[tl.selected]
     if (!L) return
     var h2 = document.createElement('h2'); h2.textContent = '属性 · 播放头 ' + (tl.playhead / 1000).toFixed(2) + 's'
@@ -892,6 +899,16 @@
     var posRow = document.createElement('div'); posRow.className = 'tlsel'
     posRow.textContent = '位置：' + (L.pos ? L.pos.join(', ') : '未设') + '（逻辑坐标 1280×720）'
     side.appendChild(posRow)
+    /* 居中：画布是 1280×720，中心 (640, 360) */
+    var alignRow = document.createElement('div'); alignRow.style.cssText = 'display:flex;gap:6px;margin-top:6px'
+    ;[['水平居中', function () { if (!L.pos) L.pos = [640, 360]; L.pos[0] = 640 }],
+      ['垂直居中', function () { if (!L.pos) L.pos = [640, 360]; L.pos[1] = 360 }],
+      ['画布居中', function () { L.pos = [640, 360] }]].forEach(function (o) {
+      var b = document.createElement('button'); b.className = 'mini'; b.textContent = o[0]
+      b.onclick = function () { o[1](); tlSync(); renderTlPanel(); updateSelBox() }
+      alignRow.appendChild(b)
+    })
+    side.appendChild(alignRow)
     var delKf = document.createElement('button'); delKf.className = 'mini'; delKf.textContent = '删除播放头附近的关键帧'
     delKf.onclick = function () {
       var kfs = L.keyframes || []
@@ -899,6 +916,58 @@
       tlSync(); renderTlTracks(); renderTlPanel()
     }
     side.appendChild(delKf)
+  }
+
+  var FX_LABELS = {
+    scanline: '扫描线', vignette: '暗角', glitch: '故障抖动', codes: '伪代码雨',
+    radar: '雷达扫描', sonar: '声呐波纹', grid: '透视网格', crt: 'CRT 闪烁',
+    letterbox: '电影黑边', hud: 'HUD 四角', bloom: '中心光晕'
+  }
+
+  function renderFxPanel() {
+    var h = document.createElement('h2'); h.textContent = '效果（' + ((tpl.effects || []).length) + '）'
+    side.appendChild(h)
+    var tip = document.createElement('div'); tip.className = 'hint'
+    tip.textContent = '叠加在画面上的氛围层，按时间窗出现；不占图层。'
+    side.appendChild(tip)
+    var wrap = document.createElement('div')
+    ;(tpl.effects || []).forEach(function (e, i) {
+      var row = document.createElement('div')
+      row.style.cssText = 'border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin-bottom:6px'
+      var head = document.createElement('div'); head.style.cssText = 'display:flex;align-items:center;gap:8px'
+      var nm = document.createElement('b'); nm.style.cssText = 'font-size:12px;flex:1'; nm.textContent = FX_LABELS[e.type] || e.type
+      var del = document.createElement('button'); del.className = 'mini danger'; del.textContent = '✕'
+      del.onclick = function () { tpl.effects.splice(i, 1); renderTlPanel(); renderTlTracks(); tlSync() }
+      head.appendChild(nm); head.appendChild(del); row.appendChild(head)
+      var grid = document.createElement('div'); grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px'
+      function fxField(label, key, min, max, step, def) {
+        var d = document.createElement('div'); d.className = 'field'
+        var lb = document.createElement('label'); lb.textContent = label
+        var inp = document.createElement('input'); inp.type = 'number'; inp.min = min; inp.max = max; inp.step = step
+        inp.value = e[key] === undefined ? def : e[key]
+        inp.onchange = function () { e[key] = Number(inp.value); tlSync(); }
+        d.appendChild(lb); d.appendChild(inp); grid.appendChild(d)
+      }
+      fxField('强度', 'opacity', 0, 1, 0.05, 0.6)
+      fxField('速度', 'speed', 0.2, 4, 0.1, 1)
+      fxField('开始(ms)', 'from', 0, tlDur(), 100, 0)
+      fxField('结束(ms)', 'to', 0, tlDur(), 100, tlDur())
+      row.appendChild(grid)
+      wrap.appendChild(row)
+    })
+    side.appendChild(wrap)
+    var addRow = document.createElement('div'); addRow.style.cssText = 'display:flex;gap:6px;margin-top:6px'
+    var sel = document.createElement('select')
+    Object.keys(FX_LABELS).forEach(function (k) { var op = document.createElement('option'); op.value = k; op.textContent = FX_LABELS[k]; sel.appendChild(op) })
+    var add = document.createElement('button'); add.className = 'mini'; add.textContent = '+ 添加'
+    add.onclick = function () {
+      if (!Array.isArray(tpl.effects)) tpl.effects = []
+      if (tpl.effects.length >= 12) { say('最多 12 个效果', 'err'); return }
+      tpl.effects.push({ type: sel.value, opacity: 0.6, speed: 1, from: 0, to: tlDur() })
+      renderTlPanel(); tlSync()
+    }
+    addRow.appendChild(sel); addRow.appendChild(add)
+    side.appendChild(addRow)
   }
 
   /* ── 轨道区：每层一行，关键帧是菱形 ─────────────────────── */
@@ -1086,11 +1155,27 @@
       var startX = pt.x - L.pos[0], startY = pt.y - L.pos[1]
       function move(e2) {
         var p2 = canvasToLogical(e2)
-        L.pos = [Math.round(Math.max(0, Math.min(1280, p2.x - startX))), Math.round(Math.max(0, Math.min(720, p2.y - startY)))]
+        var nx = Math.round(Math.max(0, Math.min(1280, p2.x - startX)))
+        var ny = Math.round(Math.max(0, Math.min(720, p2.y - startY)))
+        /* 居中对齐参考线：靠近画布中线（640 / 360）8px 以内就吸附并亮线 */
+        var gv = document.getElementById('tlGuideV')
+        var gh = document.getElementById('tlGuideH')
+        var SNAP = 8
+        if (Math.abs(nx - 640) <= SNAP) { nx = 640; if (gv) { gv.hidden = false; gv.style.left = '50%' } }
+        else if (gv) gv.hidden = true
+        if (Math.abs(ny - 360) <= SNAP) { ny = 360; if (gh) { gh.hidden = false; gh.style.top = '50%' } }
+        else if (gh) gh.hidden = true
+        L.pos = [nx, ny]
         renderTlPanel()   /* 拖动中只更新面板数字，松手才让预览重载 */
         updateSelBox()
       }
-      function up2() { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up2); tlSync(); renderTlTracks() }
+      function up2() {
+        document.removeEventListener('mousemove', move)
+        document.removeEventListener('mouseup', up2)
+        var gv2 = document.getElementById('tlGuideV'); if (gv2) gv2.hidden = true
+        var gh2 = document.getElementById('tlGuideH'); if (gh2) gh2.hidden = true
+        tlSync(); renderTlTracks()
+      }
       document.addEventListener('mousemove', move)
       document.addEventListener('mouseup', up2)
     }

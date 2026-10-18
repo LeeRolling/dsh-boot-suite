@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 2,
+  "id": "effects-gallery",
+  "name": "效果总览",
+  "author": "DeepSeek",
+  "adaptedBy": "LeeRolling",
+  "license": "MIT",
+  "version": "0.1.0",
+  "description": "M3 效果库总览：扫描线 / HUD / 伪代码雨 / 网格 / 雷达 / 声呐 / 故障 / CRT / 黑边 / 光晕，按时间窗轮流出场。",
+  "tags": [
+    "effects",
+    "hud",
+    "demo"
+  ],
+  "duration": 12000,
+  "theme": {
+    "mode": "dark",
+    "bg": "#060a10",
+    "bg2": "#0b1420",
+    "ink": "#e8f4ff",
+    "inkSoft": "#a9c4da",
+    "muted": "#63788c",
+    "hair": "rgba(140,200,255,0.22)",
+    "accent": "#5cc8ff"
+  },
+  "layers": [
+    {
+      "id": "title",
+      "type": "text",
+      "text": "效果总览",
+      "pos": [
+        640,
+        300
+      ],
+      "font": {
+        "size": 44,
+        "weight": 500,
+        "tracking": 0.12
+      },
+      "keyframes": [
+        {
+          "t": 150,
+          "opacity": 0,
+          "offsetY": 20,
+          "ease": "outCubic"
+        },
+        {
+          "t": 800,
+          "opacity": 1,
+          "offsetY": 0
+        }
+      ]
+    },
+    {
+      "id": "sub",
+      "type": "text",
+      "text": "EFFECTS GALLERY",
+      "pos": [
+        640,
+        360
+      ],
+      "font": {
+        "size": 13,
+        "weight": 400,
+        "tracking": 0.32
+      },
+      "color": "#7fa8c4",
+      "keyframes": [
+        {
+          "t": 500,
+          "opacity": 0
+        },
+        {
+          "t": 1000,
+          "opacity": 1
+        },
+        {
+          "t": 11200,
+          "opacity": 1
+        },
+        {
+          "t": 11800,
+          "opacity": 0
+        }
+      ]
+    }
+  ],
+  "effects": [
+    {
+      "type": "scanline",
+      "opacity": 0.28
+    },
+    {
+      "type": "hud",
+      "opacity": 0.75
+    },
+    {
+      "type": "crt",
+      "opacity": 0.3,
+      "speed": 1
+    },
+    {
+      "type": "letterbox",
+      "opacity": 1,
+      "from": 0,
+      "to": 12000
+    },
+    {
+      "type": "codes",
+      "opacity": 0.55,
+      "columns": 9,
+      "from": 300,
+      "to": 3600
+    },
+    {
+      "type": "grid",
+      "opacity": 0.4,
+      "speed": 0.9,
+      "from": 2600,
+      "to": 7600
+    },
+    {
+      "type": "radar",
+      "opacity": 0.8,
+      "speed": 1.2,
+      "from": 3400,
+      "to": 7000
+    },
+    {
+      "type": "sonar",
+      "opacity": 0.85,
+      "speed": 1.1,
+      "from": 5000,
+      "to": 9000
+    },
+    {
+      "type": "bloom",
+      "opacity": 0.6,
+      "speed": 0.8,
+      "from": 7000,
+      "to": 12000
+    },
+    {
+      "type": "glitch",
+      "opacity": 0.9,
+      "speed": 1.4,
+      "from": 9000,
+      "to": 9600
+    },
+    {
+      "type": "glitch",
+      "opacity": 0.9,
+      "speed": 1.8,
+      "from": 11000,
+      "to": 11400
+    },
+    {
+      "type": "vignette",
+      "opacity": 0.5
+    }
+  ]
+}
