@@ -5,7 +5,7 @@
   "author": "沈宏宏",
   "homepage": "https://github.com/LeeRolling/dsh-boot-suite",
   "license": "MIT",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "原动画（沈宏宏作品）的深海声呐改版：深蓝 #1E48BA 底 + 浅蓝强调，五幕下潜叙事。引擎与改版：LeeRolling。",
   "tags": [
     "dark",
@@ -90,13 +90,14 @@
       "reticle": true
     }
   ],
-  "changelog": "0.8.0：接入用户录制的英文干音（5 句，32kHz 单声道，归一到 -3dBFS），画面英文与配音终于对上了。",
+  "changelog": "0.9.0：换用 V2 干音（6 句，新增终幕 welcome），并做「古早 AI 播报」音色处理：带通 300–3300Hz、1.8kHz 提亮、62Hz 轻环调、11bit 量化、轻度房间反射，峰值归一 -3dBFS。",
   "adaptedBy": "LeeRolling",
   "assets": {
     "line-1": "assets/line-1.wav",
     "line-2": "assets/line-2.wav",
     "line-3": "assets/line-3.wav",
     "line-4": "assets/line-4.wav",
-    "line-5": "assets/line-5.wav"
+    "line-5": "assets/line-5.wav",
+    "line-6": "assets/line-6.wav"
   }
 }
