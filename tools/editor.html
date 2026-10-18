@@ -42,10 +42,10 @@
   .flags { display:flex; gap:14px; flex-wrap:wrap; margin-top:6px; font-size:12px; color:var(--dim); }
   .flags label { display:flex; align-items:center; gap:5px; }
   .mini { padding:2px 7px; font-size:12px; border-radius:6px; }
-  #status { position:fixed; right:16px; bottom:14px; padding:7px 12px; border-radius:8px; background:#222833; border:1px solid var(--line); color:var(--dim); opacity:0; transition:opacity .2s; max-width:60vw; }
+  #status { color:var(--dim); font-size:12px; max-width:34vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:0; transition:opacity .2s; }
   #status.show { opacity:1; }
-  #status.ok { border-color:#1f6b4c; color:var(--ok); }
-  #status.err { border-color:#6b2a2a; color:var(--err); }
+  #status.ok { color:var(--ok); }
+  #status.err { color:var(--err); }
   .hint { color:var(--dim); font-size:12px; margin:6px 0 0; }
 </style>
 </head>
@@ -57,6 +57,7 @@
   <button id="play">▶ 播放</button>
   <button id="pause">⏸ 暂停</button>
   <button id="replay">⟲ 从头播</button>
+  <span id="status"></span>
   <span class="sp"></span>
   <button id="download">下载 JSON</button>
   <button id="save" class="primary">保存到本地</button>
@@ -69,7 +70,6 @@
   </section>
   <aside class="side" id="side"></aside>
 </main>
-<div id="status"></div>
 
 <script>
 (function () {
@@ -180,7 +180,18 @@
     var b = document.createElement('b')
     b.setAttribute('data-step-title', String(i))
     b.textContent = '第 ' + (i + 1) + ' 幕 · ' + (step.zh || '（未命名）')
+    b.title = '点一下标题：预览跳到这一幕'
+    b.style.cursor = 'pointer'
+    b.onclick = function () { pushDraft({ start: i }) }
     head.appendChild(b)
+    var onlyOne = document.createElement('button'); onlyOne.className = 'mini'; onlyOne.textContent = '▶ 本幕'
+    onlyOne.title = '只播这一幕'
+    onlyOne.onclick = function () { pushDraft({ start: i, count: 1 }) }
+    head.appendChild(onlyOne)
+    var fromHere = document.createElement('button'); fromHere.className = 'mini'; fromHere.textContent = '⇥ 从此幕'
+    fromHere.title = '从这一幕往下播到结尾'
+    fromHere.onclick = function () { pushDraft({ start: i }) }
+    head.appendChild(fromHere)
     var up = document.createElement('button'); up.className = 'mini'; up.textContent = '↑'
     up.onclick = function () { if (i === 0) return; var a = tpl.steps; var t = a[i - 1]; a[i - 1] = a[i]; a[i] = t; render() }
     var dn = document.createElement('button'); dn.className = 'mini'; dn.textContent = '↓'
@@ -225,6 +236,10 @@
     audio.onchange = function () { step.audio = audio.value; scheduleDraft() }
     body.appendChild(field('真声素材槽', audio))
 
+    var flagsTitle = document.createElement('div')
+    flagsTitle.style.cssText = 'margin-top:8px;font-size:11px;color:var(--dim)'
+    flagsTitle.textContent = '画面元素（这一幕画什么；颜色在「配色」里统一定）'
+    body.appendChild(flagsTitle)
     var flags = document.createElement('div')
     flags.className = 'flags'
     ;[['assembleLogo', '组装标识'], ['reticle', '准星'], ['hex', '六边形']].forEach(function (p) {
@@ -274,14 +289,22 @@
     timer = setTimeout(pushDraft, 350)
   }
 
-  function pushDraft() {
+  /* opts.start / opts.count：从第几幕开始、只播几幕（不传就是从头整段播） */
+  function pushDraft(opts) {
+    opts = opts || {}
     json('/editor/draft', {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ template: tpl })
     }).then(function (r) {
       if (!r || !r.ok) { say('预览失败：' + ((r && r.error) || '未知'), 'err'); return }
       draftId = r.id
-      frame.src = API + '/editor/preview?id=' + draftId + '&t=' + Date.now()
-      pbar.textContent = '预览：第 ' + ((tpl.steps || []).length) + ' 幕 · ' + (tpl.name || tpl.id || '') + ' · 时间线模式（自动播完，不等点击）'
+      var q = '?id=' + draftId + '&t=' + Date.now()
+      if (typeof opts.start === 'number') q += '&start=' + opts.start
+      if (typeof opts.count === 'number') q += '&count=' + opts.count
+      frame.src = API + '/editor/preview' + q
+      var mode = (typeof opts.start === 'number')
+        ? ('从第 ' + (opts.start + 1) + ' 幕' + (opts.count === 1 ? '（只播这一幕）' : '往下播'))
+        : '从头播'
+      pbar.textContent = mode + ' · 共 ' + ((tpl.steps || []).length) + ' 幕 · ' + (tpl.name || tpl.id || '') + ' · 时间线模式（不等点击）'
     }).catch(function (e) { say('预览失败：' + e.message, 'err') })
   }
 
@@ -298,15 +321,15 @@
   }
   document.getElementById('play').onclick = function () {
     var a = previewApi()
-    if (a && typeof a.resume === 'function') { a.resume(); say('继续播放', 'ok'); return }
-    pushDraft()
+    if (a && typeof a.resume === 'function' && typeof a.paused === 'function' && a.paused()) { a.resume(); say('继续播放', 'ok'); return }
+    pushDraft({ start: 0 })
   }
   document.getElementById('pause').onclick = function () {
     var a = previewApi()
     if (a && typeof a.pause === 'function') { a.pause(); say('已暂停', 'ok'); return }
     say('预览还没起来', 'err')
   }
-  document.getElementById('replay').onclick = function () { if (tpl) pushDraft() }
+  document.getElementById('replay').onclick = function () { if (tpl) pushDraft({ start: 0 }) }
 
   document.getElementById('save').onclick = function () {
     if (!tpl) return

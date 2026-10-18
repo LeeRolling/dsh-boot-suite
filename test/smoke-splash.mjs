@@ -120,7 +120,7 @@ function makeSpeech() {
   }
 }
 
-function run(withSpeech, cfgOverride, template) {
+function run(withSpeech, cfgOverride, template, jump) {
   MARKUP = ''
   MISSED.clear()
   lookupCache.clear()
@@ -218,6 +218,7 @@ function run(withSpeech, cfgOverride, template) {
   Object.assign(windowStub.__DSH_STARTUP__, cfgOverride || {})
   /* 模板同理：运行时在加载时读一次 __DSH_STARTUP_TEMPLATE__ */
   if (template) windowStub.__DSH_STARTUP_TEMPLATE__ = template
+  if (jump) windowStub.__DSH_STARTUP_JUMP__ = jump
 
   vm.createContext(sandbox)
   const src = fs.readFileSync(BUNDLE, 'utf8')
@@ -361,6 +362,14 @@ console.log('\n[9] 模板：分幕可以自定义（1~24 幕，缺字段回落�
   check('steps 不是数组也不炸（回落内置）', (function () {
     const rn = run(true, null, { id: 'bad2', steps: 'nope' })
     return rn.thrown === null && rn.windowStub.__DSH_STARTUP_API__.steps.length === 5
+  })())
+  check('跳转播放（只播第 3 幕）不抛异常', (function () {
+    const rj = run(true, null, null, { start: 2, count: 1 })
+    return rj.thrown === null && !!rj.windowStub.__DSH_STARTUP_API__
+  })())
+  check('跳转起点越界会被夹到合法范围（不抛）', (function () {
+    const rj = run(true, null, null, { start: 99, count: 3 })
+    return rj.thrown === null && !!rj.windowStub.__DSH_STARTUP_API__
   })())
   check('没选模板时 template 为空、五幕照旧', (function () {
     const rb = run(true)
