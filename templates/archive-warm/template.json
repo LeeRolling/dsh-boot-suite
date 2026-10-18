@@ -2,12 +2,16 @@
   "schemaVersion": 1,
   "id": "archive-warm",
   "name": "档案暖白",
-  "author": "LeeRolling",
+  "author": "沈宏宏",
   "homepage": "https://github.com/LeeRolling/dsh-boot-suite",
   "license": "MIT",
   "version": "1.1.0",
-  "description": "暖白技术档案底板 + 五步授权。合并前 dsh-startup-screen 的原始气质。",
-  "tags": ["minimal", "light", "archive"],
+  "description": "暖白技术档案底板 + 五步授权。原作者沈宏宏，合并与维护：LeeRolling。",
+  "tags": [
+    "minimal",
+    "light",
+    "archive"
+  ],
   "theme": {
     "accent": "#ff7500",
     "glitchA": "#ff3b30",
@@ -81,5 +85,6 @@
       "progress": 0.93,
       "reticle": true
     }
-  ]
+  ],
+  "adaptedBy": "LeeRolling"
 }

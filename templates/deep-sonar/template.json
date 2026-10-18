@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "deep-sonar",
   "name": "深海声呐",
-  "author": "大肥鱼（AI）· LeeRolling",
+  "author": "沈宏宏",
   "homepage": "https://github.com/LeeRolling/dsh-boot-suite",
   "license": "MIT",
   "version": "0.7.1",
-  "description": "深海军蓝底 + 声呐下潜叙事。和「档案暖白」是完全相反的两条美学路线：一个是纸质档案，一个是深海仪器。",
+  "description": "原动画（沈宏宏作品）的深海声呐改版：深蓝 #1E48BA 底 + 浅蓝强调，五幕下潜叙事。引擎与改版：LeeRolling。",
   "tags": [
     "dark",
     "sonar",
@@ -90,5 +90,6 @@
       "reticle": true
     }
   ],
-  "changelog": "0.7.1：蓝底上右侧小字偏淡，muted 与纱再提一档。"
+  "changelog": "0.7.1：蓝底上右侧小字偏淡，muted 与纱再提一档。",
+  "adaptedBy": "LeeRolling"
 }

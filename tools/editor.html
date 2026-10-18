@@ -491,7 +491,8 @@
       img.onerror = function () { img.style.opacity = '.35' }
       var meta = document.createElement('div'); meta.className = 'meta'
       var name = document.createElement('div'); name.className = 'name'; name.textContent = it.name
-      var by = document.createElement('div'); by.className = 'by'; by.textContent = '作者：' + (it.author || '未署名')
+      var by = document.createElement('div'); by.className = 'by'
+      by.textContent = '原作：' + (it.author || '未署名') + (it.adaptedBy ? ' · 改版：' + it.adaptedBy : '')
       var desc = document.createElement('div'); desc.className = 'desc'; desc.textContent = it.description || ''
       var tags = document.createElement('div'); tags.className = 'tags'
       ;(it.tags || []).forEach(function (t) { var s = document.createElement('span'); s.className = 'tag'; s.textContent = t; tags.appendChild(s) })
