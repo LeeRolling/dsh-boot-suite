@@ -85,6 +85,8 @@
   /* ── M2 时间线 ─────────────────────────────────────────────── */
   :root { --tl-name:132px; --tl-gap:8px; }
   .tlbar { flex:0 0 auto; border-top:1px solid var(--line); background:#101318; padding:var(--sp-2) var(--sp-3) var(--sp-3); max-height:44vh; overflow:auto; user-select:none; }
+  .stageWrap { position:relative; flex:1 1 auto; min-height:0; }
+  .stageWrap iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
   #tlCanvasHit { position:absolute; inset:0; z-index:4; cursor:crosshair; }
   #tlCanvasHit.hidden { display:none; }
   .tlbar-row { display:flex; align-items:center; gap:var(--sp-2); margin-bottom:var(--sp-2); font-size:var(--fs-sm); color:var(--dim); }
@@ -168,8 +170,10 @@
 
 <main>
   <section class="preview">
-    <iframe id="frame" src="about:blank"></iframe>
-    <div id="tlCanvasHit" hidden></div>
+    <div class="stageWrap">
+      <iframe id="frame" src="about:blank"></iframe>
+      <div id="tlCanvasHit" hidden></div>
+    </div>
     <div class="tlbar" id="tlbar" hidden>
       <div class="tlbar-row">
         <button id="tlPlay" class="mini">▶</button>
@@ -770,6 +774,7 @@
   function renderTlTracks() {
     var tracks = document.getElementById('tltracks')
     if (!tracks) return
+    bindScrub(tracks)
     tracks.innerHTML = ''
     var d = tlDur()
     var ruler = document.getElementById('tlruler')
@@ -784,7 +789,7 @@
         ticks.appendChild(tick)
       }
       ruler.appendChild(ticks)
-      ruler.onmousedown = function (ev) { rulerDrag(ev, ruler) }
+      bindScrub(ruler)
       var hd = document.getElementById('tlhead')
       if (hd) {
         hd.onmousedown = function (ev) {
@@ -837,6 +842,24 @@
     var pct2 = (tl.playhead / d * 100) + '%'
     var ph = document.getElementById('tlplayhead'); if (ph) ph.style.left = pct2
     var hd4 = document.getElementById('tlhead'); if (hd4) hd4.style.left = pct2
+  }
+
+  /** 任意点击/拖动时间线 → 播放头跳过去（用刻度尺的横向映射，与轨道对齐） */
+  function bindScrub(el) {
+    if (!el || el.getAttribute('data-scrub') === '1') return
+    el.setAttribute('data-scrub', '1')
+    el.addEventListener('mousedown', function (ev) {
+      var ruler = document.getElementById('tlruler')
+      if (!ruler) return
+      var r = ruler.getBoundingClientRect()
+      var d = tlDur()
+      function at(e2) { return Math.max(0, Math.min(d, (e2.clientX - r.left) / r.width * d)) }
+      seekTo(at(ev))
+      function move(e2) { ev.preventDefault(); seekTo(at(e2)) }
+      function up() { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); renderTlTracks() }
+      document.addEventListener('mousemove', move)
+      document.addEventListener('mouseup', up)
+    })
   }
 
   function rulerDrag(ev, ruler) {
@@ -912,10 +935,9 @@
       function move(e2) {
         var p2 = canvasToLogical(e2)
         L.pos = [Math.round(Math.max(0, Math.min(1280, p2.x - startX))), Math.round(Math.max(0, Math.min(720, p2.y - startY)))]
-        tlSync()
-        renderTlPanel()
+        renderTlPanel()   /* 拖动中只更新面板数字，松手才让预览重载 */
       }
-      function up2() { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up2); renderTlTracks() }
+      function up2() { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up2); tlSync(); renderTlTracks() }
       document.addEventListener('mousemove', move)
       document.addEventListener('mouseup', up2)
     }
