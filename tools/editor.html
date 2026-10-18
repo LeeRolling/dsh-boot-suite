@@ -83,18 +83,25 @@
   .empty { color:var(--dim); font-size:var(--fs-sm); padding:var(--sp-5) var(--sp-4); text-align:center; border:1px dashed var(--line); border-radius:var(--radius); }
 
   /* ── M2 时间线 ─────────────────────────────────────────────── */
-  .tlbar { flex:0 0 auto; border-top:1px solid var(--line); background:#101318; padding:var(--sp-2) var(--sp-3) var(--sp-3); max-height:44vh; overflow:auto; }
+  :root { --tl-name:132px; --tl-gap:8px; }
+  .tlbar { flex:0 0 auto; border-top:1px solid var(--line); background:#101318; padding:var(--sp-2) var(--sp-3) var(--sp-3); max-height:44vh; overflow:auto; user-select:none; }
+  #tlCanvasHit { position:absolute; inset:0; z-index:4; cursor:crosshair; }
+  #tlCanvasHit.hidden { display:none; }
   .tlbar-row { display:flex; align-items:center; gap:var(--sp-2); margin-bottom:var(--sp-2); font-size:var(--fs-sm); color:var(--dim); }
   .tlbar-row .sp { flex:1; }
   .tlclock { font-family:Consolas,monospace; color:var(--ink); letter-spacing:.04em; }
   .tllbl { display:flex; align-items:center; gap:6px; }
   .tllbl input { width:84px; }
-  .tlruler { position:relative; height:22px; border-bottom:1px solid var(--line); margin-bottom:6px; cursor:pointer; }
+  .tlruler { position:relative; height:24px; border-bottom:1px solid var(--line); margin:0 0 6px calc(var(--tl-name) + var(--tl-gap)); cursor:pointer; }
   .tlplayhead { position:absolute; top:0; bottom:-9999px; width:2px; border-radius:1px; background:var(--accent); pointer-events:none; z-index:5; }
+  /* 播放头把手：只有这里能拖，避免和"选中文字"抢手势 */
+  .tlhead { position:absolute; top:-1px; width:14px; height:14px; margin-left:-7px; z-index:6; cursor:ew-resize;
+    background:var(--accent); clip-path:polygon(50% 100%, 0 0, 100% 0); border:0; padding:0; }
+  .tlhead:focus-visible { outline:2px solid #fff; outline-offset:2px; }
   .tltracks { display:flex; flex-direction:column; gap:3px; }
   .tlrow { display:flex; align-items:center; gap:var(--sp-2); height:26px; }
   .tlrow.sel { background:#1b2230; border-radius:6px; }
-  .tlname { flex:0 0 132px; font-size:var(--fs-sm); color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+  .tlname { flex:0 0 var(--tl-name); font-size:var(--fs-sm); color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
   .tlname .dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:6px; background:var(--accent); opacity:.65; }
   .tllane { position:relative; flex:1; height:26px; border-left:1px solid var(--line); background:#151a21; }
   .tlkf { position:absolute; top:50%; width:11px; height:11px; margin:-5.5px 0 0 -5.5px; background:var(--ink); transform:rotate(45deg); border:1px solid #0a0c10; cursor:grab; }
@@ -153,6 +160,8 @@
   </div>
   <span id="status"></span>
   <span class="sp"></span>
+  <button id="importBtn">导入 JSON</button>
+  <input id="importFile" type="file" accept=".json,application/json" hidden>
   <button id="download">下载 JSON</button>
   <button id="save" class="primary">保存到本地</button>
 </header>
@@ -160,6 +169,7 @@
 <main>
   <section class="preview">
     <iframe id="frame" src="about:blank"></iframe>
+    <div id="tlCanvasHit" hidden></div>
     <div class="tlbar" id="tlbar" hidden>
       <div class="tlbar-row">
         <button id="tlPlay" class="mini">▶</button>
@@ -611,8 +621,9 @@
       try { api.seek(tl.playhead) } catch (e2) { /* noop */ }
     }
     var c = document.getElementById('tlclock'); if (c) c.textContent = tlClockText()
-    var ph = document.getElementById('tlplayhead')
-    if (ph) ph.style.left = (tl.playhead / d * 100) + '%'
+    var pct = (tl.playhead / d * 100) + '%'
+    var ph = document.getElementById('tlplayhead'); if (ph) ph.style.left = pct
+    var hd3 = document.getElementById('tlhead'); if (hd3) hd3.style.left = pct
   }
 
   /** 在播放头处取某图层的属性值（用于属性面板显示与打点） */
@@ -720,6 +731,22 @@
     if (L.type === 'line') numField('展开', 'reveal', 0, 1, 0.01, 1)
     side.appendChild(grid)
 
+    /* 当前时刻如果有帧，给它挑缓动曲线（M2.5） */
+    var kfHere = null
+    ;(L.keyframes || []).forEach(function (k) { if (!kfHere && Math.abs(k.t - tl.playhead) <= 12) kfHere = k })
+    if (kfHere) {
+      var ef = document.createElement('div'); ef.className = 'field'
+      var el2 = document.createElement('label'); el2.textContent = '这一帧到下一帧的曲线'
+      var sel = document.createElement('select')
+      ;[['outCubic', '先快后慢（默认）'], ['inOutCubic', '两头慢中间快'], ['linear', '匀速'], ['outQuint', '很快到、慢慢停'], ['outBack', '带一点回弹'], ['inCubic', '先慢后快']].forEach(function (o) {
+        var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]
+        if ((kfHere.ease || 'outCubic') === o[0]) op.selected = true
+        sel.appendChild(op)
+      })
+      sel.onchange = function () { kfHere.ease = sel.value; tlSync(); say('曲线已改', 'ok') }
+      ef.appendChild(el2); ef.appendChild(sel); side.appendChild(ef)
+    }
+
     if (L.type === 'text') {
       var tf = document.createElement('div'); tf.className = 'field'
       var tl2 = document.createElement('label'); tl2.textContent = '文字'
@@ -747,7 +774,7 @@
     var d = tlDur()
     var ruler = document.getElementById('tlruler')
     if (ruler) {
-      ruler.innerHTML = '<div class="tlplayhead" id="tlplayhead"></div>'
+      ruler.innerHTML = '<div class="tlplayhead" id="tlplayhead"></div><button class="tlhead" id="tlhead" type="button" title="拖我移动播放头"></button>'
       var ticks = document.createElement('div')
       ticks.style.cssText = 'position:absolute;inset:0;pointer-events:none;color:var(--dim);font-size:10px'
       for (var s = 0; s <= Math.ceil(d / 1000); s++) {
@@ -758,6 +785,17 @@
       }
       ruler.appendChild(ticks)
       ruler.onmousedown = function (ev) { rulerDrag(ev, ruler) }
+      var hd = document.getElementById('tlhead')
+      if (hd) {
+        hd.onmousedown = function (ev) {
+          ev.preventDefault(); ev.stopPropagation()
+          var r = ruler.getBoundingClientRect()
+          function move2(e2) { seekTo(Math.max(0, Math.min(d, (e2.clientX - r.left) / r.width * d))) }
+          function up2() { document.removeEventListener('mousemove', move2); document.removeEventListener('mouseup', up2) }
+          document.addEventListener('mousemove', move2)
+          document.addEventListener('mouseup', up2)
+        }
+      }
     }
     tlLayers().forEach(function (L, i) {
       var row = document.createElement('div')
@@ -796,8 +834,9 @@
       })
       row.appendChild(nm); row.appendChild(lane); tracks.appendChild(row)
     })
-    var ph = document.getElementById('tlplayhead')
-    if (ph) ph.style.left = (tl.playhead / d * 100) + '%'
+    var pct2 = (tl.playhead / d * 100) + '%'
+    var ph = document.getElementById('tlplayhead'); if (ph) ph.style.left = pct2
+    var hd4 = document.getElementById('tlhead'); if (hd4) hd4.style.left = pct2
   }
 
   function rulerDrag(ev, ruler) {
@@ -838,9 +877,55 @@
     try { api.pause() } catch (e) { /* noop */ }
     try { api.seek(tl.playhead) } catch (e2) { /* noop */ }
   }
+  /** 画布坐标 → 逻辑坐标（1280×720 letterbox 反解） */
+  function canvasToLogical(ev) {
+    var rect = frame.getBoundingClientRect()
+    var s = Math.min(rect.width / 1280, rect.height / 720)
+    var ox = (rect.width - 1280 * s) / 2, oy = (rect.height - 720 * s) / 2
+    return { x: (ev.clientX - rect.left - ox) / s, y: (ev.clientY - rect.top - oy) / s }
+  }
+
+  function tlPickLayer(x, y) {
+    var best = -1, bd = 1e9
+    tlLayers().forEach(function (L, i) {
+      var p = (L.pos && L.pos.length) ? L.pos : [640, 360]
+      var dd = Math.sqrt((p[0] - x) * (p[0] - x) + (p[1] - y) * (p[1] - y))
+      if (dd < bd) { bd = dd; best = i }
+    })
+    return bd < 200 ? best : -1
+  }
+
+  var hitBound = false
+  function bindCanvasHit() {
+    var hit = document.getElementById('tlCanvasHit')
+    if (!hit || hitBound) return
+    hitBound = true
+    hit.onmousedown = function (ev) {
+      var pt = canvasToLogical(ev)
+      var idx = tlPickLayer(pt.x, pt.y)
+      if (idx < 0) return
+      ev.preventDefault()
+      tl.selected = idx
+      var L = tlLayers()[idx]
+      if (!L.pos) L.pos = [640, 360]
+      var startX = pt.x - L.pos[0], startY = pt.y - L.pos[1]
+      function move(e2) {
+        var p2 = canvasToLogical(e2)
+        L.pos = [Math.round(Math.max(0, Math.min(1280, p2.x - startX))), Math.round(Math.max(0, Math.min(720, p2.y - startY)))]
+        tlSync()
+        renderTlPanel()
+      }
+      function up2() { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up2); renderTlTracks() }
+      document.addEventListener('mousemove', move)
+      document.addEventListener('mouseup', up2)
+    }
+  }
+
   function enterTimeline() {
     if (!tpl) { say('先载入一个模板', 'err'); return }
     tlView = true
+    var hit = document.getElementById('tlCanvasHit'); if (hit) hit.hidden = false
+    bindCanvasHit()
     document.getElementById('tlbar').hidden = false
     document.getElementById('tlBtn').hidden = true
     document.getElementById('formBtn').hidden = false
@@ -856,6 +941,7 @@
   }
   function exitTimeline() {
     tlView = false
+    var hit0 = document.getElementById('tlCanvasHit'); if (hit0) hit0.hidden = true
     document.getElementById('tlbar').hidden = true
     document.getElementById('tlBtn').hidden = false
     document.getElementById('formBtn').hidden = true
@@ -898,6 +984,26 @@
     ev.target.value = v
     seekTo(Math.min(tl.playhead, v))
     renderTlTracks(); tlSync()
+  }
+
+  /* ── 导入 JSON ─────────────────────────────────────────────── */
+  document.getElementById('importBtn').onclick = function () { document.getElementById('importFile').click() }
+  document.getElementById('importFile').onchange = function (ev) {
+    var f = ev.target.files && ev.target.files[0]
+    if (!f) return
+    if (f.size > 512 * 1024) { say('文件太大（>512KB）', 'err'); ev.target.value = ''; return }
+    var rd = new FileReader()
+    rd.onload = function () {
+      try {
+        var obj = JSON.parse(String(rd.result))
+        if (!obj || typeof obj !== 'object' || Array.isArray(obj)) throw new Error('不是模板对象')
+        if (!obj.id && !obj.steps && !obj.layers) throw new Error('缺 id / steps / layers')
+        loadTemplate(obj)
+        say('已导入 ' + (obj.name || obj.id || '模板'), 'ok')
+      } catch (e) { say('导入失败：' + e.message, 'err') }
+      ev.target.value = ''
+    }
+    rd.readAsText(f)
   }
 
   document.getElementById('storeBtn').onclick = function () { renderStore() }
