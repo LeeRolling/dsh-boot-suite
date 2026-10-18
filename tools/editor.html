@@ -465,6 +465,7 @@
     try { return frame.contentWindow.__DSH_STARTUP_API__ || null } catch (e) { return null }
   }
   document.getElementById('play').onclick = function () {
+    if (tlView) { togglePlay(); return }
     var a = previewApi()
     if (a && typeof a.resume === 'function' && typeof a.paused === 'function' && a.paused()) { a.resume(); say('继续播放', 'ok'); return }
     pushDraft({ start: 0 })
@@ -627,6 +628,11 @@
   function seekTo(ms) {
     var d = tlDur()
     tl.playhead = Math.max(0, Math.min(d, Math.round(ms)))
+    /* 先把界面上的播放头/时钟挪好：预览即使暂时不可用，时间线手感也不能断 */
+    var pct0 = (tl.playhead / d * 100) + '%'
+    var ph0 = document.getElementById('tlplayhead'); if (ph0) ph0.style.left = pct0
+    var hd0 = document.getElementById('tlhead'); if (hd0) hd0.style.left = pct0
+    var clk0 = document.getElementById('tlclock'); if (clk0) clk0.textContent = tlClockText()
     var api = frameApi()
     /* 预览层可能已被卸掉（真实收尾流程）——此时 seek 是空操作，必须重载一份。
        用 root 是否存在来判断，比看 api 在不在准（api 对象会一直挂在 window 上）。 */
@@ -1090,9 +1096,50 @@
     }
   }
 
+  /* ── 播放时播放头跟随 ─────────────────────────────────────── */
+  var followRaf = 0
+  function tlFollowLoop() {
+    if (!tlView) { followRaf = 0; return }
+    var ctl = null
+    try { ctl = frame.contentWindow && frame.contentWindow.__DSH_STARTUP_TL__ } catch (e) { ctl = null }
+    if (ctl && typeof ctl.playhead === 'function') {
+      var now = Number(ctl.playhead()) || 0
+      if (Math.abs(now - tl.playhead) > 8) {
+        tl.playhead = now
+        var d = tlDur()
+        var pct = (now / d * 100) + '%'
+        var ph = document.getElementById('tlplayhead'); if (ph) ph.style.left = pct
+        var hd = document.getElementById('tlhead'); if (hd) hd.style.left = pct
+        var clk = document.getElementById('tlclock'); if (clk) clk.textContent = tlClockText()
+      }
+    }
+    followRaf = requestAnimationFrame(tlFollowLoop)
+  }
+  function tlStartFollow() { if (!followRaf) followRaf = requestAnimationFrame(tlFollowLoop) }
+
+  function togglePlay() {
+    var api = frameApi()
+    if (!api) { pushDraft(); return }
+    try {
+      if (typeof api.paused === 'function' && api.paused()) { api.resume(); say('播放', 'ok') }
+      else { api.pause(); say('暂停', 'ok') }
+    } catch (e) { /* noop */ }
+  }
+
+  /* 空格播放/暂停；左右方向键微调（输入框里不拦） */
+  document.addEventListener('keydown', function (ev) {
+    if (!tlView) return
+    var tag = (ev.target && ev.target.tagName) ? ev.target.tagName.toLowerCase() : ''
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return
+    if (ev.code === 'Space' || ev.key === ' ') { ev.preventDefault(); togglePlay(); return }
+    if (ev.key === 'ArrowLeft') { ev.preventDefault(); seekTo(tl.playhead - (ev.shiftKey ? 500 : 100)) }
+    if (ev.key === 'ArrowRight') { ev.preventDefault(); seekTo(tl.playhead + (ev.shiftKey ? 500 : 100)) }
+  })
+
   function enterTimeline() {
     if (!tpl) { say('先载入一个模板', 'err'); return }
     tlView = true
+    tlStartFollow()
     var hit = document.getElementById('tlCanvasHit'); if (hit) hit.hidden = false
     bindCanvasHit()
     document.getElementById('tlbar').hidden = false
