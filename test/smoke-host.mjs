@@ -334,6 +334,15 @@ console.log('\n[6c] 编辑器：模板读写')
   const del = await call('exact /dsh-startup/templates/delete', 'POST', JSON.stringify({ id: 'my-test' }))
   check('删除模板成功', del.statusCode === 200 && JSON.parse(del.body).ok === true)
   check('文件确实删掉了', !fs.existsSync(path.join(SMOKE_HOME, 'startup-templates', 'my-test')))
+  /* 同名模板：用户目录必须覆盖内置，否则在编辑器里改完内置模板等于白改 */
+  await call('exact /dsh-startup/templates/save', 'POST', JSON.stringify({ template: { id: 'deep-sonar', name: '覆盖测试', steps: [{ zh: '覆盖' }] } }))
+  const ov = JSON.parse((await call('exact /dsh-startup/preview-template', 'GET', undefined, '/dsh-startup/preview-template?id=deep-sonar')).body)
+  check('同名模板：用户目录覆盖内置', ov.ok === true && ov.template.name === '覆盖测试', ov.template && ov.template.name)
+  const ovList = JSON.parse((await call('exact /dsh-startup/templates')).body)
+  check('列表里同名项标成本地', (ovList.templates.filter((x) => x.id === 'deep-sonar')[0] || {}).source === 'user')
+  await call('exact /dsh-startup/templates/delete', 'POST', JSON.stringify({ id: 'deep-sonar' }))
+  const backTpl = JSON.parse((await call('exact /dsh-startup/preview-template', 'GET', undefined, '/dsh-startup/preview-template?id=deep-sonar')).body)
+  check('删掉本地覆盖后回到内置', backTpl.ok === true && backTpl.template.name === '深海声呐', backTpl.template && backTpl.template.name)
 }
 
 console.log('\n[7] XSS 边界：身份名称里的尖括号不会逃出内联脚本')
