@@ -290,17 +290,35 @@
   }
 
   /* opts.start / opts.count：从第几幕开始、只播几幕（不传就是从头整段播） */
+  var draftSeq = 0
   function pushDraft(opts) {
     opts = opts || {}
+    if (timer) { clearTimeout(timer); timer = 0 }   /* 别让上一次的防抖把这次跳转顶掉 */
+    var mySeq = ++draftSeq
     json('/editor/draft', {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ template: tpl })
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        template: tpl,
+        start: (typeof opts.start === 'number') ? opts.start : undefined,
+        count: (typeof opts.count === 'number') ? opts.count : undefined
+      })
     }).then(function (r) {
       if (!r || !r.ok) { say('预览失败：' + ((r && r.error) || '未知'), 'err'); return }
+      if (mySeq !== draftSeq) return   /* 后面还有更新的请求，这次结果作废 */
       draftId = r.id
       var q = '?id=' + draftId + '&t=' + Date.now()
       if (typeof opts.start === 'number') q += '&start=' + opts.start
       if (typeof opts.count === 'number') q += '&count=' + opts.count
       frame.src = API + '/editor/preview' + q
+      var wantTitle = (typeof opts.start === 'number') ? ('jump:' + opts.start + ':' + (typeof opts.count === 'number' ? opts.count : '-')) : 'jump:-'
+      setTimeout(function () {
+        try {
+          var got = frame.contentDocument && frame.contentDocument.title
+          if (got && got.indexOf('jump:') === 0 && got !== wantTitle) {
+            say('宿主收到的跳转参数不对（期望 ' + wantTitle + ' 实得 ' + got + '）', 'err')
+          }
+        } catch (e) { /* 读不到就算了 */ }
+      }, 900)
       var mode = (typeof opts.start === 'number')
         ? ('从第 ' + (opts.start + 1) + ' 幕' + (opts.count === 1 ? '（只播这一幕）' : '往下播'))
         : '从头播'
