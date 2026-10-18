@@ -474,7 +474,11 @@
     if (a && typeof a.pause === 'function') { a.pause(); say('已暂停', 'ok'); return }
     say('预览还没起来', 'err')
   }
-  document.getElementById('replay').onclick = function () { if (tpl) pushDraft({ start: 0 }) }
+  document.getElementById('replay').onclick = function () {
+    if (!tpl) return
+    if (tlView) { tl.playhead = 0; tl.kfSel = -1; renderTlTracks(); renderTlPanel() }
+    pushDraft({ start: 0 })
+  }
 
   document.getElementById('save').onclick = function () {
     if (!tpl) return
@@ -624,7 +628,21 @@
     var d = tlDur()
     tl.playhead = Math.max(0, Math.min(d, Math.round(ms)))
     var api = frameApi()
-    if (!api) { pushDraft(); return }   /* 预览已经被卸掉了：重新载一份再 seek */
+    /* 预览层可能已被卸掉（真实收尾流程）——此时 seek 是空操作，必须重载一份。
+       用 root 是否存在来判断，比看 api 在不在准（api 对象会一直挂在 window 上）。 */
+    var alive = true
+    try {
+      var pdoc = frame.contentDocument
+      alive = !!(pdoc && pdoc.getElementById('dsh-startup-root'))
+    } catch (e3) { alive = !!api }
+    if (!alive) {
+      var now = Date.now()
+      if (!seekTo._lastReload || now - seekTo._lastReload > 1500) {
+        seekTo._lastReload = now
+        pushDraft()
+      }
+      return
+    }
     try { api.pause() } catch (e) { /* noop */ }
     try { api.seek(tl.playhead) } catch (e2) { /* noop */ }
     var c = document.getElementById('tlclock'); if (c) c.textContent = tlClockText()
