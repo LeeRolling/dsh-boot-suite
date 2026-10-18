@@ -1,0 +1,11 @@
+{
+  "id": "dsh-boot-suite",
+  "name": "开机动画 + 聊天壁纸",
+  "nameEn": "Boot Suite",
+  "author": "LeeRolling",
+  "description": "给 DSH 加开机动画与聊天壁纸：分幕模板引擎（1–24 幕）、自带配色/文案/配音、网页版编辑器、模板商店。首帧注入不露 Loading 卡片，桌面标题栏在片头期间透明化。",
+  "descriptionEn": "Boot animation plus chat wallpaper for DSH: a stepped template engine (1–24 acts), per-template colours, copy and voice, a browser editor with live preview, and a one-click template store. The first frame is injected before DSH's loading card can paint.",
+  "repo": "https://github.com/LeeRolling/dsh-boot-suite",
+  "category": "ui",
+  "subcategory": "render"
+}

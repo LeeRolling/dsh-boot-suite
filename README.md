@@ -102,6 +102,13 @@ DeepSeek Harness（DSH）冷启动时会先播六幕动画，播完进聊天，�
     templates/<id>/template.json          # 插件自带
     ~/.dsh/startup-templates/<id>/template.json   # 你自己的（同 id 优先）
 
+### 开机体验（v2.5.0）
+
+- **不露底**：首帧在文档解析阶段就画上，DSH 自带的「HARNESS / Loading plugins…」卡片被按掉
+- **标题栏收编**：桌面端片头播放时，右上角原生按钮条变透明，按钮浮在动画上（片头结束自动还回去）
+- **两段式揭幕**：内容先化进自己的底色（200ms），底色再淡出（420ms）—— 不会把结尾 logo 留成灰影
+- **检查更新**：设置页「启动动画」底部一键比对 GitHub 最新版本
+
 选哪个模板：DSH 设置页「启动动画」→ 模板下拉框；或直接改 `~/.dsh/dsh-startup.json` 的 `template` 字段，留空 = 内置。
 
 **模板商店**：设置页 →「打开模板编辑器」→ 顶栏「🏪 商店」。列表来自

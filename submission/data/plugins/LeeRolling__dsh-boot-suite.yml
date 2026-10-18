@@ -1,0 +1,7 @@
+url: https://github.com/LeeRolling/dsh-boot-suite
+name: LeeRolling/dsh-boot-suite
+category: ui
+description:
+  en: 'Boot animation + chat wallpaper for DSH, with a data-driven template engine: 1–24 steps, per-template colours, copy and voice lines. Ships a visual editor with live preview, a template store (install in one click, assets included), and a real settings page. First frame is injected while the document parses, so DSH\'s own loading card never shows; the desktop caption strip turns transparent during the splash.'
+  zh: '给 DSH 加开机动画与聊天壁纸，核心是可换模板的分幕引擎：1–24 幕、每套模板自带配色/文案/配音。附网页版编辑器（实时预览）、模板商店（一键安装，连素材一起下）、完整设置页。首帧在文档解析阶段注入，DSH 自带的 Loading 卡片不会露脸；桌面窗口的标题栏按钮在片头期间透明化。'
+tarball: https://github.com/LeeRolling/dsh-boot-suite/releases/latest/download/dsh-boot-suite.tgz

@@ -15,7 +15,7 @@ const check = (label, ok, extra) => {
 console.log('\n[1] 包身份')
 const pkg = JSON.parse(read('package.json'))
 check('包名 = dsh-boot-suite', pkg.name === 'dsh-boot-suite', pkg.name)
-check('版本 = 2.2.0', pkg.version === '2.2.0', pkg.version)
+check('版本 = 2.5.0', pkg.version === '2.5.0', pkg.version)
 check('有 dsh.bundle.patch', pkg.dsh?.bundle?.patch === './cordis.patch.yml')
 check('dsh.client 注入了设置页服务', (pkg.dsh?.client?.inject || []).includes('@deepseek-ai/dsh-client-ui-settings'))
 
@@ -39,7 +39,7 @@ check('壁纸半侧的测试钩子还在（__mountLayer / __PANEL_ID）',
   client.includes('exports.__mountLayer = mountLayer') && client.includes('exports.__PANEL_ID = PANEL_ID'))
 check('壁纸半侧确实被受管调用（module.exports.apply 里调 __wallHalf.apply）',
   client.includes('__wallHalf.apply(ctx)'))
-check('版本号兜底常量 = 2.2.0', client.includes("FALLBACK_VERSION = '2.2.0'"))
+check('版本号兜底常量 = 2.5.0', client.includes("FALLBACK_VERSION = '2.5.0'"))
 
 console.log('\n[4] 两套配置文件名没动（老用户设置原样生效）')
 const hostStartup = read('lib/host-startup.js')

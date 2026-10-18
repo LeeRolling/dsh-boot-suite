@@ -132,7 +132,7 @@ check('没有 Config 导出（普通对象不是 schemastery schema）', mod.Con
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 22 条路由（开机动画 15 + 聊天壁纸 7）', ROUTES.size === 22, [...ROUTES.keys()].join(' | '))
+check('注册了 23 条路由（开机动画 16 + 聊天壁纸 7）', ROUTES.size === 23, [...ROUTES.keys()].join(' | '))
 check('注册了 1 个 tapIndex', TAPS.length === 1)
 check('用了 ctx.effect 管理生命周期（开机动画 1 + 壁纸 7）', effects === 8, String(effects))
 
@@ -393,6 +393,21 @@ console.log('\n[6e] 模板自带声音：template-asset 只读白名单')
   const missing = await call('prefix /dsh-startup/template-asset', 'GET', undefined, '/dsh-startup/template-asset/deep-sonar/line-9.mp3')
   check('文件不存在返回 404', missing.statusCode === 404)
   fs.rmSync(path.join(SMOKE_HOME, 'startup-templates', 'deep-sonar'), { recursive: true, force: true })
+}
+
+console.log('\n[6f] 检查更新：当前版本 vs GitHub latest')
+{
+  const realFetch = globalThis.fetch
+  globalThis.fetch = async (url) => {
+    if (String(url).includes('api.github.com')) {
+      return { ok: true, status: 200, text: async () => JSON.stringify({ tag_name: 'v9.9.9', html_url: 'https://example.test/rel', published_at: '2026-10-18T00:00:00Z' }) }
+    }
+    return { ok: false, status: 404, text: async () => '' }
+  }
+  try {
+    const up = JSON.parse((await call('exact /dsh-startup/update-check', 'GET', undefined, '/dsh-startup/update-check?refresh=1')).body)
+    check('能读到最新版本并判断有更新', up.ok === true && up.latest === '9.9.9' && up.hasUpdate === true, JSON.stringify(up))
+  } finally { globalThis.fetch = realFetch }
 }
 
 console.log('\n[7] XSS 边界：身份名称里的尖括号不会逃出内联脚本')
