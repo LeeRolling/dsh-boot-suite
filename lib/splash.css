@@ -1344,3 +1344,13 @@
 /* 中心光晕脉冲 */
 .dsu-fx-bloom { background: radial-gradient(circle at 50% 50%, rgba(120, 200, 255, 0.22), transparent 55%); animation: dsu-fx-pulse calc(3.2s / var(--fx-speed, 1)) ease-in-out infinite; }
 @keyframes dsu-fx-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+/* 逐字出现时的光标（typed 未满 1 时挂上 .dsu-typing） */
+.dsu-tl-text.dsu-typing::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em; height: 1em;
+  margin-left: 0.12em;
+  vertical-align: -0.12em;
+  background: currentColor;
+  animation: dsu-blink 1s steps(1) infinite;
+}

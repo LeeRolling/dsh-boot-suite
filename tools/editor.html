@@ -895,6 +895,18 @@
       var ti = document.createElement('input'); ti.type = 'text'; ti.value = L.text || ''
       ti.oninput = function () { L.text = ti.value; tlSync(); renderTlTracks() }
       tf.appendChild(tl2); tf.appendChild(ti); side.appendChild(tf)
+      /* 逐字出现：等价于给 typed 打一个 0→1 的关键帧 */
+      var tyF = document.createElement('div'); tyF.className = 'field'
+      var tyCur = valueAt(L, 'typed', 1)
+      var tyLb = document.createElement('label'); tyLb.textContent = '逐字出现（' + Number(tyCur).toFixed(2) + '）'
+      var tyIn = document.createElement('input'); tyIn.type = 'range'; tyIn.min = 0; tyIn.max = 1; tyIn.step = 0.02; tyIn.value = tyCur
+      tyIn.oninput = function () {
+        var v = Number(tyIn.value)
+        setAt(L, 'typed', v)
+        tyLb.textContent = '逐字出现（' + v.toFixed(2) + '）'
+        tlSync(); renderTlTracks()
+      }
+      tyF.appendChild(tyLb); tyF.appendChild(tyIn); side.appendChild(tyF)
     }
     var posRow = document.createElement('div'); posRow.className = 'tlsel'
     posRow.textContent = '位置：' + (L.pos ? L.pos.join(', ') : '未设') + '（逻辑坐标 1280×720）'
