@@ -1383,3 +1383,9 @@
 .dsu-fx-ro-tr { right: 3.2%; top: 3.4%; text-align: right; }
 .dsu-fx-ro-bl { left: 3.2%; bottom: 3.4%; }
 .dsu-fx-ro-br { right: 3.2%; bottom: 3.4%; text-align: right; }
+
+/* 进度条图层：轨道 + 填充（填充宽度由 value 关键帧控制） */
+.dsu-tl-progress-track { width: 100%; height: 100%; background: rgba(114,162,234,0.18); overflow: hidden; }
+.dsu-tl-progress-fill { width: 0%; height: 100%; background: var(--dsu-accent); box-shadow: 0 0 10px rgba(114,162,234,0.5); }
+/* 计数器图层 */
+.dsu-tl-counter { display: flex; align-items: center; justify-content: center; font: 600 34px/1 Consolas, Menlo, monospace; color: var(--dsu-accent); letter-spacing: 0.06em; }
