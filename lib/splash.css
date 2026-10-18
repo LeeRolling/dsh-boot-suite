@@ -1116,3 +1116,120 @@
   #dsh-startup-root .dsu-ret-rot-b { animation: none; }
   #dsh-startup-root .dsu-scanline.dsu-go { animation: none; }
 }
+/* ══ 终端风（模板 style: "terminal"）═══════════════════════════════════════
+   参考 550C 那类终端开机的语言（扫描线/等宽/日志行/身份卡），
+   但配色与文案是我们自己的，不复用他人素材。 */
+#dsh-startup-root.dsu-terminal { font-family: var(--dsu-mono); letter-spacing: 0.04em; }
+#dsh-startup-root.dsu-terminal::after {
+  content: "";
+  position: absolute; inset: 0;
+  z-index: 68;
+  pointer-events: none;
+  background: repeating-linear-gradient(180deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 3px);
+  opacity: 0.55;
+  mix-blend-mode: overlay;
+}
+
+/* 左下角日志面板 */
+.dsu-term-log {
+  position: absolute;
+  left: 46px; bottom: 118px;
+  z-index: 30;
+  width: min(48vw, 620px);
+  font-size: 12px;
+  line-height: 2.0;
+  color: var(--dsu-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.dsu-term-line {
+  white-space: pre;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+.dsu-term-line.on { opacity: 1; transform: none; }
+.dsu-term-line .tag { color: var(--dsu-accent); }
+.dsu-term-line .dim { color: var(--dsu-muted); }
+.dsu-term-caret {
+  display: inline-block;
+  width: 7px; height: 13px;
+  margin-left: 7px;
+  background: var(--dsu-accent);
+  vertical-align: -2px;
+  animation: dsu-blink 1s steps(1) infinite;
+}
+@keyframes dsu-blink { 50% { opacity: 0; } }
+
+/* 身份卡 */
+.dsu-term-card {
+  position: absolute;
+  left: 50%; top: 50%;
+  z-index: 45;
+  width: min(70vw, 940px);
+  aspect-ratio: 1.92 / 1;
+  transform: translate(-50%, -50%) scale(0.985);
+  background: linear-gradient(180deg, rgba(13,17,21,0.97), rgba(6,8,10,0.99));
+  border: 1px solid var(--dsu-hair);
+  border-radius: 3px;
+  box-shadow: 0 34px 90px rgba(0,0,0,0.65), inset 0 0 70px rgba(0,0,0,0.55);
+  padding: 24px 30px;
+  display: flex; flex-direction: column; gap: 12px;
+  opacity: 0;
+  transition: opacity 340ms ease, transform 340ms ease;
+  color: var(--dsu-ink);
+  font-family: var(--dsu-mono);
+}
+.dsu-term-card.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.dsu-term-card-head { display: flex; align-items: baseline; justify-content: space-between; letter-spacing: 0.34em; font-size: 12px; color: var(--dsu-ink-soft); }
+.dsu-term-card-head .en { color: var(--dsu-ink); }
+.dsu-term-card-head .zh { color: var(--dsu-muted); letter-spacing: 0.2em; }
+.dsu-term-card-rule { height: 1px; background: var(--dsu-hair); }
+.dsu-term-card-body { display: flex; gap: 26px; flex: 1; min-height: 0; }
+.dsu-term-card-id { flex: 0 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.dsu-term-card-photo {
+  width: 128px; height: 160px;
+  border: 1px solid var(--dsu-hair);
+  background: #0b0f13 center/cover no-repeat;
+  position: relative;
+  overflow: hidden;
+}
+.dsu-term-card-photo {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(88,240,138,0.10) 0 1px, transparent 1px 12px),
+    repeating-linear-gradient(0deg, rgba(88,240,138,0.10) 0 1px, transparent 1px 12px),
+    linear-gradient(180deg, #0b1410, #060a08);
+}
+.dsu-term-card-photo span { position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 5px; font-size: 9px; letter-spacing: 0.06em; color: var(--dsu-ink); background: linear-gradient(180deg, transparent, rgba(0,0,0,0.85)); }
+
+/* 右下：核验清单 */
+.dsu-term-card-checks { display: flex; flex-direction: column; gap: 5px; width: 196px; font-size: 10px; letter-spacing: 0.12em; color: var(--dsu-ink-soft); }
+.dsu-term-card-checks div { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dotted var(--dsu-hair); padding-bottom: 3px; }
+.dsu-term-card-checks b { color: var(--dsu-accent); font-weight: 500; }
+.dsu-term-card-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.dsu-term-card-no { font-size: 46px; line-height: 1; letter-spacing: 0.16em; color: var(--dsu-ink); }
+.dsu-term-card-name { font-size: 13px; letter-spacing: 0.28em; color: var(--dsu-ink-soft); }
+.dsu-term-card-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 26px; margin-top: 4px; }
+.dsu-term-card-field label { display: block; font-size: 10px; letter-spacing: 0.16em; color: var(--dsu-muted); margin-bottom: 2px; }
+.dsu-term-card-field b { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; color: var(--dsu-ink); }
+.dsu-term-card-side { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.dsu-term-card-qr { width: 132px; height: 132px; background: #fff; padding: 6px; border-radius: 2px; }
+.dsu-term-card-qr canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.dsu-term-card-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding-top: 6px; border-top: 1px solid var(--dsu-hair); }
+.dsu-term-card-wave { display: flex; align-items: flex-end; gap: 2px; height: 30px; }
+.dsu-term-card-wave i { display: block; width: 2px; background: var(--dsu-ink-soft); height: 20%; animation: dsu-wave 1.1s ease-in-out infinite alternate; }
+@keyframes dsu-wave { from { height: 14%; opacity: 0.55; } to { height: 92%; opacity: 1; } }
+.dsu-term-card-foot .foot { font-size: 10px; letter-spacing: 0.3em; color: var(--dsu-muted); }
+
+/* 终端风下，中央状态区改用等宽 + 方括号语感 */
+/* 身份卡上屏时，其它界面元素整体让位（否则品牌块/字幕叠在卡面上） */
+#dsh-startup-root.dsu-term-card-on .dsu-center,
+#dsh-startup-root.dsu-term-card-on .dsu-brand,
+#dsh-startup-root.dsu-term-card-on .dsu-idline,
+#dsh-startup-root.dsu-term-card-on .dsu-subtitle,
+#dsh-startup-root.dsu-term-card-on .dsu-foot {
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+#dsh-startup-root.dsu-terminal .dsu-status { letter-spacing: 0.1em; }
+#dsh-startup-root.dsu-terminal .dsu-sub-en { letter-spacing: 0.22em; }

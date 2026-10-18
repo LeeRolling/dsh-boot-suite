@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "id": "terminal-phosphor",
+  "name": "磷光终端",
+  "author": "DeepSeek",
+  "adaptedBy": "LeeRolling",
+  "basedOn": "——",
+  "license": "MIT",
+  "version": "1.0.0",
+  "description": "终端风开机：等宽字 + 扫描线 + 左下日志行，中途弹出一张身份许可卡（编号/机构/等级/范围/生物特征 + 二维码 + 波形）。",
+  "tags": [
+    "terminal",
+    "hud",
+    "dark",
+    "mono"
+  ],
+  "style": "terminal",
+  "theme": {
+    "mode": "dark",
+    "bg": "#05070a",
+    "bg2": "#0a1015",
+    "ink": "#d7ffe6",
+    "inkSoft": "#8fd9ac",
+    "muted": "#4d6e5b",
+    "hair": "rgba(88,240,138,0.22)",
+    "hairSoft": "rgba(88,240,138,0.10)",
+    "accent": "#58f08a",
+    "glitchA": "#ff5c7a",
+    "glitchB": "#5cd0ff"
+  },
+  "card": {
+    "headEn": "DSH ACCESS PERMIT",
+    "headZh": "身份许可",
+    "unit": "联合终端 · 操作员",
+    "issuer": "DeepSeek Harness · 身份服务",
+    "levelScope": "会话通道",
+    "validity": "本次会话 · 随登出失效",
+    "scope": "DSH 终端 · 只读查询",
+    "biometrics": "虹膜 · 指纹",
+    "status": "比对完成",
+    "serialPrefix": "DSH",
+    "photoCaption": "OPERATOR",
+    "avatar": "assets/avatar.png",
+    "footer": "ISSUED BY DSH · VERIFIED BY TERMINAL",
+    "checks": [
+      "虹膜比对",
+      "指纹比对",
+      "证件校验",
+      "权限判定"
+    ]
+  },
+  "steps": [
+    {
+      "zh": "建立安全通道",
+      "en": "SECURE CHANNEL ESTABLISHED",
+      "log": "建立安全通道…",
+      "logEn": "HANDSHAKE · CHANNEL SECURED",
+      "badge": "LINK",
+      "action": "auto",
+      "hold": 1400,
+      "progress": 0.14
+    },
+    {
+      "zh": "读取终端配置",
+      "en": "LOADING TERMINAL PROFILE",
+      "log": "读取终端配置…",
+      "logEn": "PROFILE LOADED · POLICY 0.2.1",
+      "badge": "PROFILE",
+      "action": "auto",
+      "hold": 1500,
+      "progress": 0.3
+    },
+    {
+      "zh": "生成访问许可",
+      "en": "ISSUING ACCESS PERMIT",
+      "log": "生成访问许可…",
+      "logEn": "PERMIT ISSUED · PENDING VERIFY",
+      "badge": "PERMIT",
+      "action": "auto",
+      "hold": 1400,
+      "progress": 0.46
+    },
+    {
+      "zh": "核验身份",
+      "en": "VERIFYING OPERATOR",
+      "log": "核验身份资料…",
+      "logEn": "BIOMETRIC MATCH · PASS",
+      "badge": "VERIFY",
+      "action": "auto",
+      "hold": 2600,
+      "progress": 0.7,
+      "screen": "card",
+      "cardStatus": "比对完成"
+    },
+    {
+      "zh": "判定权限等级",
+      "en": "RESOLVING ACCESS LEVEL",
+      "log": "判定权限等级…",
+      "logEn": "LEVEL 3 · 生活区通行",
+      "badge": "ACCESS",
+      "action": "auto",
+      "hold": 1500,
+      "progress": 0.86
+    },
+    {
+      "zh": "会话已开启",
+      "en": "SESSION GRANTED",
+      "log": "会话已开启",
+      "logEn": "READY FOR OPERATOR INPUT",
+      "badge": "READY",
+      "action": "auto",
+      "hold": 1600,
+      "progress": 0.96
+    }
+  ]
+}

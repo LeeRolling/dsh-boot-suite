@@ -392,6 +392,10 @@ console.log('\n[6e] 模板自带声音：template-asset 只读白名单')
   check('非法模板 id 拒绝（防穿越）', badId.statusCode === 404)
   const missing = await call('prefix /dsh-startup/template-asset', 'GET', undefined, '/dsh-startup/template-asset/deep-sonar/line-9.mp3')
   check('文件不存在返回 404', missing.statusCode === 404)
+  /* 身份卡头像这类图片素材：同一路由要能下发 png */
+  fs.writeFileSync(path.join(dir, 'avatar.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
+  const png = await call('prefix /dsh-startup/template-asset', 'GET', undefined, '/dsh-startup/template-asset/deep-sonar/avatar.png')
+  check('模板图片素材能下发', png.statusCode === 200 && png.body.length > 0)
   fs.rmSync(path.join(SMOKE_HOME, 'startup-templates', 'deep-sonar'), { recursive: true, force: true })
 }
 
