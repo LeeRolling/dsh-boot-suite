@@ -39,7 +39,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node test/smoke-host.mjs && node test/smoke-splash.mjs && node test/smoke-client.mjs && node test/smoke-desktop-boot.mjs && node test/smoke-wallpaper-host.mjs && node test/smoke-wallpaper-client.mjs && node test/smoke-wallpaper-mount.mjs && node test/smoke-wallpaper-start.mjs && node test/smoke-wallpaper-once.mjs && node test/smoke-wallpaper-timecode.mjs && node test/smoke-wallpaper-panel.mjs && node test/smoke-wallpaper-panel-client.mjs && node test/smoke-merge.mjs"
+    "test": "node test/smoke-host.mjs && node test/smoke-splash.mjs && node test/smoke-client.mjs && node test/smoke-desktop-boot.mjs && node test/smoke-wallpaper-host.mjs && node test/smoke-wallpaper-client.mjs && node test/smoke-wallpaper-mount.mjs && node test/smoke-wallpaper-start.mjs && node test/smoke-wallpaper-once.mjs && node test/smoke-wallpaper-timecode.mjs && node test/smoke-wallpaper-panel.mjs && node test/smoke-wallpaper-panel-client.mjs && node test/smoke-merge.mjs",
+    "motion:check": "node tools/motion-check.mjs --template=deep-sonar --speed=2",
+    "ui:detect": "npx --yes impeccable@latest detect --no-config tools/editor.html preview/index.html"
   },
   "license": "MIT",
   "engines": {

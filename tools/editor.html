@@ -27,7 +27,8 @@
   button { background:#242932; color:var(--ink); border:1px solid var(--line); border-radius:var(--radius); padding:6px var(--sp-3); font:inherit; cursor:pointer; }
   button:hover { background:#2b313b; border-color:#3d4654; }
   button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
-  button.primary:hover { background:#4a73ff; border-color:#4a73ff; }
+  /* hover 用更深一档：白字在 #4a73ff 上只有 4.05:1，不达 WCAG AA（impeccable 检出的） */
+  button.primary:hover { background:#3f68f5; border-color:#3f68f5; }
   /* 播放控制是三级操作：透明底、无边框，只在 hover 时出现底色 */
   button.ghost { background:transparent; border-color:transparent; color:var(--dim); }
   button.ghost:hover { background:#242932; color:var(--ink); border-color:var(--line); }
