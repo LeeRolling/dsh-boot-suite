@@ -90,13 +90,13 @@
   .tllbl { display:flex; align-items:center; gap:6px; }
   .tllbl input { width:84px; }
   .tlruler { position:relative; height:22px; border-bottom:1px solid var(--line); margin-bottom:6px; cursor:pointer; }
-  .tlplayhead { position:absolute; top:0; bottom:-9999px; width:1px; background:var(--accent); box-shadow:0 0 6px var(--accent); pointer-events:none; z-index:5; }
+  .tlplayhead { position:absolute; top:0; bottom:-9999px; width:2px; border-radius:1px; background:var(--accent); pointer-events:none; z-index:5; }
   .tltracks { display:flex; flex-direction:column; gap:3px; }
   .tlrow { display:flex; align-items:center; gap:var(--sp-2); height:26px; }
   .tlrow.sel { background:#1b2230; border-radius:6px; }
   .tlname { flex:0 0 132px; font-size:var(--fs-sm); color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
   .tlname .dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:6px; background:var(--accent); opacity:.65; }
-  .tllane { position:relative; flex:1; height:26px; border-left:1px solid var(--line); background:repeating-linear-gradient(90deg,#151a21 0 1px,transparent 1px 100px); }
+  .tllane { position:relative; flex:1; height:26px; border-left:1px solid var(--line); background:#151a21; }
   .tlkf { position:absolute; top:50%; width:11px; height:11px; margin:-5.5px 0 0 -5.5px; background:var(--ink); transform:rotate(45deg); border:1px solid #0a0c10; cursor:grab; }
   .tlkf.sel { background:var(--accent); }
   .tlkf:hover { background:#ffd45e; }
