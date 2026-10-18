@@ -167,6 +167,7 @@
   </div>
   <span id="status"></span>
   <span class="sp"></span>
+  <button id="newTpl" class="primary">＋ 新建模板</button>
   <button id="importBtn">导入 JSON</button>
   <input id="importFile" type="file" accept=".json,application/json" hidden>
   <button id="download">下载 JSON</button>
@@ -759,6 +760,29 @@
   /* ── 右侧面板：图层列表 + 属性 ─────────────────────────────── */
   function renderTlPanel() {
     side.innerHTML = ''
+    /* 模板信息：新建之后第一件要改的就是这里 */
+    var ih = document.createElement('h2'); ih.textContent = '模板信息'; side.appendChild(ih)
+    var info = document.createElement('div')
+    function tplField(label, key, placeholder) {
+      var d = document.createElement('div'); d.className = 'field'
+      var lb = document.createElement('label'); lb.textContent = label
+      var inp = document.createElement('input'); inp.type = 'text'; inp.value = tpl[key] || ''; inp.placeholder = placeholder || ''
+      inp.oninput = function () { tpl[key] = inp.value; if (key === 'name') renderTlTracks() }
+      d.appendChild(lb); d.appendChild(inp); info.appendChild(d)
+    }
+    tplField('模板 id（小写字母/数字/连字符）', 'id', 'my-template')
+    tplField('显示名称', 'name', '未命名模板')
+    tplField('作者', 'author', '你的名字')
+    tplField('一句话描述', 'description', '')
+    var idInp = info.querySelectorAll('input')[0]
+    var oldOninput = idInp.oninput
+    idInp.oninput = function () {
+      var v = idInp.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
+      if (v !== idInp.value) idInp.value = v
+      tpl.id = v
+    }
+    side.appendChild(info)
+
     var h = document.createElement('h2'); h.textContent = '图层（' + tlLayers().length + '）'; side.appendChild(h)
     if (!tlLayers().length) {
       var e = document.createElement('div'); e.className = 'empty'
@@ -1419,6 +1443,33 @@
   }
 
   /* ── 导入 JSON ─────────────────────────────────────────────── */
+  /* ── 新建模板：一张白纸 + 两个示例层，直接进时间线 ───────────── */
+  document.getElementById('newTpl').onclick = function () {
+    var n = Date.now().toString(36).slice(-5)
+    tpl = {
+      schemaVersion: 2,
+      id: 'my-template-' + n,
+      name: '未命名模板',
+      author: '',
+      license: 'MIT',
+      version: '0.1.0',
+      description: '',
+      duration: 6000,
+      theme: { mode: 'dark', bg: '#070b11', bg2: '#0d1620', ink: '#eef6ff', inkSoft: '#b7c9db', muted: '#6b7f92', hair: 'rgba(140,200,255,0.22)', accent: '#5cc8ff' },
+      segments: [{ name: '第 1 幕', from: 0, to: 3000 }, { name: '第 2 幕', from: 3000, to: 6000 }],
+      layers: [
+        { id: 'title', type: 'text', text: '标题文字', pos: [640, 320], font: { size: 46, weight: 500, tracking: 0.1 },
+          keyframes: [{ t: 200, opacity: 0, offsetY: 26, ease: 'outCubic' }, { t: 1000, opacity: 1, offsetY: 0 }] },
+        { id: 'rule', type: 'line', pos: [400, 384], width: 480,
+          keyframes: [{ t: 800, reveal: 0, ease: 'outCubic' }, { t: 1300, reveal: 1 }] }
+      ]
+    }
+    tl.selected = 0; tl.playhead = 0; tl.kfSel = -1
+    enterTimeline()
+    renderTlPanel(); renderTlTracks()
+    say('已新建模板：改完记得「保存到本地」', 'ok')
+  }
+
   document.getElementById('importBtn').onclick = function () { document.getElementById('importFile').click() }
   document.getElementById('importFile').onchange = function (ev) {
     var f = ev.target.files && ev.target.files[0]
