@@ -195,6 +195,7 @@
         <button id="tlAddLayer" class="mini">+ 图层</button>
         <button id="tlAddSeg" class="mini">+ 分段</button>
         <button id="tlAddLogo" class="mini">+ 线描</button>
+        <button id="tlAddGlobe" class="mini">+ 地球仪</button>
       </div>
       <div class="tlruler" id="tlruler"><div class="tlplayhead" id="tlplayhead"></div></div>
       <div class="tltracks" id="tltracks"></div>
@@ -917,6 +918,45 @@
       side.appendChild(kfBox)
     }
 
+    if (L.type === 'globe') {
+      var gh = document.createElement('div'); gh.className = 'hint'
+      gh.textContent = '直接拖 = 转视角（左右改经度、上下改倾角）；Shift+拖 = 移动位置。'
+      side.appendChild(gh)
+      function gnum(label, key, min, max, step, def, fmt) {
+        var d = document.createElement('div'); d.className = 'field'
+        var lb = document.createElement('label')
+        var cur = L[key] === undefined ? def : L[key]
+        lb.textContent = label + '（' + (fmt ? fmt(cur) : cur) + '）'
+        var inp = document.createElement('input'); inp.type = 'range'; inp.min = min; inp.max = max; inp.step = step; inp.value = cur
+        inp.oninput = function () {
+          L[key] = Number(inp.value)
+          lb.textContent = label + '（' + (fmt ? fmt(inp.value) : inp.value) + '）'
+          tlSync()
+        }
+        d.appendChild(lb); d.appendChild(inp); side.appendChild(d)
+      }
+      gnum('尺寸', 'logoSize', 160, 900, 10, 520)
+      gnum('自转周期(ms)', 'spinMs', 4000, 60000, 1000, 22000, function (v) { return (Number(v) / 1000).toFixed(1) + 's' })
+      gnum('起始经度', 'rotation0', -3.14, 3.14, 0.01, -0.32, function (v) { return Number(v).toFixed(2) })
+      gnum('倾角', 'tilt', -1.1, 1.1, 0.01, 0.12, function (v) { return Number(v).toFixed(2) })
+      gnum('线宽', 'strokeWidth', 0.4, 3, 0.1, 1.1)
+      var gcf = document.createElement('div'); gcf.className = 'field'
+      var gcl = document.createElement('label'); gcl.textContent = '颜色'
+      var gci = document.createElement('input'); gci.type = 'color'; gci.value = L.color || '#7fd8ff'
+      gci.oninput = function () { L.color = gci.value; tlSync() }
+      gcf.appendChild(gcl); gcf.appendChild(gci); side.appendChild(gcf)
+      var ggf = document.createElement('div'); ggf.className = 'field'
+      var ggl = document.createElement('label'); ggl.textContent = '经纬网格'
+      var ggs = document.createElement('select')
+      ;[[true, '显示'], [false, '隐藏']].forEach(function (o) {
+        var op = document.createElement('option'); op.value = String(o[0]); op.textContent = o[1]
+        if ((L.showGrid !== false) === o[0]) op.selected = true
+        ggs.appendChild(op)
+      })
+      ggs.onchange = function () { L.showGrid = (ggs.value === 'true'); tlSync() }
+      ggf.appendChild(ggl); ggf.appendChild(ggs); side.appendChild(ggf)
+    }
+
     if (L.type === 'logo') {
       var shf = document.createElement('div'); shf.className = 'field'
       var shl = document.createElement('label'); shl.textContent = '线描形状'
@@ -1317,7 +1357,7 @@
       var pt = canvasToLogical(ev)
       /* 地球层：拖动 = 旋转（改 rotation0 / tilt），不挪位置 */
       var cur = tlLayers()[tl.selected]
-      if (cur && cur.type === 'globe') {
+      if (cur && cur.type === 'globe' && !ev.shiftKey) {
         var gp = (cur.pos && cur.pos.length) ? cur.pos : [640, 360]
         var gr = (Number(cur.logoSize) || 520) / 2
         if (Math.pow(pt.x - gp[0], 2) + Math.pow(pt.y - gp[1], 2) <= gr * gr) {
@@ -1474,6 +1514,29 @@
     tl.selected = tpl.layers.length - 1
     tlSync(); renderTlPanel(); renderTlTracks()
   }
+  document.getElementById('tlAddGlobe').onclick = function () {
+    if (!tpl) { say('先新建或载入一个模板', 'err'); return }
+    if (!Array.isArray(tpl.layers)) tpl.layers = []
+    say('正在取地球数据…', 'ok')
+    /* 把地球海岸线数据内联进本模板（这样模板自带数据，不依赖别的模板资产） */
+    fetch('/dsh-startup/template-asset/earth-globe/earth-rings.json')
+      .then(function (r) { return r.ok ? r.json() : null })
+      .then(function (data) {
+        var rings = data && Array.isArray(data.rings) ? data.rings : null
+        tpl.layers.push({
+          id: 'globe-' + (tpl.layers.length + 1), type: 'globe',
+          logoSize: 520, color: '#7fd8ff', strokeWidth: 1.1,
+          spinMs: 22000, rotation0: -0.32, tilt: 0.12, showGrid: true,
+          pos: [640, 360], rings: rings || [],
+          keyframes: [{ t: 200, opacity: 0, scale: 0.92 }, { t: 1200, opacity: 1, scale: 1, ease: 'outCubic' }]
+        })
+        tl.selected = tpl.layers.length - 1
+        tlSync(); renderTlPanel(); renderTlTracks()
+        say(rings ? ('已添加地球仪（' + rings.length + ' 段海岸线）') : '已添加，但没取到海岸线数据', rings ? 'ok' : 'err')
+      })
+      .catch(function () { say('已添加地球仪，但数据加载失败（检查客户端是否重启过）', 'err') })
+  }
+
   document.getElementById('tlAddLogo').onclick = function () {
     if (!tpl) return
     if (!Array.isArray(tpl.layers)) tpl.layers = []
