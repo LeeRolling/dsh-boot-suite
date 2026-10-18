@@ -120,7 +120,7 @@ function makeSpeech() {
   }
 }
 
-function run(withSpeech, cfgOverride) {
+function run(withSpeech, cfgOverride, template) {
   MARKUP = ''
   MISSED.clear()
   lookupCache.clear()
@@ -216,6 +216,8 @@ function run(withSpeech, cfgOverride) {
 
   /* 配置覆盖必须在跑脚本之前生效 —— splash.js 只在加载时读一次配置 */
   Object.assign(windowStub.__DSH_STARTUP__, cfgOverride || {})
+  /* 模板同理：运行时在加载时读一次 __DSH_STARTUP_TEMPLATE__ */
+  if (template) windowStub.__DSH_STARTUP_TEMPLATE__ = template
 
   vm.createContext(sandbox)
   const src = fs.readFileSync(BUNDLE, 'utf8')
@@ -316,6 +318,51 @@ console.log('\n[8] 终幕用真声欢迎语（来自 Video Project 3 的 line-6�
   check('预加载包含 line-6', /ensureAsset\('line-6'\)/.test(src))
   check('五步仍然各自挂着真声素材', (src.match(/audio: 'line-/g) || []).length === 5)
   check('总共 6 份人声素材被引用', (src.match(/'line-[1-6]'/g) || []).length >= 6)
+}
+
+console.log('\n[9] 模板：分幕可以自定义（1~24 幕，缺字段回落内置）')
+{
+  /* 3 幕模板：只给一部分字段，验证回落与进度自动均分 */
+  const tpl3 = {
+    id: 'demo-3',
+    steps: [
+      { zh: '第一幕', en: 'ACT ONE', audio: 'line-1', action: 'auto', hold: 600 },
+      { zh: '第二幕', en: 'ACT TWO', audio: 'line-2' },
+      { zh: '第三幕', en: 'ACT THREE' }
+    ]
+  }
+  const r3 = run(true, null, tpl3)
+  check('3 幕模板初始化不抛异常', r3.thrown === null, r3.thrown && r3.thrown.message)
+  const api3 = r3.windowStub.__DSH_STARTUP_API__
+  check(' exposing steps 与 template id', !!api3 && Array.isArray(api3.steps) && api3.template === 'demo-3', api3 && api3.template)
+  check('幕数 = 3（模板说了算，不是写死的 6）', api3.steps.length === 3, String(api3.steps.length))
+  check('第一幕文案来自模板', api3.steps[0].zh === '第一幕' && api3.steps[0].en === 'ACT ONE')
+  check('缺的字段回落成非空默认值', !!api3.steps[0].log && !!api3.steps[0].badge && !!api3.steps[0].say)
+  check('没写进度时按位置均分（3 幕 + 终幕 = 4 段）',
+    Math.abs(api3.steps[0].progress - 0.25) < 0.001 && Math.abs(api3.steps[2].progress - 0.75) < 0.001,
+    api3.steps.map((s) => s.progress).join(','))
+  check('非法 action 被夹成 auto', (function () {
+    const bad = run(true, null, { id: 'bad', steps: [{ zh: 'x', action: 'DROP TABLE' }] })
+    return bad.windowStub.__DSH_STARTUP_API__.steps[0].action === 'auto'
+  })())
+  check('幕数上限 24（30 幕模板被夹取）', (function () {
+    const many = { id: 'many', steps: new Array(30).fill(0).map((_, i) => ({ zh: '幕' + i })) }
+    const rm = run(true, null, many)
+    return rm.windowStub.__DSH_STARTUP_API__.steps.length === 24
+  })())
+  check('空 steps 回落内置 5 幕', (function () {
+    const re = run(true, null, { id: 'empty', steps: [] })
+    return re.windowStub.__DSH_STARTUP_API__.steps.length === 5
+  })())
+  check('steps 不是数组也不炸（回落内置）', (function () {
+    const rn = run(true, null, { id: 'bad2', steps: 'nope' })
+    return rn.thrown === null && rn.windowStub.__DSH_STARTUP_API__.steps.length === 5
+  })())
+  check('没选模板时 template 为空、五幕照旧', (function () {
+    const rb = run(true)
+    const a = rb.windowStub.__DSH_STARTUP_API__
+    return a.template === '' && a.steps.length === 5
+  })())
 }
 
 console.log('\n============================')

@@ -287,6 +287,20 @@ check('幂等：行表已注入后 tapIndex 变成无操作', TAPS[0](after) ===
 check('原 <div id="root"></div> 仍在（应用照常挂载）', after.includes('<div id="root"></div>'))
 check('内联载荷里没有裸的 < （防 </script> 提前闭合）', !inlinePayload(after).includes('<'))
 
+console.log('\n[6b] 模板：选中的模板以 global 行下发')
+await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: 'archive-warm' } }))
+{
+  const rowsWithTpl = collectRows()
+  const tplRow = rowsWithTpl.find((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_TEMPLATE__')
+  check('选了模板时多一行 __DSH_STARTUP_TEMPLATE__（9 → 10）', rowsWithTpl.length === 10, String(rowsWithTpl.length))
+  check('模板行带 id（来自插件自带 templates/）', !!tplRow && tplRow.value.id === 'archive-warm', tplRow && tplRow.value.id)
+}
+await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: '../etc/passwd' } }))
+check('非法的模板 id 被忽略（不读文件、不多行）', collectRows().length === 9)
+await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: 'no-such-template' } }))
+check('模板不存在时回落内置（不报错、不多行）', collectRows().length === 9)
+await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: '' } }))
+
 console.log('\n[7] XSS 边界：身份名称里的尖括号不会逃出内联脚本')
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { identity: '</script><img src=x onerror=alert(1)>' } }))
 const payload = inlinePayload(renderRows(before, collectRows()))

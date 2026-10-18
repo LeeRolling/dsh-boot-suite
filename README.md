@@ -2,6 +2,7 @@
 
 > **DeepSeek Harness 开机套件** —— 六幕开机动画 + 聊天壁纸。
 > 一个插件，两个半侧：**冷启动的仪式感**，和**进入聊天后的那张底图**。
+> v2.2.0 起**分幕是数据**：可以换成任意幕数（1~24）的模板。
 
 [![release](https://img.shields.io/github/v/release/LeeRolling/dsh-boot-suite?label=release)](https://github.com/LeeRolling/dsh-boot-suite/releases)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -91,6 +92,19 @@ DeepSeek Harness（DSH）冷启动时会先播六幕动画，播完进聊天，�
 - **失败即退场**：视频放不出来就把 CSS 全部撤回，页面回原样
 
 配置：`~/.dsh/chat-wallpaper.json`（设置页改）
+
+---
+
+## 模板（v2.2.0 起）
+
+六幕不是写死的：**每一幕的文案、音频槽、按钮、停留时长都是数据**，幕数 1~24 任意。
+
+    templates/<id>/template.json          # 插件自带
+    ~/.dsh/startup-templates/<id>/template.json   # 你自己的（同 id 优先）
+
+选哪个模板：`~/.dsh/dsh-startup.json` 里加 `"template": "archive-warm"`，留空 = 内置那套。
+格式见 [docs/模板格式.md](docs/模板格式.md)。模板**只能是数据**，运行时不会执行模板里的任何代码。
+找不到模板、字段缺了、id 非法 —— 一律回落内置，不会黑屏。
 
 ---
 
