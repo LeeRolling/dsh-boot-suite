@@ -1281,10 +1281,19 @@
 }
 @keyframes dsu-fx-rain { from { transform: translateY(0); } to { transform: translateY(75%); } }
 
+/* 雷达 / 声呐放进 1:1 方形容器：否则在 16:9 舞台上圆会变成椭圆 */
+.dsu-fx-circle-box {
+  position: absolute; left: 50%; top: 50%;
+  height: 92%; aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: hidden;
+}
+
 /* 雷达：扫描扇面 + 同心圆 */
 .dsu-fx-radar-sweep {
-  position: absolute; inset: 0;
-  background: conic-gradient(from 0deg, rgba(90,240,160,0.00) 0deg, rgba(90,240,160,0.00) 300deg, rgba(90,240,160,0.28) 360deg);
+  position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(90,240,160,0.00) 0deg, rgba(90,240,160,0.00) 300deg, rgba(90,240,160,0.30) 360deg);
   animation: dsu-fx-spin calc(4s / var(--fx-speed, 1)) linear infinite;
 }
 @keyframes dsu-fx-spin { to { transform: rotate(360deg); } }

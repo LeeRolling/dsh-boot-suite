@@ -192,6 +192,7 @@
         <span class="sp"></span>
         <button id="tlAddKf" class="mini">◆ 打关键帧</button>
         <button id="tlAddLayer" class="mini">+ 图层</button>
+        <button id="tlAddSeg" class="mini">+ 分段</button>
       </div>
       <div class="tlruler" id="tlruler"><div class="tlplayhead" id="tlplayhead"></div></div>
       <div class="tltracks" id="tltracks"></div>
@@ -796,6 +797,7 @@
     })
 
     renderFxPanel()
+    renderSegPanel()
 
     var L = tlLayers()[tl.selected]
     if (!L) return
@@ -982,6 +984,45 @@
     side.appendChild(addRow)
   }
 
+  /* 分段：纯编排用的"幕"，给每段起止时间，效果和图层可以跨段 */
+  function renderSegPanel() {
+    var h = document.createElement('h2'); h.textContent = '分段（' + ((tpl.segments || []).length) + '）'
+    side.appendChild(h)
+    var tip = document.createElement('div'); tip.className = 'hint'
+    tip.textContent = '幕只是时间标记，不改播放逻辑；图层与效果可以横跨好几幕。'
+    side.appendChild(tip)
+    var d = tlDur()
+    ;(tpl.segments || []).forEach(function (seg, i) {
+      var row = document.createElement('div')
+      row.style.cssText = 'border-left:3px solid var(--accent);padding:4px 8px;margin-bottom:6px;background:#141a22;border-radius:6px'
+      var head = document.createElement('div'); head.style.cssText = 'display:flex;gap:6px;align-items:center'
+      var nm = document.createElement('input'); nm.type = 'text'; nm.value = seg.name || ('第 ' + (i + 1) + ' 幕')
+      nm.style.flex = '1'; nm.oninput = function () { seg.name = nm.value; renderTlTracks() }
+      var del = document.createElement('button'); del.className = 'mini danger'; del.textContent = '✕'
+      del.onclick = function () { tpl.segments.splice(i, 1); renderTlPanel(); renderTlTracks(); tlSync() }
+      head.appendChild(nm); head.appendChild(del); row.appendChild(head)
+      var times = document.createElement('div'); times.style.cssText = 'display:flex;gap:6px;margin-top:4px'
+      function segInput(label, key) {
+        var wrap2 = document.createElement('div'); wrap2.className = 'field'; wrap2.style.flex = '1'
+        var lb = document.createElement('label'); lb.textContent = label
+        var inp = document.createElement('input'); inp.type = 'number'; inp.min = 0; inp.max = d; inp.step = 100; inp.value = seg[key]
+        inp.onchange = function () {
+          seg[key] = Math.max(0, Math.min(d, Number(inp.value) || 0))
+          if (seg.from > seg.to) { var tmp = seg.from; seg.from = seg.to; seg.to = tmp }
+          renderTlTracks(); tlSync()
+        }
+        wrap2.appendChild(lb); wrap2.appendChild(inp); times.appendChild(wrap2)
+      }
+      segInput('开始(ms)', 'from')
+      segInput('结束(ms)', 'to')
+      row.appendChild(times)
+      var dur = document.createElement('div'); dur.className = 'hint'
+      dur.textContent = '时长 ' + ((seg.to - seg.from) / 1000).toFixed(2) + 's'
+      row.appendChild(dur)
+      side.appendChild(row)
+    })
+  }
+
   /* ── 轨道区：每层一行，关键帧是菱形 ─────────────────────── */
   function renderTlTracks() {
     var tracks = document.getElementById('tltracks')
@@ -1000,6 +1041,20 @@
         tick.textContent = s + 's'
         ticks.appendChild(tick)
       }
+      ruler.appendChild(ticks)
+      ;(tpl.segments || []).forEach(function (seg, si) {
+        var d2 = tlDur()
+        var band = document.createElement('div')
+        band.className = 'tlseg'
+        band.style.cssText = 'position:absolute;top:0;bottom:0;background:rgba(92,200,255,0.14);border-left:1px solid rgba(92,200,255,0.5);pointer-events:none'
+        band.style.left = (seg.from / d2 * 100) + '%'
+        band.style.width = (Math.max(0, seg.to - seg.from) / d2 * 100) + '%'
+        var lb2 = document.createElement('span')
+        lb2.style.cssText = 'position:absolute;left:3px;top:2px;font-size:10px;color:#8fd0ff;white-space:nowrap'
+        lb2.textContent = seg.name || ('第 ' + (si + 1) + ' 幕')
+        band.appendChild(lb2)
+        ruler.appendChild(band)
+      })
       ruler.appendChild(ticks)
       bindScrub(ruler)
       var hd = document.getElementById('tlhead')
@@ -1290,6 +1345,18 @@
     tl.selected = tpl.layers.length - 1
     tlSync(); renderTlPanel(); renderTlTracks()
   }
+  document.getElementById('tlAddSeg').onclick = function () {
+    if (!tpl) return
+    if (!Array.isArray(tpl.segments)) tpl.segments = []
+    if (tpl.segments.length >= 12) { say('分段最多 12 个', 'err'); return }
+    var d = tlDur()
+    var last = tpl.segments.length ? tpl.segments[tpl.segments.length - 1].to : 0
+    var from = Math.min(d - 200, last)
+    var to = Math.min(d, from + 2000)
+    tpl.segments.push({ name: '第 ' + (tpl.segments.length + 1) + ' 幕', from: from, to: to })
+    renderTlPanel(); renderTlTracks(); tlSync()
+  }
+
   document.getElementById('tlDur').onchange = function (ev) {
     if (!tpl) return
     var v = Math.max(600, Math.min(30000, Number(ev.target.value) || 4000))
