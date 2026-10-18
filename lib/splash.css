@@ -1389,3 +1389,6 @@
 .dsu-tl-progress-fill { width: 0%; height: 100%; background: var(--dsu-accent); box-shadow: 0 0 10px rgba(114,162,234,0.5); }
 /* 计数器图层 */
 .dsu-tl-counter { display: flex; align-items: center; justify-content: center; font: 600 34px/1 Consolas, Menlo, monospace; color: var(--dsu-accent); letter-spacing: 0.06em; }
+
+/* 文字层外框（按钮样式） */
+.dsu-tl-box { border: 1px solid rgba(114,162,234,0.55); padding: 10px 26px; background: rgba(8,18,38,0.55); border-radius: 2px; }
