@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 2,
+  "id": "logo-assemble",
+  "name": "方块聚合",
+  "author": "DeepSeek",
+  "adaptedBy": "LeeRolling",
+  "license": "MIT",
+  "version": "0.1.0",
+  "description": "方块先散布漂移，按时间收敛成 地球 / 月球 / DSH 三种形状，移动时带流体滞后。纯 DOM 变换，无图片。",
+  "tags": [
+    "blocks",
+    "logo",
+    "demo"
+  ],
+  "duration": 14000,
+  "theme": {
+    "mode": "dark",
+    "bg": "#05080d",
+    "bg2": "#0a121c",
+    "ink": "#eaf4ff",
+    "inkSoft": "#a8c0d4",
+    "muted": "#5d7184",
+    "hair": "rgba(130,190,255,0.20)",
+    "accent": "#6fd0ff"
+  },
+  "segments": [
+    {
+      "name": "散布漂移",
+      "from": 0,
+      "to": 3000
+    },
+    {
+      "name": "地球聚合",
+      "from": 3000,
+      "to": 6000
+    },
+    {
+      "name": "月球聚合",
+      "from": 6000,
+      "to": 9000
+    },
+    {
+      "name": "DSH 聚合",
+      "from": 9000,
+      "to": 12500
+    },
+    {
+      "name": "收束",
+      "from": 12500,
+      "to": 14000
+    }
+  ],
+  "effects": [
+    {
+      "type": "vignette",
+      "opacity": 0.45
+    },
+    {
+      "type": "hud",
+      "opacity": 0.5
+    }
+  ],
+  "layers": [
+    {
+      "id": "earth",
+      "type": "blocks",
+      "shape": "earth",
+      "count": 240,
+      "color": "#8fd8ff",
+      "pos": [
+        340,
+        330
+      ],
+      "keyframes": [
+        {
+          "t": 0,
+          "assemble": 0,
+          "opacity": 1,
+          "offsetY": 0
+        },
+        {
+          "t": 3200,
+          "assemble": 1,
+          "opacity": 1,
+          "offsetY": 0,
+          "ease": "outCubic"
+        },
+        {
+          "t": 5200,
+          "assemble": 1,
+          "opacity": 1,
+          "offsetY": -34,
+          "ease": "inOutCubic"
+        },
+        {
+          "t": 6600,
+          "assemble": 1,
+          "opacity": 0,
+          "offsetY": -34
+        }
+      ],
+      "shapeScale": 2,
+      "blockSize": 4
+    },
+    {
+      "id": "moon",
+      "type": "blocks",
+      "shape": "moon",
+      "count": 210,
+      "color": "#ffe6b8",
+      "pos": [
+        640,
+        360
+      ],
+      "keyframes": [
+        {
+          "t": 0,
+          "assemble": 0,
+          "opacity": 0
+        },
+        {
+          "t": 4900,
+          "assemble": 0,
+          "opacity": 0
+        },
+        {
+          "t": 5300,
+          "assemble": 0,
+          "opacity": 1
+        },
+        {
+          "t": 8600,
+          "assemble": 1,
+          "opacity": 1,
+          "offsetX": 0,
+          "ease": "outCubic"
+        },
+        {
+          "t": 10200,
+          "assemble": 1,
+          "opacity": 0,
+          "offsetX": 150,
+          "ease": "inOutCubic"
+        }
+      ],
+      "shapeScale": 1.9,
+      "blockSize": 4
+    },
+    {
+      "id": "dsh",
+      "type": "blocks",
+      "shape": "dsh",
+      "text": "DSH",
+      "count": 300,
+      "color": "#ffffff",
+      "pos": [
+        880,
+        360
+      ],
+      "keyframes": [
+        {
+          "t": 0,
+          "assemble": 0,
+          "opacity": 0
+        },
+        {
+          "t": 8600,
+          "assemble": 0,
+          "opacity": 0
+        },
+        {
+          "t": 9000,
+          "assemble": 0,
+          "opacity": 1
+        },
+        {
+          "t": 11800,
+          "assemble": 1,
+          "opacity": 1,
+          "ease": "outCubic"
+        },
+        {
+          "t": 13000,
+          "assemble": 1,
+          "opacity": 1,
+          "offsetY": -20,
+          "ease": "inOutCubic"
+        },
+        {
+          "t": 13600,
+          "assemble": 1,
+          "opacity": 0,
+          "offsetY": -20
+        }
+      ],
+      "shapeScale": 2.4,
+      "blockSize": 3
+    }
+  ]
+}

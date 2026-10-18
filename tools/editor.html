@@ -193,6 +193,7 @@
         <button id="tlAddKf" class="mini">◆ 打关键帧</button>
         <button id="tlAddLayer" class="mini">+ 图层</button>
         <button id="tlAddSeg" class="mini">+ 分段</button>
+        <button id="tlAddBlocks" class="mini">+ 方块</button>
       </div>
       <div class="tlruler" id="tlruler"><div class="tlplayhead" id="tlplayhead"></div></div>
       <div class="tltracks" id="tltracks"></div>
@@ -686,7 +687,7 @@
     for (var i = 0; i < kfs.length; i++) if (Math.abs(kfs[i].t - tl.playhead) <= 12) { hit = kfs[i]; break }
     if (!hit) {
       hit = { t: tl.playhead }
-      var props = ['opacity', 'offsetX', 'offsetY', 'scale', 'rotate', 'reveal']
+      var props = ['opacity', 'offsetX', 'offsetY', 'scale', 'rotate', 'reveal', 'assemble']
       for (var p = 0; p < props.length; p++) {
         var v = valueAt(layer, props[p], undefined)
         if (v !== undefined) hit[props[p]] = v
@@ -889,6 +890,44 @@
       }
       kfBox.appendChild(playSeg)
       side.appendChild(kfBox)
+    }
+
+    if (L.type === 'blocks') {
+      var bf = document.createElement('div'); bf.className = 'field'
+      var bl = document.createElement('label'); bl.textContent = '形状'
+      var bs = document.createElement('select')
+      ;[['earth', '地球'], ['moon', '月球'], ['dsh', 'DSH 文字']].forEach(function (o) {
+        var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]
+        if ((L.shape || 'earth') === o[0]) op.selected = true
+        bs.appendChild(op)
+      })
+      bs.onchange = function () { L.shape = bs.value; tlSync(); say('形状：' + bs.options[bs.selectedIndex].textContent, 'ok') }
+      bf.appendChild(bl); bf.appendChild(bs); side.appendChild(bf)
+      if ((L.shape || '') === 'dsh') {
+        var tf2 = document.createElement('div'); tf2.className = 'field'
+        var tl3 = document.createElement('label'); tl3.textContent = '文字（最多 4 个字符）'
+        var ti2 = document.createElement('input'); ti2.type = 'text'; ti2.maxLength = 4; ti2.value = L.text || 'DSH'
+        ti2.oninput = function () { L.text = ti2.value.toUpperCase().slice(0, 4); tlSync() }
+        tf2.appendChild(tl3); tf2.appendChild(ti2); side.appendChild(tf2)
+      }
+      function bnum(label, key, min, max, step, def) {
+        var d = document.createElement('div'); d.className = 'field'
+        var lb = document.createElement('label')
+        var cur = L[key] === undefined ? def : L[key]
+        lb.textContent = label + '（' + cur + '）'
+        var inp = document.createElement('input'); inp.type = 'range'; inp.min = min; inp.max = max; inp.step = step; inp.value = cur
+        inp.oninput = function () {
+          L[key] = Number(inp.value)
+          lb.textContent = label + '（' + inp.value + '）'
+          tlSync()
+        }
+        d.appendChild(lb); d.appendChild(inp); side.appendChild(d)
+      }
+      bnum('方块数量', 'count', 40, 500, 10, 220)
+      bnum('方块大小', 'blockSize', 2, 12, 1, 4)
+      bnum('散布半径', 'spread', 100, 900, 20, 460)
+      bnum('形状缩放', 'shapeScale', 0.6, 4, 0.1, 2.4)
+      bnum('聚合度', 'assemble', 0, 1, 0.02, 1)
     }
 
     if (L.type === 'text') {
@@ -1345,6 +1384,19 @@
     tl.selected = tpl.layers.length - 1
     tlSync(); renderTlPanel(); renderTlTracks()
   }
+  document.getElementById('tlAddBlocks').onclick = function () {
+    if (!tpl) return
+    if (!Array.isArray(tpl.layers)) tpl.layers = []
+    tpl.layers.push({
+      id: 'blocks-' + (tpl.layers.length + 1), type: 'blocks', shape: 'dsh', text: 'DSH',
+      count: 220, blockSize: 4, spread: 460, shapeScale: 2.4,
+      pos: [640, 360],
+      keyframes: [{ t: 0, assemble: 0, opacity: 1 }, { t: 2200, assemble: 1, opacity: 1, ease: 'outCubic' }]
+    })
+    tl.selected = tpl.layers.length - 1
+    tlSync(); renderTlPanel(); renderTlTracks()
+  }
+
   document.getElementById('tlAddSeg').onclick = function () {
     if (!tpl) return
     if (!Array.isArray(tpl.segments)) tpl.segments = []

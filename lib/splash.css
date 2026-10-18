@@ -1363,3 +1363,12 @@
   background: currentColor;
   animation: dsu-blink 1s steps(1) infinite;
 }
+/* 方块聚合层：容器是一个 0×0 的锚点，方块以锚点为中心分布 */
+.dsu-tl-blocks { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+.dsu-blk {
+  position: absolute; left: 0; top: 0;
+  display: block; background: var(--dsu-accent);
+  margin-left: -3.5px; margin-top: -3.5px;
+  box-shadow: 0 0 8px rgba(120, 200, 255, 0.35);
+  will-change: transform;
+}
