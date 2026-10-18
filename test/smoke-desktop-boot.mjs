@@ -190,8 +190,13 @@ const flush = () => new Promise((r) => process.nextTick(r))
 async function settle(n = 8) { for (let i = 0; i < n; i++) await flush() }
 
 /** 面板 render 返回的是 h(Panel, {}) 这个元素，要真正调用 Panel 才拿得到树。 */
+/** 合并包现在注册两个设置节（启动动画 + 聊天背景），按 id 取要的那一个。 */
+function registrationOf(sandbox, id) {
+  return sandbox.registrations.find((r) => r.options && r.options.id === id)
+}
 function panelTree(sandbox) {
-  const el = sandbox.registrations[0].render({})
+  const reg = registrationOf(sandbox, 'startup-screen')
+  const el = reg.render({})
   return el && typeof el.type === 'function' ? el.type(el.props || {}) : el
 }
 /** 把设置面板真渲染一次，收集其中的字符串（用来验顶部那行版本号）。 */
@@ -210,7 +215,7 @@ console.log('\n[1] Host 没注入（桌面端 file:// + IPC 形态）→ 自举'
   const s = boot()
   check('仅加载 bundle 时不抢跑（apply 之前没有任何标记）', s.win.__DSH_STARTUP_BOOT__ === undefined, String(s.win.__DSH_STARTUP_BOOT__))
   s.apply()
-  check('apply() 里先自举，settings.section 照样注册', s.registrations.length === 1)
+  check('apply() 里先自举，两个 settings.section 都照样注册', s.registrations.length === 2, String(s.registrations.length))
   await settle()
   check('打了 __DSH_STARTUP_BOOT__ = client', s.win.__DSH_STARTUP_BOOT__ === 'client', String(s.win.__DSH_STARTUP_BOOT__))
   check('读了 Host 配置接口 /dsh-startup/config', s.requested.some((r) => r.url === '/dsh-startup/config'), s.requested.map((r) => r.url).join(','))
@@ -316,7 +321,7 @@ console.log('\n[4] 自举失败 → 把页面还回去')
   const s = boot({ fetchFails: true }); s.apply()
   await settle()
   check('配置接口不可达 → 按默认（启用/session）照播，不留白', !!rootOf(s))
-  check('配置接口不可达 → 不抛异常（apply 已跑完）', s.registrations.length === 1)
+  check('配置接口不可达 → 不抛异常（apply 已跑完，两个设置节都注册了）', s.registrations.length === 2, String(s.registrations.length))
 }
 {
   const s = boot({ apiResponse: { ok: false, error: 'nope' } }); s.apply()
@@ -334,10 +339,15 @@ console.log('\n[5] 自举与设置面板互不干扰')
 {
   const s = boot(); s.apply()
   await settle()
+  const bootReg = registrationOf(s, 'startup-screen')
   check('settings.section 注册成功且 id/order 正确',
-    s.registrations[0].options.name === 'settings.section' && s.registrations[0].options.id === 'startup-screen',
-    JSON.stringify(s.registrations[0].options))
-  check('自举后仍暴露设置面板 render', typeof s.registrations[0].render === 'function')
+    !!bootReg && bootReg.options.name === 'settings.section' && bootReg.options.order === 26,
+    JSON.stringify(bootReg && bootReg.options))
+  check('自举后仍暴露设置面板 render', typeof bootReg.render === 'function')
+  const wallReg = registrationOf(s, 'chat-wallpaper')
+  check('聊天背景设置节也注册了（id/order 正确）',
+    !!wallReg && wallReg.options.name === 'settings.section' && wallReg.options.order === 27 && wallReg.options.label === '聊天背景',
+    JSON.stringify(wallReg && wallReg.options))
 }
 
 console.log('\n[6] 设置面板顶部的版本号（桌面端 / 旧 Host 的兜底链）')
