@@ -300,6 +300,12 @@ await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { templa
   const list = JSON.parse(r2.body)
   const ids = (list.templates || []).map((x) => x.id)
   check('/dsh-startup/templates 列出内置模板', r2.statusCode === 200 && list.ok === true && ids.includes('archive-warm') && ids.includes('deep-sonar'), ids.join(','))
+  /* 设置页「立即预览」要靠 /config 顺带返回模板整份数据 */
+  const r3 = await call('exact /dsh-startup/config')
+  const cfgNow = JSON.parse(r3.body)
+  check('/config 带上当前模板的整份数据（预览换模板用）',
+    !!cfgNow.template && cfgNow.template.id === 'archive-warm' && Array.isArray(cfgNow.template.steps) === false,
+    cfgNow.template && cfgNow.template.id)
   check('模板列表带 active 字段', typeof list.active === 'string')
 }
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: '../etc/passwd' } }))

@@ -198,10 +198,15 @@ check('恢复默认 POST {action:"reset"}', resetPost && JSON.parse(resetPost.in
 windowStub.__DSH_STARTUP_API__ = { replay() { windowStub.__replayed = true } }
 tree = renderPanel()
 const previewBtn = find(tree, (n) => n.type === 'button' && n.props.children === '立即预览')
+/* 预览会先 GET 一次 /config（拿最新配置与模板）再重播 —— 少了这一步，换模板后预览的还是老动画 */
+const beforePreview = requests.length
 previewBtn.props.onClick()
+await flush(); await flush(); await flush()
+check('立即预览先重新拉配置', requests.length > beforePreview && requests.slice(beforePreview).some((r) => /\/dsh-startup\/config/.test(r.url || '')), '')
 check('立即预览调用 __DSH_STARTUP_API__.replay()', windowStub.__replayed === true)
 delete windowStub.__DSH_STARTUP_API__
 previewBtn.props.onClick()
+await flush(); await flush(); await flush()
 check('没有 API 时回退到 location.reload()', windowStub.__reloaded === true)
 
 console.log('\n============================')
