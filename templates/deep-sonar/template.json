@@ -2,11 +2,10 @@
   "schemaVersion": 1,
   "id": "deep-sonar",
   "name": "深海声呐",
-  "author": "沈宏宏",
-  "homepage": "https://github.com/LeeRolling/dsh-boot-suite",
+  "author": "DeepSeek",
   "license": "MIT",
   "version": "0.9.1",
-  "description": "原动画（沈宏宏作品）的深海声呐改版：深蓝 #1E48BA 底 + 浅蓝强调，五幕下潜叙事。引擎与改版：LeeRolling。",
+  "description": "深海声呐：深蓝 #1E48BA 底 + 浅蓝强调，五幕下潜叙事，自带六句英文播报（重档机械音色）。视觉语言基于沈宏宏的开机动画。",
   "tags": [
     "dark",
     "sonar",
@@ -99,5 +98,7 @@
     "line-4": "assets/line-4.wav",
     "line-5": "assets/line-5.wav",
     "line-6": "assets/line-6.wav"
-  }
+  },
+  "basedOn": "沈宏宏",
+  "homepage": "https://github.com/LeeRolling/dsh-boot-suite-templates"
 }

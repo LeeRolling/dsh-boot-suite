@@ -357,7 +357,8 @@ console.log('\n[6d] 模板商店：拉取与安装（stub 掉网络）')
   globalThis.fetch = async (url) => {
     const u = String(url)
     if (u.endsWith('index.json')) return { ok: true, status: 200, text: async () => JSON.stringify(storeIndex) }
-    return { ok: true, status: 200, text: async () => JSON.stringify({ id: 'store-demo', name: '商店示例', steps: [{ zh: '一' }] }) }
+    if (u.endsWith('line-1.wav')) return { ok: true, status: 200, arrayBuffer: async () => new TextEncoder().encode('fake-wav').buffer }
+    return { ok: true, status: 200, text: async () => JSON.stringify({ id: 'store-demo', name: '商店示例', steps: [{ zh: '一' }], assets: { 'line-1': 'assets/line-1.wav' } }) }
   }
   try {
     const st = JSON.parse((await call('exact /dsh-startup/store', 'GET', undefined, '/dsh-startup/store?refresh=1')).body)
@@ -366,6 +367,9 @@ console.log('\n[6d] 模板商店：拉取与安装（stub 掉网络）')
     check('缩略图指向固定 raw 地址', st.templates[0].preview.includes('/templates/store-demo/preview.gif'))
     const inst = JSON.parse((await call('exact /dsh-startup/store/install', 'POST', JSON.stringify({ id: 'store-demo' }))).body)
     check('从商店安装写进用户模板目录', inst.ok === true && fs.existsSync(path.join(SMOKE_HOME, 'startup-templates', 'store-demo', 'template.json')), inst.body)
+    check('安装时把模板自带配音一起拉下来', Array.isArray(inst.assets) && inst.assets.indexOf('line-1.wav') >= 0
+      && fs.existsSync(path.join(SMOKE_HOME, 'startup-templates', 'store-demo', 'assets', 'line-1.wav')),
+      JSON.stringify(inst.assets) + ' missing=' + JSON.stringify(inst.missing))
     const bad = await call('exact /dsh-startup/store/install', 'POST', JSON.stringify({ id: '../evil' }))
     check('非法 id 拒绝安装', bad.statusCode === 400)
     const missing = await call('exact /dsh-startup/store/install', 'POST', JSON.stringify({ id: 'nope-nope' }))
