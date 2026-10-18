@@ -714,7 +714,24 @@
     var L = tlLayers()[tl.selected]
     if (!tlView || !L) { box.hidden = true; return }
     var label = box.querySelector('span')
-    if (label) label.textContent = (L.text || L.id || L.type || '图层') + (L.type ? '  ·  ' + L.type : '')
+    var sizeTxt = ''
+    var w0 = 0, h0 = 0
+    try {
+      var pd = frame.contentDocument
+      var el0 = pd && pd.querySelector('[data-layer="' + ((L.id || '').replace(/"/g, '')) + '"]')
+      if (el0) {
+        var rr = el0.getBoundingClientRect()
+        var fr0 = frame.getBoundingClientRect()
+        var sc0 = Math.min(fr0.width / 1280, fr0.height / 720) || 1
+        w0 = Math.round(rr.width / sc0); h0 = Math.round(rr.height / sc0)
+      }
+    } catch (e0) { /* iframe 未就绪 */ }
+    if ((!w0 || !h0) && L.type === 'globe') { w0 = h0 = Number(L.logoSize) || 520 }
+    if ((!w0 || !h0) && L.type === 'chars') { w0 = 1280; h0 = 720 }
+    if ((!w0 || !h0) && L.type === 'idcard') { w0 = Number(L.cardW) || 420; h0 = Number(L.cardH) || 240 }
+    if ((!w0 || !h0) && L.type === 'logo') { w0 = h0 = Number(L.logoSize) || 300 }
+    if (w0 && h0) sizeTxt = '  ·  ' + w0 + '×' + h0
+    if (label) label.textContent = (L.text || L.id || L.type || '图层') + (L.type ? '  ·  ' + L.type : '') + sizeTxt
     var placed = false
     try {
       var doc = frame.contentDocument
@@ -920,6 +937,19 @@
         }
       }
       kfBox.appendChild(playSeg)
+      var delKf2 = document.createElement('button')
+      delKf2.className = 'mini danger'
+      delKf2.style.marginLeft = '6px'
+      delKf2.textContent = '删除这一帧'
+      delKf2.onclick = function () {
+        var n = (L.keyframes || []).length
+        if (n <= 1) { say('只剩一帧，删了图层就没动画了', 'err'); return }
+        L.keyframes.splice(tl.kfSel, 1)
+        tl.kfSel = -1
+        tlSync(); renderTlTracks(); renderTlPanel()
+        say('已删除该关键帧（剩 ' + (n - 1) + ' 帧）', 'ok')
+      }
+      kfBox.appendChild(delKf2)
       side.appendChild(kfBox)
     }
 
