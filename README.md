@@ -24,7 +24,7 @@
     dsh plugin --profile desktop remove dsh-startup-screen
     dsh plugin --profile desktop remove dsh-chat-wallpaper
 
-（本仓库 `04-开发脚本/02-安装合并版.ps1` 把这几步串好了，退出桌面端后双击即可。）
+（本仓库 `04-开发脚本/02-安装合并版.cmd` 把这几步串好了，退出桌面端后双击即可。）
 
 ---
 
