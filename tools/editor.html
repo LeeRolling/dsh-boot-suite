@@ -194,8 +194,7 @@
         <button id="tlAddKf" class="mini">◆ 打关键帧</button>
         <button id="tlAddLayer" class="mini">+ 图层</button>
         <button id="tlAddSeg" class="mini">+ 分段</button>
-        <button id="tlAddBlocks" class="mini">+ 方块</button>
-        <button id="tlAddLogo" class="mini">+ 鲸鱼</button>
+        <button id="tlAddLogo" class="mini">+ 线描</button>
       </div>
       <div class="tlruler" id="tlruler"><div class="tlplayhead" id="tlplayhead"></div></div>
       <div class="tltracks" id="tltracks"></div>
@@ -919,6 +918,34 @@
     }
 
     if (L.type === 'logo') {
+      var shf = document.createElement('div'); shf.className = 'field'
+      var shl = document.createElement('label'); shl.textContent = '线描形状'
+      var shs = document.createElement('select')
+      ;[['whale', '鲸鱼标识'], ['earth', '地球（含环带/大陆）'], ['moon', '月球（含陨坑）'], ['text', '文字']].forEach(function (o) {
+        var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]
+        if ((L.shape || 'whale') === o[0]) op.selected = true
+        shs.appendChild(op)
+      })
+      shs.onchange = function () { L.shape = shs.value; tlSync(); renderTlPanel(); say('形状：' + shs.options[shs.selectedIndex].textContent, 'ok') }
+      shf.appendChild(shl); shf.appendChild(shs); side.appendChild(shf)
+      if ((L.shape || 'whale') === 'text') {
+        var txw = document.createElement('div'); txw.className = 'field'
+        var txl = document.createElement('label'); txl.textContent = '文字（任意，最多 12 字）'
+        var txi = document.createElement('input'); txi.type = 'text'; txi.maxLength = 12; txi.value = L.text || 'DSH'
+        txi.oninput = function () { L.text = txi.value; tlSync(); say('文字已改（预览会重载一次）', 'ok') }
+        txw.appendChild(txl); txw.appendChild(txi); side.appendChild(txw)
+        var fsz = document.createElement('div'); fsz.className = 'field'
+        var fsl = document.createElement('label'); var fcur = L.fontSize || 30
+        fsl.textContent = '字号（' + fcur + '）'
+        var fsi = document.createElement('input'); fsi.type = 'range'; fsi.min = 14; fsi.max = 60; fsi.step = 1; fsi.value = fcur
+        fsi.oninput = function () { L.fontSize = Number(fsi.value); fsl.textContent = '字号（' + fsi.value + '）'; tlSync() }
+        fsz.appendChild(fsl); fsz.appendChild(fsi); side.appendChild(fsz)
+      }
+      var colf = document.createElement('div'); colf.className = 'field'
+      var coll = document.createElement('label'); coll.textContent = '颜色（默认主题强调色）'
+      var coli = document.createElement('input'); coli.type = 'color'; coli.value = L.color || '#7fb2ff'
+      coli.oninput = function () { L.color = coli.value; tlSync() }
+      colf.appendChild(coll); colf.appendChild(coli); side.appendChild(colf)
       var lf = document.createElement('div'); lf.className = 'field'
       var llb = document.createElement('label')
       var lcur = L.logoSize === undefined ? 260 : L.logoSize
@@ -1424,7 +1451,7 @@
     if (!tpl) return
     if (!Array.isArray(tpl.layers)) tpl.layers = []
     tpl.layers.push({
-      id: 'logo-' + (tpl.layers.length + 1), type: 'logo', logoSize: 260,
+      id: 'line-' + (tpl.layers.length + 1), type: 'logo', shape: 'whale', logoSize: 280,
       pos: [640, 360],
       keyframes: [{ t: 300, draw: 0, opacity: 1 }, { t: 2000, draw: 1, opacity: 1, ease: 'outCubic' }]
     })
@@ -1432,7 +1459,8 @@
     tlSync(); renderTlPanel(); renderTlTracks()
   }
 
-  document.getElementById('tlAddBlocks').onclick = function () {
+  var tlAddBlocksBtn = document.getElementById('tlAddBlocks')
+  if (tlAddBlocksBtn) tlAddBlocksBtn.onclick = function () {
     if (!tpl) return
     if (!Array.isArray(tpl.layers)) tpl.layers = []
     tpl.layers.push({
