@@ -15,7 +15,7 @@ const check = (label, ok, extra) => {
 console.log('\n[1] 包身份')
 const pkg = JSON.parse(read('package.json'))
 check('包名 = dsh-boot-suite', pkg.name === 'dsh-boot-suite', pkg.name)
-check('版本 = 2.1.1', pkg.version === '2.1.1', pkg.version)
+check('版本 = 2.1.2', pkg.version === '2.1.2', pkg.version)
 check('有 dsh.bundle.patch', pkg.dsh?.bundle?.patch === './cordis.patch.yml')
 check('dsh.client 注入了设置页服务', (pkg.dsh?.client?.inject || []).includes('@deepseek-ai/dsh-client-ui-settings'))
 
@@ -39,7 +39,7 @@ check('壁纸半侧的测试钩子还在（__mountLayer / __PANEL_ID）',
   client.includes('exports.__mountLayer = mountLayer') && client.includes('exports.__PANEL_ID = PANEL_ID'))
 check('壁纸半侧确实被受管调用（module.exports.apply 里调 __wallHalf.apply）',
   client.includes('__wallHalf.apply(ctx)'))
-check('版本号兜底常量 = 2.1.1', client.includes("FALLBACK_VERSION = '2.1.1'"))
+check('版本号兜底常量 = 2.1.2', client.includes("FALLBACK_VERSION = '2.1.2'"))
 
 console.log('\n[4] 两套配置文件名没动（老用户设置原样生效）')
 const hostStartup = read('lib/host-startup.js')
@@ -78,6 +78,10 @@ mod.apply(ctx)
 check('开机动画路由都在', ['/dsh-startup/splash.css', '/dsh-startup/splash.js', '/dsh-startup/config'].every((p) => routes.has('exact ' + p)))
 check('壁纸路由都在', ['/chat-wallpaper/config', '/chat-wallpaper/video', '/chat-wallpaper/image'].every((p) => routes.has('exact ' + p)))
 check('tapIndex 只注册 1 次', taps === 1, String(taps))
+/* 2.1.1 的坑：把 <script> 包进 html 行，桌面端页面侧解释器按文本插入，脚本永不执行，
+   开机动画整段消失。运行时脚本必须是 script-src 这种一等公民行。 */
+check('运行时脚本用的是 script-src 行，没塞进 html 行',
+  hostStartup.includes("kind: 'script-src'") && !/html:\s*'[^']*<script/i.test(hostStartup))
 check('无 webServer 时 apply 不炸', (() => {
   try { mod.apply({ get: () => undefined, effect: (f) => f(), logger: { warn() {} } }); return true } catch (e) { return false }
 })())
