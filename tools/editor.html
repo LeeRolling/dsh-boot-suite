@@ -925,19 +925,31 @@
       var gh = document.createElement('div'); gh.className = 'hint'
       gh.textContent = '直接拖 = 转视角（左右改经度、上下改倾角）；Shift+拖 = 移动位置。'
       side.appendChild(gh)
+      function gset(key, v) {
+        if (key === 'posX') { if (!L.pos) L.pos = [640, 360]; L.pos[0] = Number(v); return }
+        if (key === 'posY') { if (!L.pos) L.pos = [640, 360]; L.pos[1] = Number(v); return }
+        L[key] = Number(v)
+      }
+      function gval(key, def) {
+        if (key === 'posX') return (L.pos && L.pos[0] !== undefined) ? L.pos[0] : 640
+        if (key === 'posY') return (L.pos && L.pos[1] !== undefined) ? L.pos[1] : 360
+        return L[key] === undefined ? def : L[key]
+      }
       function gnum(label, key, min, max, step, def, fmt) {
         var d = document.createElement('div'); d.className = 'field'
         var lb = document.createElement('label')
-        var cur = L[key] === undefined ? def : L[key]
+        var cur = gval(key, def)
         lb.textContent = label + '（' + (fmt ? fmt(cur) : cur) + '）'
         var inp = document.createElement('input'); inp.type = 'range'; inp.min = min; inp.max = max; inp.step = step; inp.value = cur
         inp.oninput = function () {
-          L[key] = Number(inp.value)
+          gset(key, inp.value)
           lb.textContent = label + '（' + (fmt ? fmt(inp.value) : inp.value) + '）'
           tlSync()
         }
         d.appendChild(lb); d.appendChild(inp); side.appendChild(d)
       }
+      gnum('位置X', 'posX', 0, 1280, 1, 640)
+      gnum('位置Y', 'posY', 0, 720, 1, 360)
       gnum('尺寸', 'logoSize', 160, 900, 10, 520)
       gnum('自转周期(ms)', 'spinMs', 4000, 60000, 1000, 22000, function (v) { return (Number(v) / 1000).toFixed(1) + 's' })
       gnum('起始经度', 'rotation0', -3.14, 3.14, 0.01, -0.32, function (v) { return Number(v).toFixed(2) })
@@ -1109,6 +1121,10 @@
       }
       fxField('强度', 'opacity', 0, 1, 0.05, 0.6)
       fxField('速度', 'speed', 0.2, 4, 0.1, 1)
+      fxField('位移X', 'x', -640, 640, 10, 0)
+      fxField('位移Y', 'y', -360, 360, 10, 0)
+      fxField('缩放', 'scale', 0.2, 3, 0.05, 1)
+      fxField('裁切(%)', 'clip', 0, 45, 1, 0)
       fxField('开始(ms)', 'from', 0, tlDur(), 100, 0)
       fxField('结束(ms)', 'to', 0, tlDur(), 100, tlDur())
       row.appendChild(grid)
