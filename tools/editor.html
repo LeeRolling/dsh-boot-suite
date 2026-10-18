@@ -196,6 +196,7 @@
         <button id="tlAddSeg" class="mini">+ 分段</button>
         <button id="tlAddLogo" class="mini">+ 线描</button>
         <button id="tlAddGlobe" class="mini">+ 地球仪</button>
+        <button id="tlAddCard" class="mini">+ 身份卡</button>
       </div>
       <div class="tlruler" id="tlruler"><div class="tlplayhead" id="tlplayhead"></div></div>
       <div class="tltracks" id="tltracks"></div>
@@ -921,6 +922,41 @@
       side.appendChild(kfBox)
     }
 
+    if (L.type === 'idcard') {
+      var cht = document.createElement('div'); cht.className = 'hint'
+      cht.textContent = '身份卡是独立页面（/dsh-startup/idcard），这里只传参数；卡片本身可单独打开。'
+      side.appendChild(cht)
+      function ctext(label, key, def) {
+        var d = document.createElement('div'); d.className = 'field'
+        var lb = document.createElement('label'); lb.textContent = label
+        var inp = document.createElement('input'); inp.type = 'text'; inp.value = L[key] === undefined ? def : L[key]
+        inp.oninput = function () { L[key] = inp.value; tlSync() }
+        d.appendChild(lb); d.appendChild(inp); side.appendChild(d)
+      }
+      ctext('姓名', 'name', '李·滚动')
+      ctext('编号', 'code', 'DSH-00-000000')
+      ctext('签发单位', 'unit', 'DSH // 身份核验终端')
+      ctext('等级', 'level', 'LEVEL 3')
+      ctext('签发机关', 'issuer', 'DeepSeek Harness')
+      ctext('有效期', 'validity', '长期有效')
+      ctext('权限范围', 'scope', 'LOCAL / MACHINE')
+      function cnum(label, key, min, max, step, def) {
+        var d = document.createElement('div'); d.className = 'field'
+        var lb = document.createElement('label'); var cur = L[key] === undefined ? def : L[key]
+        lb.textContent = label + '（' + cur + '）'
+        var inp = document.createElement('input'); inp.type = 'range'; inp.min = min; inp.max = max; inp.step = step; inp.value = cur
+        inp.oninput = function () { L[key] = Number(inp.value); lb.textContent = label + '（' + inp.value + '）'; tlSync() }
+        d.appendChild(lb); d.appendChild(inp); side.appendChild(d)
+      }
+      cnum('卡片宽度', 'cardW', 260, 620, 10, 420)
+      cnum('卡片高度', 'cardH', 160, 380, 10, 240)
+      var ccol = document.createElement('div'); ccol.className = 'field'
+      var ccoll = document.createElement('label'); ccoll.textContent = '强调色'
+      var ccoi = document.createElement('input'); ccoi.type = 'color'; ccoi.value = L.cardColor || '#5cc8ff'
+      ccoi.oninput = function () { L.cardColor = ccoi.value; tlSync() }
+      ccol.appendChild(ccoll); ccol.appendChild(ccoi); side.appendChild(ccol)
+    }
+
     if (L.type === 'globe') {
       var gh = document.createElement('div'); gh.className = 'hint'
       gh.textContent = '直接拖 = 转视角（左右改经度、上下改倾角）；Shift+拖 = 移动位置。'
@@ -1533,6 +1569,22 @@
     tl.selected = tpl.layers.length - 1
     tlSync(); renderTlPanel(); renderTlTracks()
   }
+  document.getElementById('tlAddCard').onclick = function () {
+    if (!tpl) { say('先新建或载入一个模板', 'err'); return }
+    if (!Array.isArray(tpl.layers)) tpl.layers = []
+    tpl.layers.push({
+      id: 'card-' + (tpl.layers.length + 1), type: 'idcard',
+      cardW: 420, cardH: 240, pos: [640, 360],
+      name: '李·滚动', code: 'DSH-00-000000', unit: 'DSH // 身份核验终端',
+      level: 'LEVEL 3', issuer: 'DeepSeek Harness', validity: '长期有效',
+      scope: 'LOCAL / MACHINE', bio: '指纹 · 虹膜 · 声纹 已核', lock: 'ACCESS GRANTED',
+      keyframes: [{ t: 200, opacity: 0, offsetY: 18, scale: 0.98 }, { t: 900, opacity: 1, offsetY: 0, scale: 1, ease: 'outCubic' }]
+    })
+    tl.selected = tpl.layers.length - 1
+    tlSync(); renderTlPanel(); renderTlTracks()
+    say('已添加身份卡（独立页面图层）', 'ok')
+  }
+
   document.getElementById('tlAddGlobe').onclick = function () {
     if (!tpl) { say('先新建或载入一个模板', 'err'); return }
     if (!Array.isArray(tpl.layers)) tpl.layers = []
