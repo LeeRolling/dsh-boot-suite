@@ -249,6 +249,12 @@ console.log('\n[6] index.html 注入：结构化注入行（源: ' + REAL_INDEX.
 const before = REAL_INDEX.html
 const rows = collectRows()
 check('发出了注入行（8 条）', rows.length === 8, String(rows.length))
+const duplicateDeliveryRows = []
+for (const fn of INJECT_LISTENERS) { fn(duplicateDeliveryRows); fn(duplicateDeliveryRows) }
+check('同一行表被重复通知时仍只注入一次',
+  duplicateDeliveryRows.length === 8 &&
+  duplicateDeliveryRows.filter((r) => r.kind === 'html' && r.html.includes('dsh-startup-root')).length === 1,
+  String(duplicateDeliveryRows.length))
 check('行表里有 style 行（首帧黑幕）', rows.some((r) => r.kind === 'style' && r.text.includes('#dsh-startup-root.dsu-boot')))
 check('行表里有 splash.css 的 head 行', rows.some((r) => r.kind === 'html' && r.placement === 'head' && r.html.includes('/dsh-startup/splash.css')))
 check('行表里有三个 global 行（BOOT / VERSION / 配置）',
