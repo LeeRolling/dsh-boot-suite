@@ -102,7 +102,11 @@ DeepSeek Harness（DSH）冷启动时会先播六幕动画，播完进聊天，�
     templates/<id>/template.json          # 插件自带
     ~/.dsh/startup-templates/<id>/template.json   # 你自己的（同 id 优先）
 
-选哪个模板：`~/.dsh/dsh-startup.json` 里加 `"template": "archive-warm"`，留空 = 内置那套。
+选哪个模板：DSH 设置页「启动动画」→ 模板下拉框；或直接改 `~/.dsh/dsh-startup.json` 的 `template` 字段，留空 = 内置。
+
+**模板商店**：设置页 →「打开模板编辑器」→ 顶栏「🏪 商店」。列表来自
+[dsh-boot-suite-templates](https://github.com/LeeRolling/dsh-boot-suite-templates) 的 `index.json`，
+点「安装」即落到 `~/.dsh/startup-templates/<id>/`。不建服务器、不需要登录。
 格式见 [docs/模板格式.md](docs/模板格式.md)。模板**只能是数据**，运行时不会执行模板里的任何代码。
 找不到模板、字段缺了、id 非法 —— 一律回落内置，不会黑屏。
 

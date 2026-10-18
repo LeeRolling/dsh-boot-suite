@@ -81,6 +81,18 @@
   .hint { color:var(--dim); font-size:var(--fs-sm); margin:var(--sp-2) 0 0; }
   .empty { color:var(--dim); font-size:var(--fs-sm); padding:var(--sp-5) var(--sp-4); text-align:center; border:1px dashed var(--line); border-radius:var(--radius); }
 
+  /* 商店卡片：一张缩略图 + 元信息 + 一个主操作（安装） */
+  .store-card { display:flex; gap:var(--sp-3); padding:var(--sp-3); border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); margin-bottom:var(--sp-3); }
+  .store-card > img { width:168px; height:94px; object-fit:cover; border-radius:6px; background:#000; flex:0 0 auto; }
+  .store-card .meta { flex:1; min-width:0; display:flex; flex-direction:column; gap:var(--sp-1); }
+  .store-card .name { font-weight:600; }
+  .store-card .by { color:var(--dim); font-size:var(--fs-sm); }
+  .store-card .desc { color:var(--dim); font-size:var(--fs-sm); line-height:1.5; }
+  .store-card .tags { display:flex; gap:var(--sp-1); flex-wrap:wrap; }
+  .store-card .tag { font-size:11px; color:var(--dim); border:1px solid var(--line); border-radius:999px; padding:1px 8px; }
+  .store-card .actions { display:flex; gap:var(--sp-2); align-items:center; margin-top:var(--sp-1); }
+  .toolbar { display:flex; gap:var(--sp-2); align-items:center; margin-bottom:var(--sp-3); }
+
   /* 窄窗口：预览和侧栏上下堆叠，别把预览压成一条缝（§3.3） */
   @media (max-width: 1100px) {
     main { flex-direction:column; flex:1; min-height:0; }
@@ -105,6 +117,7 @@
   <div class="group">
     <select id="pick" style="width:200px"><option value="">载入模板…</option></select>
     <button id="load">载入</button>
+    <button id="storeBtn">🏪 商店</button>
   </div>
   <div class="group">
     <button id="play" class="ghost">▶ 播放</button>
@@ -424,6 +437,88 @@
     setTimeout(function () { URL.revokeObjectURL(a.href) }, 1000)
   }
 
+  /* ── 商店 ────────────────────────────────────────────────────────────
+     数据来自 GitHub 的 dsh-boot-suite-templates 仓库；宿主负责拉取（避开 CORS）。
+     安装 = 把 template.json 落到 ~/.dsh/startup-templates/<id>/，随后就能在「载入模板」里选到。 */
+  var storeLoaded = false
+  function renderStore() {
+    side.innerHTML = ''
+    var bar = document.createElement('div')
+    bar.className = 'toolbar'
+    var back = document.createElement('button'); back.textContent = '← 返回编辑'
+    back.onclick = function () { render() }
+    var refresh = document.createElement('button'); refresh.textContent = '刷新'
+    refresh.onclick = function () { loadStore(true) }
+    bar.appendChild(back); bar.appendChild(refresh)
+    side.appendChild(bar)
+    var h = document.createElement('h2'); h.textContent = '模板商店'; side.appendChild(h)
+    var hint = document.createElement('div'); hint.className = 'hint'
+    hint.textContent = '模板由社区贡献，托管在 GitHub 的 dsh-boot-suite-templates 仓库。安装后就能在「载入模板」里选到。'
+    side.appendChild(hint)
+    var box = document.createElement('div'); box.id = 'storeList'
+    side.appendChild(box)
+    if (!storeLoaded) loadStore(false)
+    else paintStore(renderStore._items)
+  }
+
+  function loadStore(force) {
+    var box = document.getElementById('storeList')
+    if (box) { box.innerHTML = ''; var l = document.createElement('div'); l.className = 'empty'; l.textContent = '正在读取商店…'; box.appendChild(l) }
+    json('/store' + (force ? '?refresh=1' : '')).then(function (r) {
+      storeLoaded = true
+      paintStore((r && r.templates) || [], r && r.ok === false ? r.error : '')
+    }).catch(function (e) { paintStore([], e.message) })
+  }
+
+  function paintStore(items, error) {
+    renderStore._items = items
+    var box = document.getElementById('storeList')
+    if (!box) return
+    box.innerHTML = ''
+    if (error) {
+      var e = document.createElement('div'); e.className = 'empty'
+      e.textContent = '商店没拉下来：' + error + '（点「刷新」再试）'
+      box.appendChild(e); return
+    }
+    if (!items || !items.length) {
+      var d = document.createElement('div'); d.className = 'empty'
+      d.textContent = '商店里还没有模板。想投稿？看仓库里的 docs/模板格式.md，提个 PR 就行。'
+      box.appendChild(d); return
+    }
+    items.forEach(function (it) {
+      var card = document.createElement('div'); card.className = 'store-card'
+      var img = document.createElement('img'); img.src = it.preview; img.alt = ''; img.loading = 'lazy'
+      img.onerror = function () { img.style.opacity = '.35' }
+      var meta = document.createElement('div'); meta.className = 'meta'
+      var name = document.createElement('div'); name.className = 'name'; name.textContent = it.name
+      var by = document.createElement('div'); by.className = 'by'; by.textContent = '作者：' + (it.author || '未署名')
+      var desc = document.createElement('div'); desc.className = 'desc'; desc.textContent = it.description || ''
+      var tags = document.createElement('div'); tags.className = 'tags'
+      ;(it.tags || []).forEach(function (t) { var s = document.createElement('span'); s.className = 'tag'; s.textContent = t; tags.appendChild(s) })
+      var actions = document.createElement('div'); actions.className = 'actions'
+      var install = document.createElement('button'); install.className = 'primary'; install.textContent = '安装'
+      install.onclick = function () {
+        install.disabled = true; install.textContent = '安装中…'
+        json('/store/install', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: it.id }) })
+          .then(function (r) {
+            if (r && r.ok) {
+              install.textContent = '✓ 已安装'
+              say('已安装「' + it.name + '」—— 回编辑页就能载入', 'ok')
+              refreshPick()
+            } else {
+              install.disabled = false; install.textContent = '安装'
+              say('安装失败：' + ((r && r.error) || '未知'), 'err')
+            }
+          })
+          .catch(function (e) { install.disabled = false; install.textContent = '安装'; say('安装失败：' + e.message, 'err') })
+      }
+      actions.appendChild(install)
+      meta.appendChild(name); meta.appendChild(by); meta.appendChild(desc); meta.appendChild(tags); meta.appendChild(actions)
+      card.appendChild(img); card.appendChild(meta)
+      box.appendChild(card)
+    })
+  }
+
   function refreshPick() {
     json('/templates').then(function (r) {
       var sel = document.getElementById('pick')
@@ -445,6 +540,8 @@
       say('已载入 ' + id, 'ok')
     }).catch(function (e) { say('读不到模板：' + e.message, 'err') })
   }
+
+  document.getElementById('storeBtn').onclick = function () { renderStore() }
 
   refreshPick()
   fetch(API + '/preview-template?id=archive-warm').then(function (r) { return r.json() }).then(function (j) {

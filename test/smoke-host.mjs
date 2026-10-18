@@ -132,7 +132,7 @@ check('没有 Config 导出（普通对象不是 schemastery schema）', mod.Con
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 19 条路由（开机动画 12 + 聊天壁纸 7）', ROUTES.size === 19, [...ROUTES.keys()].join(' | '))
+check('注册了 21 条路由（开机动画 14 + 聊天壁纸 7）', ROUTES.size === 21, [...ROUTES.keys()].join(' | '))
 check('注册了 1 个 tapIndex', TAPS.length === 1)
 check('用了 ctx.effect 管理生命周期（开机动画 1 + 壁纸 7）', effects === 8, String(effects))
 
@@ -343,6 +343,36 @@ console.log('\n[6c] 编辑器：模板读写')
   await call('exact /dsh-startup/templates/delete', 'POST', JSON.stringify({ id: 'deep-sonar' }))
   const backTpl = JSON.parse((await call('exact /dsh-startup/preview-template', 'GET', undefined, '/dsh-startup/preview-template?id=deep-sonar')).body)
   check('删掉本地覆盖后回到内置', backTpl.ok === true && backTpl.template.name === '深海声呐', backTpl.template && backTpl.template.name)
+}
+
+console.log('\n[6d] 模板商店：拉取与安装（stub 掉网络）')
+{
+  const realFetch = globalThis.fetch
+  const storeIndex = {
+    templates: [
+      { id: 'store-demo', name: '商店示例', author: '社区', path: 'templates/store-demo', description: '示例条目' },
+      { id: '../evil', name: '坏人', path: 'templates/evil' }
+    ]
+  }
+  globalThis.fetch = async (url) => {
+    const u = String(url)
+    if (u.endsWith('index.json')) return { ok: true, status: 200, text: async () => JSON.stringify(storeIndex) }
+    return { ok: true, status: 200, text: async () => JSON.stringify({ id: 'store-demo', name: '商店示例', steps: [{ zh: '一' }] }) }
+  }
+  try {
+    const st = JSON.parse((await call('exact /dsh-startup/store', 'GET', undefined, '/dsh-startup/store?refresh=1')).body)
+    check('商店能拉到列表', st.ok === true && st.count === 1, st.count + ' 条 ' + (st.error || ''))
+    check('非法 id 的条目被过滤（防目录穿越）', st.templates.every((x) => /^[a-z0-9][a-z0-9-]*$/.test(x.id)))
+    check('缩略图指向固定 raw 地址', st.templates[0].preview.includes('/templates/store-demo/preview.gif'))
+    const inst = JSON.parse((await call('exact /dsh-startup/store/install', 'POST', JSON.stringify({ id: 'store-demo' }))).body)
+    check('从商店安装写进用户模板目录', inst.ok === true && fs.existsSync(path.join(SMOKE_HOME, 'startup-templates', 'store-demo', 'template.json')), inst.body)
+    const bad = await call('exact /dsh-startup/store/install', 'POST', JSON.stringify({ id: '../evil' }))
+    check('非法 id 拒绝安装', bad.statusCode === 400)
+    const missing = await call('exact /dsh-startup/store/install', 'POST', JSON.stringify({ id: 'nope-nope' }))
+    check('商店里没有的 id 返回 404', missing.statusCode === 404)
+  } finally {
+    globalThis.fetch = realFetch
+  }
 }
 
 console.log('\n[7] XSS 边界：身份名称里的尖括号不会逃出内联脚本')
