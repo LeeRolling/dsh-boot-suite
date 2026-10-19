@@ -1284,8 +1284,8 @@
 
   /* 重命名总线：同时迁移该总线下的 cue */
   function renameBus(oldKey) {
-    askText('给这条音轨改名（小写英文/数字/连字符）', oldKey, function (v) {
-      var nk = String(v || '').trim().replace(/[^a-z0-9_-]/gi, '')
+    askText('给这条音轨改名（可用中文 / 英文 / 数字）', oldKey, function (v) {
+      var nk = String(v || '').trim().replace(/[^\u4e00-\u9fa5a-zA-Z0-9_-]/gi, '')
       if (!nk || nk === oldKey) return
       if (tpl.audioBuses[nk]) { say('已经有同名音轨了', 'err'); return }
       tpl.audioBuses[nk] = tpl.audioBuses[oldKey]; delete tpl.audioBuses[oldKey]
@@ -2188,8 +2188,8 @@
     if (!tpl.audioBuses) tpl.audioBuses = {}
     var n = 4
     while (tpl.audioBuses['bus' + n]) n++
-    askText('新增一条音轨（起个名字，如 ui / foley）', 'bus' + n, function (v) {
-      var key = String(v || '').trim().replace(/[^a-z0-9_-]/gi, '') || ('bus' + n)
+    askText('新增一条音轨（起个名字，如 音效 / 环境 / ui）', 'bus' + n, function (v) {
+      var key = String(v || '').trim().replace(/[^\u4e00-\u9fa5a-zA-Z0-9_-]/gi, '') || ('bus' + n)
       if (tpl.audioBuses[key]) { say('已经有同名音轨了', 'err'); return }
       tpl.audioBuses[key] = { vol: 1, mute: false }
       renderTlTracks(); renderTlPanel(); tlSync()
