@@ -8,7 +8,7 @@
     "intro",
     "full"
   ],
-  "duration": 21600,
+  "duration": 30600,
   "theme": {
     "mode": "dark",
     "bg": "#04070D",
@@ -26,14 +26,14 @@
       "to": 8000
     },
     {
-      "name": "第二幕 · 登录",
+      "name": "第二幕 · 登录（拉长）",
       "from": 8000,
-      "to": 14000
+      "to": 23000
     },
     {
       "name": "第三幕 · 欢迎回来",
-      "from": 14000,
-      "to": 21600
+      "from": 23000,
+      "to": 30600
     }
   ],
   "assets": {
@@ -76,7 +76,7 @@
       "fx": "ai-mech"
     },
     {
-      "t": 9600,
+      "t": 12000,
       "slot": "line-1",
       "bus": "voice",
       "off": 1760,
@@ -87,7 +87,7 @@
       "fx": "ai-mech"
     },
     {
-      "t": 11050,
+      "t": 15625,
       "slot": "line-1",
       "bus": "voice",
       "off": 3470,
@@ -98,7 +98,7 @@
       "fx": "ai-mech"
     },
     {
-      "t": 17900,
+      "t": 26900,
       "slot": "line-1",
       "bus": "voice",
       "off": 13400,
@@ -108,7 +108,7 @@
       "fadeOut": 120
     },
     {
-      "t": 19250,
+      "t": 28250,
       "slot": "line-1",
       "bus": "voice",
       "off": 14230,
@@ -126,7 +126,7 @@
       "vol": 0.35
     },
     {
-      "t": 15100,
+      "t": 24100,
       "slot": "line-6",
       "bus": "sfx",
       "off": 0,
@@ -135,7 +135,7 @@
       "fadeOut": 200
     },
     {
-      "t": 19050,
+      "t": 28050,
       "slot": "line-5",
       "bus": "sfx",
       "off": 0,
@@ -143,7 +143,7 @@
       "vol": 0.4
     },
     {
-      "t": 20650,
+      "t": 29650,
       "slot": "line-5",
       "bus": "sfx",
       "off": 0,
@@ -562,7 +562,7 @@
           "globeScale": 1
         },
         {
-          "t": 9600,
+          "t": 12000,
           "opacity": 1,
           "assemble": 1,
           "form": 0,
@@ -573,7 +573,7 @@
           "ease": "inOutCubic"
         },
         {
-          "t": 13600,
+          "t": 22000,
           "opacity": 1,
           "assemble": 1,
           "form": 0,
@@ -583,7 +583,7 @@
           "globeScale": 1.8
         },
         {
-          "t": 15100,
+          "t": 24100,
           "opacity": 1,
           "assemble": 1,
           "form": 0,
@@ -594,7 +594,7 @@
           "ease": "inOutCubic"
         },
         {
-          "t": 15500,
+          "t": 24500,
           "opacity": 1,
           "assemble": 1,
           "form": 0,
@@ -605,7 +605,7 @@
           "ease": "inOutCubic"
         },
         {
-          "t": 16300,
+          "t": 25300,
           "opacity": 1,
           "assemble": 1,
           "form": 0,
@@ -615,7 +615,7 @@
           "globeScale": 1
         },
         {
-          "t": 17900,
+          "t": 26900,
           "opacity": 1,
           "assemble": 1,
           "form": 1,
@@ -626,7 +626,7 @@
           "ease": "inOutCubic"
         },
         {
-          "t": 19000,
+          "t": 28000,
           "opacity": 1,
           "assemble": 1,
           "form": 1,
@@ -636,7 +636,7 @@
           "globeScale": 1
         },
         {
-          "t": 19250,
+          "t": 28250,
           "opacity": 0,
           "assemble": 1,
           "form": 1,
@@ -705,26 +705,26 @@
       "clip": true,
       "keyframes": [
         {
-          "t": 8200,
+          "t": 8500,
           "opacity": 0,
           "offsetY": 12,
           "offsetX": -400
         },
         {
-          "t": 8700,
+          "t": 9750,
           "opacity": 1,
           "offsetY": 0,
           "ease": "outCubic",
           "offsetX": -400
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "offsetY": 0,
           "offsetX": -400
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -746,25 +746,25 @@
       "color": "#9DB8DE",
       "keyframes": [
         {
-          "t": 8700,
+          "t": 9750,
           "opacity": 0,
           "offsetX": -540,
           "offsetY": -205
         },
         {
-          "t": 8900,
+          "t": 10250,
           "opacity": 1,
           "offsetX": -540,
           "offsetY": -205
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "offsetX": -540,
           "offsetY": -205
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -786,28 +786,28 @@
       "color": "rgba(157,184,222,.75)",
       "keyframes": [
         {
-          "t": 9000,
+          "t": 10500,
           "opacity": 0,
           "typed": 0,
           "offsetY": -160,
           "offsetX": -540
         },
         {
-          "t": 9250,
+          "t": 11125,
           "opacity": 1,
           "typed": 1,
           "offsetY": -160,
           "offsetX": -540
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "typed": 1,
           "offsetY": -160,
           "offsetX": -540
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -829,28 +829,28 @@
       "color": "rgba(157,184,222,.75)",
       "keyframes": [
         {
-          "t": 9350,
+          "t": 11375,
           "opacity": 0,
           "typed": 0,
           "offsetX": -540,
           "offsetY": -128
         },
         {
-          "t": 9600,
+          "t": 12000,
           "opacity": 1,
           "typed": 1,
           "offsetX": -540,
           "offsetY": -128
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "typed": 1,
           "offsetX": -540,
           "offsetY": -128
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -872,28 +872,28 @@
       "color": "rgba(157,184,222,.75)",
       "keyframes": [
         {
-          "t": 9700,
+          "t": 12250,
           "opacity": 0,
           "typed": 0,
           "offsetX": -540,
           "offsetY": -96
         },
         {
-          "t": 9950,
+          "t": 12875,
           "opacity": 1,
           "typed": 1,
           "offsetX": -540,
           "offsetY": -96
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "typed": 1,
           "offsetX": -540,
           "offsetY": -96
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -915,28 +915,28 @@
       "color": "rgba(157,184,222,.75)",
       "keyframes": [
         {
-          "t": 10050,
+          "t": 13125,
           "opacity": 0,
           "typed": 0,
           "offsetX": -540,
           "offsetY": -64
         },
         {
-          "t": 10300,
+          "t": 13750,
           "opacity": 1,
           "typed": 1,
           "offsetX": -540,
           "offsetY": -64
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "typed": 1,
           "offsetX": -540,
           "offsetY": -64
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -953,35 +953,35 @@
       "barColor": "#72A2EA",
       "keyframes": [
         {
-          "t": 9200,
+          "t": 11000,
           "opacity": 0,
           "value": 0,
           "offsetX": -400,
           "offsetY": 160
         },
         {
-          "t": 9400,
+          "t": 11500,
           "opacity": 1,
           "value": 0,
           "offsetX": -400,
           "offsetY": 160
         },
         {
-          "t": 11000,
+          "t": 15500,
           "value": 1,
           "ease": "inOutCubic",
           "offsetX": -400,
           "offsetY": 160
         },
         {
-          "t": 13400,
+          "t": 21500,
           "value": 1,
           "offsetX": -400,
           "offsetY": 160,
           "opacity": 1
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -1003,25 +1003,25 @@
       "color": "#F4F8FF",
       "keyframes": [
         {
-          "t": 10950,
+          "t": 15375,
           "opacity": 0,
           "offsetX": -540,
           "offsetY": 200
         },
         {
-          "t": 11200,
+          "t": 16000,
           "opacity": 1,
           "offsetX": -540,
           "offsetY": 200
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "offsetX": -540,
           "offsetY": 200
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -1041,14 +1041,14 @@
       "glow": 22,
       "keyframes": [
         {
-          "t": 8400,
+          "t": 9000,
           "opacity": 0,
           "scale": 0.96,
           "offsetX": 20,
           "offsetY": 20
         },
         {
-          "t": 9000,
+          "t": 10500,
           "opacity": 1,
           "scale": 1,
           "ease": "outCubic",
@@ -1056,14 +1056,14 @@
           "offsetY": 20
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "scale": 1,
           "offsetX": 20,
           "offsetY": 20
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -1079,25 +1079,25 @@
       "logoSize": 46,
       "keyframes": [
         {
-          "t": 9000,
+          "t": 10500,
           "opacity": 0,
           "offsetX": -125,
           "offsetY": -95
         },
         {
-          "t": 9300,
+          "t": 11250,
           "opacity": 1,
           "offsetX": -125,
           "offsetY": -95
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "offsetX": -125,
           "offsetY": -95
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -1119,25 +1119,25 @@
       "color": "#F4F8FF",
       "keyframes": [
         {
-          "t": 9000,
+          "t": 10500,
           "opacity": 0,
           "offsetX": -25,
           "offsetY": -120
         },
         {
-          "t": 9300,
+          "t": 11250,
           "opacity": 1,
           "offsetX": -25,
           "offsetY": -120
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "offsetX": -25,
           "offsetY": -120
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -1159,25 +1159,25 @@
       "color": "#9DB8DE",
       "keyframes": [
         {
-          "t": 9150,
+          "t": 10875,
           "opacity": 0,
           "offsetX": -25,
           "offsetY": -92
         },
         {
-          "t": 9400,
+          "t": 11500,
           "opacity": 1,
           "offsetX": -25,
           "offsetY": -92
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "offsetX": -25,
           "offsetY": -92
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -1192,25 +1192,25 @@
       "color": "rgba(232,244,255,.85)",
       "keyframes": [
         {
-          "t": 9300,
+          "t": 11250,
           "opacity": 0,
           "offsetX": 115,
           "offsetY": 90
         },
         {
-          "t": 9600,
+          "t": 12000,
           "opacity": 1,
           "offsetX": 115,
           "offsetY": 90
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "offsetX": 115,
           "offsetY": 90
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ],
@@ -1232,38 +1232,38 @@
       "color": "rgba(114,162,234,.9)",
       "keyframes": [
         {
-          "t": 9500,
+          "t": 11750,
           "opacity": 0,
           "offsetY": -60,
           "reveal": 1,
           "offsetX": 20
         },
         {
-          "t": 9600,
+          "t": 12000,
           "opacity": 0.9,
           "offsetY": -60,
           "offsetX": 20
         },
         {
-          "t": 10600,
+          "t": 14500,
           "opacity": 0.9,
           "offsetY": -60,
           "offsetX": 20
         },
         {
-          "t": 10650,
+          "t": 14625,
           "opacity": 0,
           "offsetY": -60,
           "offsetX": 20
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "offsetY": -60,
           "offsetX": 20
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -1284,25 +1284,25 @@
       "color": "rgba(157,184,222,.7)",
       "keyframes": [
         {
-          "t": 9700,
+          "t": 12250,
           "opacity": 0,
           "offsetX": 20,
           "offsetY": 240
         },
         {
-          "t": 10000,
+          "t": 13000,
           "opacity": 1,
           "offsetX": 20,
           "offsetY": 240
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "offsetX": 20,
           "offsetY": 240
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -1323,25 +1323,25 @@
       "color": "#9DB8DE",
       "keyframes": [
         {
-          "t": 9200,
+          "t": 11000,
           "opacity": 0,
           "offsetX": 410,
           "offsetY": 140
         },
         {
-          "t": 9500,
+          "t": 11750,
           "opacity": 1,
           "offsetX": 410,
           "offsetY": 140
         },
         {
-          "t": 13400,
+          "t": 21500,
           "opacity": 1,
           "offsetX": 410,
           "offsetY": 140
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -1363,35 +1363,35 @@
       "color": "#F4F8FF",
       "keyframes": [
         {
-          "t": 9200,
+          "t": 11000,
           "opacity": 0,
           "value": 0,
           "offsetX": 410,
           "offsetY": 185
         },
         {
-          "t": 9400,
+          "t": 11500,
           "opacity": 1,
           "value": 0,
           "offsetX": 410,
           "offsetY": 185
         },
         {
-          "t": 11400,
+          "t": 16500,
           "value": 100,
           "ease": "inOutCubic",
           "offsetX": 410,
           "offsetY": 185
         },
         {
-          "t": 13400,
+          "t": 21500,
           "value": 100,
           "offsetX": 410,
           "offsetY": 185,
           "opacity": 1
         },
         {
-          "t": 13950,
+          "t": 22875,
           "opacity": 0
         }
       ]
@@ -1414,31 +1414,31 @@
           "opacity": 0
         },
         {
-          "t": 19050,
+          "t": 28050,
           "opacity": 0
         },
         {
-          "t": 19150,
+          "t": 28150,
           "opacity": 0.95
         },
         {
-          "t": 19280,
+          "t": 28280,
           "opacity": 0
         },
         {
-          "t": 20650,
+          "t": 29650,
           "opacity": 0
         },
         {
-          "t": 20740,
+          "t": 29740,
           "opacity": 0.9
         },
         {
-          "t": 20860,
+          "t": 29860,
           "opacity": 0
         },
         {
-          "t": 21600,
+          "t": 30600,
           "opacity": 0
         }
       ]
@@ -1463,32 +1463,32 @@
           "opacity": 0
         },
         {
-          "t": 19250,
+          "t": 28250,
           "opacity": 0,
           "wipe": 0,
           "typed": 0
         },
         {
-          "t": 19480,
+          "t": 28480,
           "opacity": 1,
           "wipe": 0.2,
           "typed": 0.2
         },
         {
-          "t": 20200,
+          "t": 29200,
           "opacity": 1,
           "wipe": 1,
           "typed": 1,
           "ease": "outCubic"
         },
         {
-          "t": 20650,
+          "t": 29650,
           "opacity": 1,
           "wipe": 1,
           "typed": 1
         },
         {
-          "t": 21000,
+          "t": 30000,
           "opacity": 0,
           "wipe": 1,
           "typed": 1
@@ -1515,22 +1515,22 @@
           "opacity": 0
         },
         {
-          "t": 19700,
+          "t": 28700,
           "opacity": 0,
           "offsetY": 88
         },
         {
-          "t": 20050,
+          "t": 29050,
           "opacity": 1,
           "offsetY": 88
         },
         {
-          "t": 20650,
+          "t": 29650,
           "opacity": 1,
           "offsetY": 88
         },
         {
-          "t": 21000,
+          "t": 30000,
           "opacity": 0,
           "offsetY": 88
         }
@@ -1542,7 +1542,7 @@
       "type": "readout",
       "opacity": 0.5,
       "from": 0,
-      "to": 21600
+      "to": 30600
     },
     {
       "type": "scanline",
