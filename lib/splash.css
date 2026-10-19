@@ -1392,3 +1392,6 @@
 
 /* 文字层外框（按钮样式） */
 .dsu-tl-box { border: 1.5px solid rgba(170,205,250,0.85); padding: 16px 40px; background: rgba(8,18,38,0.55); border-radius: 2px; }
+
+/* 批量选中的关键帧 */
+.tlkf.multi { box-shadow: 0 0 0 2px #ffd45e, 0 0 6px rgba(255,212,94,0.6); }
