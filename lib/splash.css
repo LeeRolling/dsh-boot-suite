@@ -1395,3 +1395,13 @@
 
 /* 批量选中的关键帧 */
 .tlkf.multi { box-shadow: 0 0 0 2px #ffd45e, 0 0 6px rgba(255,212,94,0.6); }
+
+/* 时间线音频块（可拖动改出现时间） */
+.tlaudio {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  height: 16px; min-width: 10px; padding: 0 6px;
+  background: rgba(114,162,234,0.28);
+  border: 1px solid rgba(114,162,234,0.75);
+  border-radius: 3px; cursor: ew-resize;
+  display: flex; align-items: center; font-size: 10px; color: #cfe4ff;
+}
