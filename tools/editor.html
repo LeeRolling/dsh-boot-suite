@@ -194,6 +194,7 @@
         <button id="tlAddKf" class="mini">◆ 打关键帧</button>
         <button id="tlAddLayer" class="mini">+ 图层</button>
         <button id="tlAddSeg" class="mini">+ 分段</button>
+        <button id="tlMultiBtn" class="mini">批量选择</button>
         <button id="tlAddLogo" class="mini">+ 线描</button>
         <button id="tlAddGlobe" class="mini">+ 地球仪</button>
         <button id="tlAddChars" class="mini">+ 字符地球</button>
@@ -403,37 +404,6 @@
     })
     side.appendChild(info)
 
-    /* 批量修改：Ctrl/Cmd + 点多个菱形后出现 */
-    if (tl.multi.length >= 2) {
-      var bh = document.createElement('h2'); bh.textContent = '批量修改（已选 ' + tl.multi.length + ' 帧）'; side.appendChild(bh)
-      var btip = document.createElement('div'); btip.className = 'hint'
-      btip.textContent = '选一个参数、填一个值，下面所有帧的这个参数都会改成它（其它参数不动）。'
-      side.appendChild(btip)
-      var brow = document.createElement('div'); brow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:6px'
-      var bsel = document.createElement('select'); bsel.style.flex = '0 0 150px'
-      ;[['opacity', '透明度'], ['offsetX', '位置X'], ['offsetY', '位置Y'], ['scale', '缩放'], ['rotate', '旋转'],
-        ['wipe', '擦除'], ['reveal', '展开'], ['draw', '绘制进度'], ['assemble', '聚合度'], ['globeScale', '球体半径倍率']].forEach(function (o) {
-        var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; bsel.appendChild(op)
-      })
-      var bnum = document.createElement('input'); bnum.type = 'number'; bnum.step = '0.01'; bnum.placeholder = '值'; bnum.style.flex = '1 1 auto'
-      var bbtn = document.createElement('button'); bbtn.className = 'mini'; bbtn.textContent = '应用到 ' + tl.multi.length + ' 帧'
-      bbtn.onclick = function () {
-        var prop = bsel.value
-        var raw = bnum.value
-        for (var bi = 0; bi < tl.multi.length; bi++) {
-          var kf2 = tl.multi[bi].kf
-          if (raw === '') delete kf2[prop]
-          else kf2[prop] = Number(raw)
-        }
-        tlSync(); renderTlTracks(); renderTlPanel()
-        say('已把 ' + prop + ' = ' + raw + ' 应用到 ' + tl.multi.length + ' 帧', 'ok')
-      }
-      brow.appendChild(bsel); brow.appendChild(bnum); brow.appendChild(bbtn)
-      side.appendChild(brow)
-      var bclear = document.createElement('button'); bclear.className = 'mini'; bclear.textContent = '清空选择'
-      bclear.onclick = function () { tl.multi = []; renderTlTracks(); renderTlPanel() }
-      side.appendChild(bclear)
-    }
 
     var h2 = document.createElement('h2'); h2.textContent = '配色'; side.appendChild(h2)
     side.appendChild(renderColors())
@@ -838,6 +808,50 @@
     }
     side.appendChild(info)
 
+    /* 批量修改：常驻显示，Ctrl/Cmd 或开启批量模式后点选 */
+    {
+      var bh = document.createElement('h2'); bh.textContent = '批量修改（已选 ' + tl.multi.length + ' 帧）'; side.appendChild(bh)
+      var btip = document.createElement('div'); btip.className = 'hint'
+      btip.textContent = tl.multi.length >= 2
+        ? '选一个参数、填一个值，下面所有帧的这个参数都会改成它（其它参数不动）。'
+        : '先选 2 个以上菱形：快捷键 Ctrl+点，或打开上面的「批量选择」开关后直接点。'
+      side.appendChild(btip)
+      var bsAll = document.createElement('button'); bsAll.className = 'mini'; bsAll.textContent = '全选本层所有帧'
+      bsAll.onclick = function () {
+        var L3 = tlLayers()[tl.selected]
+        if (!L3) return
+        tl.multi = ((L3.keyframes || [])).map(function (k, ki2) { return { li: tl.selected, kf: k, kfIndex: ki2 } })
+        renderTlTracks(); renderTlPanel()
+      }
+      side.appendChild(bsAll)
+      var bclrTop = document.createElement('button'); bclrTop.className = 'mini'; bclrTop.style.marginLeft = '6px'; bclrTop.textContent = '取消多选'
+      bclrTop.onclick = function () { tl.multi = []; renderTlTracks(); renderTlPanel() }
+      side.appendChild(bclrTop)
+      var brow = document.createElement('div'); brow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:6px'
+      var bsel = document.createElement('select'); bsel.style.flex = '0 0 150px'
+      ;[['opacity', '透明度'], ['offsetX', '位置X'], ['offsetY', '位置Y'], ['scale', '缩放'], ['rotate', '旋转'],
+        ['wipe', '擦除'], ['reveal', '展开'], ['draw', '绘制进度'], ['assemble', '聚合度'], ['globeScale', '球体半径倍率']].forEach(function (o) {
+        var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; bsel.appendChild(op)
+      })
+      var bnum = document.createElement('input'); bnum.type = 'number'; bnum.step = '0.01'; bnum.placeholder = '值'; bnum.style.flex = '1 1 auto'
+      var bbtn = document.createElement('button'); bbtn.className = 'mini'; bbtn.textContent = '应用到 ' + tl.multi.length + ' 帧'
+      bbtn.onclick = function () {
+        var prop = bsel.value
+        var raw = bnum.value
+        for (var bi = 0; bi < tl.multi.length; bi++) {
+          var kf2 = tl.multi[bi].kf
+          if (raw === '') delete kf2[prop]
+          else kf2[prop] = Number(raw)
+        }
+        tlSync(); renderTlTracks(); renderTlPanel()
+        say('已把 ' + prop + ' = ' + raw + ' 应用到 ' + tl.multi.length + ' 帧', 'ok')
+      }
+      brow.appendChild(bsel); brow.appendChild(bnum); brow.appendChild(bbtn)
+      side.appendChild(brow)
+      var bclear = document.createElement('button'); bclear.className = 'mini'; bclear.textContent = '清空选择'
+      bclear.onclick = function () { tl.multi = []; renderTlTracks(); renderTlPanel() }
+      side.appendChild(bclear)
+    }
     var h = document.createElement('h2'); h.textContent = '图层（' + tlLayers().length + '）'; side.appendChild(h)
     if (!tlLayers().length) {
       var e = document.createElement('div'); e.className = 'empty'
@@ -1367,7 +1381,7 @@
         kf.onmousedown = function (ev) {
           ev.preventDefault()
           ev.stopPropagation()
-          if (ev.ctrlKey || ev.metaKey) {
+          if (ev.ctrlKey || ev.metaKey || tl.multiMode) {
             /* Ctrl/Cmd+点：把这一帧加入/移出批量选择 */
             var at = -1
             for (var mi = 0; mi < tl.multi.length; mi++) if (tl.multi[mi].kf === k && tl.multi[mi].li === i) { at = mi; break }
@@ -1801,6 +1815,13 @@
     })
     tl.selected = tpl.layers.length - 1
     tlSync(); renderTlPanel(); renderTlTracks()
+  }
+
+  document.getElementById('tlMultiBtn').onclick = function () {
+    tl.multiMode = !tl.multiMode
+    this.classList.toggle('on', !!tl.multiMode)
+    this.textContent = tl.multiMode ? '批量选择：开' : '批量选择'
+    say(tl.multiMode ? '批量选择已开启：点菱形即可加入/移出' : '批量选择已关闭', 'ok')
   }
 
   document.getElementById('tlAddSeg').onclick = function () {
