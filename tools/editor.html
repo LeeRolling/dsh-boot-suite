@@ -1268,6 +1268,16 @@
       var del = document.createElement('button'); del.className = 'mini danger'; del.textContent = '✕'
       del.onclick = function () { arr.splice(ci, 1); tlSync(); renderTlTracks(); renderTlPanel() }
       row.appendChild(sl); row.appendChild(tm); row.appendChild(del); side.appendChild(row)
+      var fxRow = document.createElement('div'); fxRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin:0 0 4px 0'
+      var fxLb = document.createElement('span'); fxLb.style.cssText = 'font-size:11px;opacity:.75;flex:0 0 66px'; fxLb.textContent = '音效预设'
+      var fxSel = document.createElement('select'); fxSel.style.flex = '1 1 auto'
+      ;[['none', '无（原声）'], ['ai-mech', 'AI 机械音'], ['robot', '机器人'], ['radio', '无线电'], ['oldtv', '老电视'], ['dark', '低沉']].forEach(function (o) {
+        var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]
+        if ((cue.fx || 'none') === o[0]) op.selected = true
+        fxSel.appendChild(op)
+      })
+      fxSel.onchange = function () { cue.fx = fxSel.value; tlSync(); renderTlTracks(); say('音效预设：' + fxSel.options[fxSel.selectedIndex].textContent, 'ok') }
+      fxRow.appendChild(fxLb); fxRow.appendChild(fxSel); side.appendChild(fxRow)
       function cueNum(label, key, step, def) {
         var r2 = document.createElement('div'); r2.style.cssText = 'display:flex;gap:6px;align-items:center;margin:0 0 4px 0'
         var lb2 = document.createElement('span'); lb2.style.cssText = 'font-size:11px;opacity:.75;flex:0 0 66px'; lb2.textContent = label
