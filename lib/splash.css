@@ -1396,12 +1396,15 @@
 /* 批量选中的关键帧 */
 .tlkf.multi { box-shadow: 0 0 0 2px #ffd45e, 0 0 6px rgba(255,212,94,0.6); }
 
-/* 时间线音频块（可拖动改出现时间） */
-.tlaudio {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  height: 16px; min-width: 10px; padding: 0 6px;
-  background: rgba(114,162,234,0.28);
-  border: 1px solid rgba(114,162,234,0.75);
-  border-radius: 3px; cursor: ew-resize;
-  display: flex; align-items: center; font-size: 10px; color: #cfe4ff;
-}
+
+/* 时间线音频块：左右把手改头尾、中间拖动挪位置 */
+.tlaudio { position: absolute; top: 50%; transform: translateY(-50%); height: 22px; min-width: 14px;
+  background: linear-gradient(180deg, rgba(114,162,234,0.34), rgba(114,162,234,0.18));
+  border: 1px solid rgba(114,162,234,0.85); border-radius: 3px; cursor: grab; user-select: none; }
+.tlaudio-body { position: absolute; inset: 3px 8px; border-radius: 2px;
+  background-image: repeating-linear-gradient(90deg, rgba(207,228,255,0.55) 0 2px, transparent 2px 5px);
+  opacity: 0.75; pointer-events: none; }
+.tlaudio-h { position: absolute; top: 0; bottom: 0; width: 8px; background: rgba(207,228,255,0.9);
+  cursor: ew-resize; }
+.tlaudio-h.l { left: 0; border-radius: 2px 0 0 2px; }
+.tlaudio-h.r { right: 0; border-radius: 0 2px 2px 0; }

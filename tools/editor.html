@@ -148,6 +148,17 @@
   @media (max-width: 780px) {
     header h1 { display:none; }
   }
+
+  /* 时间线音频块：左右把手改头尾、中间拖动挪位置（编辑器专用，splash.css 不加载这里） */
+  .tlaudio { position:absolute; top:50%; transform:translateY(-50%); height:22px; min-width:14px;
+    background:linear-gradient(180deg, rgba(114,162,234,.34), rgba(114,162,234,.18));
+    border:1px solid rgba(114,162,234,.85); border-radius:3px; cursor:grab; user-select:none; z-index:3; }
+  .tlaudio-body { position:absolute; inset:3px 8px; border-radius:2px;
+    background-image:repeating-linear-gradient(90deg, rgba(207,228,255,.55) 0 2px, transparent 2px 5px);
+    opacity:.75; pointer-events:none; }
+  .tlaudio-h { position:absolute; top:0; bottom:0; width:8px; background:rgba(207,228,255,.9); cursor:ew-resize; }
+  .tlaudio-h.l { left:0; border-radius:2px 0 0 2px; }
+  .tlaudio-h.r { right:0; border-radius:0 2px 2px 0; }
 </style>
 </head>
 <body>
@@ -1489,20 +1500,45 @@
       var alane = document.createElement('div'); alane.className = 'tllane'
       var blk = document.createElement('div')
       blk.className = 'tlaudio'
-      blk.style.left = (Number(cue.t) / d * 100) + '%'
-      if (Number(cue.dur) > 0) blk.style.width = (Number(cue.dur) / d * 100) + '%'
-      blk.title = (Number(cue.t) / 1000).toFixed(2) + 's'
-      blk.onmousedown = function (ev) {
-        ev.preventDefault(); ev.stopPropagation()
-        var r2 = alane.getBoundingClientRect()
-        function mv(e2) {
-          var t2 = Math.max(0, Math.min(d, Math.round((e2.clientX - r2.left) / r2.width * d)))
-          cue.t = t2; blk.style.left = (t2 / d * 100) + '%'; blk.title = (t2 / 1000).toFixed(2) + 's'
-          tlSync(); renderTlPanel()
-        }
-        function up2() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up2) }
-        document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up2)
+      var dur0 = Number(cue.dur) > 0 ? Number(cue.dur) : 1500
+      function paintClip() {
+        blk.style.left = (Number(cue.t) / d * 100) + '%'
+        blk.style.width = (dur0 / d * 100) + '%'
+        blk.title = 't=' + Math.round(cue.t) + 'ms  off=' + Math.round(cue.off || 0) + '  时长=' + Math.round(dur0) + 'ms'
       }
+      var hL = document.createElement('div'); hL.className = 'tlaudio-h l'; hL.title = '拖我掐头'
+      var hR = document.createElement('div'); hR.className = 'tlaudio-h r'; hR.title = '拖我去尾'
+      var body = document.createElement('div'); body.className = 'tlaudio-body'
+      blk.appendChild(hL); blk.appendChild(body); blk.appendChild(hR)
+      paintClip()
+      function dragClip(ev, kind) {
+        ev.preventDefault(); ev.stopPropagation()
+        var laneRect = alane.getBoundingClientRect()
+        var startX = ev.clientX
+        var o = { t: Number(cue.t) || 0, off: Number(cue.off) || 0, dur: dur0 }
+        function mv(e2) {
+          var dm = Math.round((e2.clientX - startX) / laneRect.width * d)
+          if (kind === 'body') {
+            cue.t = Math.max(0, Math.min(d - 100, o.t + dm))
+          } else if (kind === 'l') {
+            var dOff = Math.max(-o.off, Math.min(o.dur - 100, dm))
+            cue.t = Math.max(0, o.t + dOff)
+            cue.off = Math.max(0, o.off + dOff)
+            dur0 = o.dur - dOff
+            cue.dur = dur0
+          } else {
+            dur0 = Math.max(100, o.dur + dm)
+            cue.dur = dur0
+          }
+          paintClip(); tlSync(); renderTlPanel()
+        }
+        function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up) }
+        document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up)
+      }
+      blk.onmousedown = function (ev) { dragClip(ev, 'body') }
+      body.onmousedown = function (ev) { dragClip(ev, 'body') }
+      hL.onmousedown = function (ev) { dragClip(ev, 'l') }
+      hR.onmousedown = function (ev) { dragClip(ev, 'r') }
       alane.appendChild(blk); arow.appendChild(anm); arow.appendChild(alane); tracks.appendChild(arow)
     })
     var pick = document.getElementById('tlLayerPick')
