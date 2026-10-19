@@ -206,6 +206,7 @@
         <button id="tlAddSeg" class="mini">+ 分段</button>
         <button id="tlMultiBtn" class="mini">批量选择</button>
         <button id="tlAddAudio" class="mini">＋音频</button>
+        <button id="tlAddBus" class="mini">＋音轨</button>
         <button id="tlAddLogo" class="mini">+ 线描</button>
         <button id="tlAddGlobe" class="mini">+ 地球仪</button>
         <button id="tlAddChars" class="mini">+ 字符地球</button>
@@ -1260,17 +1261,34 @@
     side.appendChild(tip)
     /* 总线音量 */
     if (!tpl.audioBuses) tpl.audioBuses = {}
-    ;[['voice', '人声'], ['sfx', '音效'], ['amb', '环境']].forEach(function (b) {
-      var key = b[0]
-      if (!tpl.audioBuses[key]) tpl.audioBuses[key] = { vol: 1, mute: false }
+    ;(function () {
+      var order = ['amb', 'voice', 'sfx'];
+      Object.keys(tpl.audioBuses).forEach(function (k) { if (order.indexOf(k) < 0) order.push(k) })
+      return order.filter(function (k) { return !!tpl.audioBuses[k] })
+    })().forEach(function (b) {
+      var key = b
       var cfg = tpl.audioBuses[key]
       var row2 = document.createElement('div'); row2.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:4px'
-      var lb2 = document.createElement('span'); lb2.style.cssText = 'font-size:11px;opacity:.8;flex:0 0 66px'; lb2.textContent = key + ' ' + b[1]
+      var lb2 = document.createElement('input'); lb2.type = 'text'; lb2.value = key; lb2.style.cssText = 'width:74px;font-size:11px'
+      lb2.onchange = function () {
+        var nk = lb2.value.trim().replace(/[^a-z0-9_-]/gi, '')
+        if (!nk || nk === key) { lb2.value = key; return }
+        tpl.audioBuses[nk] = tpl.audioBuses[key]; delete tpl.audioBuses[key]
+        ;(tpl.audio || []).forEach(function (c) { if ((c.bus || 'voice') === key) c.bus = nk })
+        renderTlTracks(); renderTlPanel(); tlSync()
+      }
       var rng = document.createElement('input'); rng.type = 'range'; rng.min = 0; rng.max = 1; rng.step = 0.05; rng.value = cfg.vol; rng.style.flex = '1 1 auto'
       var muteBtn = document.createElement('button'); muteBtn.className = 'mini'; muteBtn.textContent = cfg.mute ? '🔇' : '🔊'
       rng.oninput = function () { cfg.vol = Number(rng.value); tlSync() }
       muteBtn.onclick = function () { cfg.mute = !cfg.mute; muteBtn.textContent = cfg.mute ? '🔇' : '🔊'; tlSync() }
-      row2.appendChild(lb2); row2.appendChild(rng); row2.appendChild(muteBtn); side.appendChild(row2)
+      var delBus = document.createElement('button'); delBus.className = 'mini danger'; delBus.textContent = '✕'
+      delBus.onclick = function () {
+        var used = (tpl.audio || []).some(function (c) { return (c.bus || 'voice') === key })
+        if (used) { say('这条音轨上还有音频，先删掉那些 cue', 'err'); return }
+        if (key === 'voice') { say('人声总线不能删', 'err'); return }
+        delete tpl.audioBuses[key]; renderTlTracks(); renderTlPanel(); tlSync()
+      }
+      row2.appendChild(lb2); row2.appendChild(rng); row2.appendChild(muteBtn); row2.appendChild(delBus); side.appendChild(row2)
     })
     var d2 = tlDur()
     arr.forEach(function (cue, ci) {
@@ -1523,108 +1541,108 @@
     })
     })
 
-    /* ── 音频轨：每条 cue 一块，拖动改出现时间 ── */
-    ;(Array.isArray(tpl.audio) ? tpl.audio : []).forEach(function (cue, ci) {
-      if (!cue || !isFinite(Number(cue.t))) return
+    /* ── 音频轨：按总线分轨（amb / voice / sfx / 自定义），每条 cue 一块 ── */
+    function busOrder() {
+      if (!tpl.audioBuses) tpl.audioBuses = {}
+      ;['amb', 'voice', 'sfx'].forEach(function (k) { if (!tpl.audioBuses[k]) tpl.audioBuses[k] = { vol: 1, mute: false } })
+      var order = ['amb', 'voice', 'sfx']
+      Object.keys(tpl.audioBuses).forEach(function (k) { if (order.indexOf(k) < 0) order.push(k) })
+      return order.filter(function (k) { return !!tpl.audioBuses[k] })
+    }
+    var audioArr = Array.isArray(tpl.audio) ? tpl.audio : (tpl.audio = [])
+    busOrder().forEach(function (busKey) {
+      var cfg = tpl.audioBuses[busKey]
+      var myCues = audioArr.filter(function (c) { return (c.bus || 'voice') === busKey })
       var arow = document.createElement('div'); arow.className = 'tlrow'
       var anm = document.createElement('div'); anm.className = 'tlname'
-      anm.textContent = (cue.mute ? '🔇 ' : '🔊 ') + (cue.bus || 'voice') + '·' + (cue.slot || 'audio')
+      anm.textContent = (cfg.mute ? '🔇 ' : '🔊 ') + busKey + (myCues.length ? ' · ' + myCues.length : '')
       anm.style.cursor = 'pointer'
-      anm.title = '点一下静音 / 再点恢复'
-      anm.onclick = function (ev) { ev.stopPropagation(); cue.mute = !cue.mute; tlSync(); renderTlTracks(); say(cue.mute ? '已静音这条音频' : '已恢复这条音频', 'ok') }
+      anm.title = '点一下：整条总线静音 / 恢复'
+      anm.onclick = function (ev) { ev.stopPropagation(); cfg.mute = !cfg.mute; tlSync(); renderTlTracks(); renderTlPanel(); say(cfg.mute ? ('已静音总线 ' + busKey) : ('已恢复总线 ' + busKey), 'ok') }
       var alane = document.createElement('div'); alane.className = 'tllane'
-      var blk = document.createElement('div')
-      blk.className = 'tlaudio'
-      var dur0 = Number(cue.dur) > 0 ? Number(cue.dur) : 1500
-      var WAVE_CACHE = window.__WAVE_CACHE__ || (window.__WAVE_CACHE__ = {})
-      function assetFileFor(slot) {
-        var map = (tpl.assets || {})
-        var f = map[slot]
-        return f ? String(f).replace(/^.*\//, '') : ''
-      }
-      function paintWave() {
-        if (!wave) return
-        var f = assetFileFor(cue.slot)
-        if (!f) return
-        var url = API.replace('/config', '/template-asset/') + encodeURIComponent(tpl.id) + '/' + encodeURIComponent(f)
-        if (!WAVE_CACHE[url]) {
-          WAVE_CACHE[url] = fetch(url).then(function (r) { return r.ok ? r.arrayBuffer() : null })
-            .then(function (buf) {
-              if (!buf) return null
-              var Ctx = window.AudioContext || window.webkitAudioContext
-              if (!Ctx) return null
-              var ac2 = new Ctx()
-              return new Promise(function (res) { ac2.decodeAudioData(buf, function (d) { res(d) }, function () { res(null) }) })
-            }).catch(function () { return null })
+      myCues.forEach(function (cue) {
+        if (!cue || !isFinite(Number(cue.t))) return
+        var blk = document.createElement('div')
+        blk.className = 'tlaudio'
+        var dur0 = Number(cue.dur) > 0 ? Number(cue.dur) : 1500
+        var hL = document.createElement('div'); hL.className = 'tlaudio-h l'; hL.title = '拖我掐头'
+        var hR = document.createElement('div'); hR.className = 'tlaudio-h r'; hR.title = '拖我去尾'
+        var body = document.createElement('div'); body.className = 'tlaudio-body'
+        var wave = document.createElement('canvas'); wave.className = 'tlaudio-wave'
+        blk.appendChild(hL); blk.appendChild(body); blk.appendChild(wave); blk.appendChild(hR)
+        if (cue.mute) blk.style.opacity = '0.45'
+        function paintClip() {
+          blk.style.left = (Number(cue.t) / d * 100) + '%'
+          blk.style.width = (dur0 / d * 100) + '%'
+          blk.title = busKey + ' · ' + (cue.slot || '') + '  t=' + Math.round(cue.t) + 'ms  off=' + Math.round(cue.off || 0) + '  时长=' + Math.round(dur0) + 'ms'
+          setTimeout(paintWave, 30)
         }
-        WAVE_CACHE[url].then(function (audio) {
-          if (!audio || !wave.isConnected) return
-          var wpx = Math.max(20, Math.round(blk.clientWidth - 16))
-          wave.width = wpx; wave.height = 18
-          var ctx2 = wave.getContext('2d'); if (!ctx2) return
-          ctx2.clearRect(0, 0, wpx, 18)
-          var data = audio.getChannelData(0)
-          var sr = audio.sampleRate
-          var offSec = (Number(cue.off) || 0) / 1000
-          var durSec = (Number(dur0) || 1500) / 1000
-          var startSample = Math.max(0, Math.floor(offSec * sr))
-          var endSample = Math.min(data.length, Math.floor((offSec + durSec) * sr))
-          var span = Math.max(1, endSample - startSample)
-          ctx2.fillStyle = 'rgba(207,228,255,0.85)'
-          for (var px = 0; px < wpx; px++) {
-            var s0 = startSample + Math.floor(span * px / wpx)
-            var s1 = startSample + Math.floor(span * (px + 1) / wpx)
-            var peak = 0
-            for (var si = s0; si < s1; si += 8) { var v = Math.abs(data[si]); if (v > peak) peak = v }
-            var hh = Math.max(1, Math.round(peak * 16))
-            ctx2.fillRect(px, 9 - hh / 2, 1, hh)
-          }
-        })
-      }
-
-      function paintClip() {
-        blk.style.left = (Number(cue.t) / d * 100) + '%'
-        blk.style.width = (dur0 / d * 100) + '%'
-        blk.title = 't=' + Math.round(cue.t) + 'ms  off=' + Math.round(cue.off || 0) + '  时长=' + Math.round(dur0) + 'ms' + (cue.mute ? '  [静音]' : '')
-        setTimeout(paintWave, 30)
-      }
-      var hL = document.createElement('div'); hL.className = 'tlaudio-h l'; hL.title = '拖我掐头'
-      var hR = document.createElement('div'); hR.className = 'tlaudio-h r'; hR.title = '拖我去尾'
-      var body = document.createElement('div'); body.className = 'tlaudio-body'
-      var wave = document.createElement('canvas'); wave.className = 'tlaudio-wave'
-      blk.appendChild(hL); blk.appendChild(body); blk.appendChild(wave); blk.appendChild(hR)
-      if (cue.mute) blk.style.opacity = '0.45'
-      paintClip()
-      function dragClip(ev, kind) {
-        ev.preventDefault(); ev.stopPropagation()
-        var laneRect = alane.getBoundingClientRect()
-        var startX = ev.clientX
-        var o = { t: Number(cue.t) || 0, off: Number(cue.off) || 0, dur: dur0 }
-        function mv(e2) {
-          var dm = Math.round((e2.clientX - startX) / laneRect.width * d)
-          if (kind === 'body') {
-            cue.t = Math.max(0, Math.min(d - 100, o.t + dm))
-          } else if (kind === 'l') {
-            var dOff = Math.max(-o.off, Math.min(o.dur - 100, dm))
-            cue.t = Math.max(0, o.t + dOff)
-            cue.off = Math.max(0, o.off + dOff)
-            dur0 = o.dur - dOff
-            cue.dur = dur0
-          } else {
-            dur0 = Math.max(100, o.dur + dm)
-            cue.dur = dur0
-          }
-          paintClip(); tlSync(); renderTlPanel()
+        var WAVE_CACHE = window.__WAVE_CACHE__ || (window.__WAVE_CACHE__ = {})
+        function assetFileFor(slot) {
+          var map = (tpl.assets || {}); var f = map[slot]
+          return f ? String(f).replace(/^.*\//, '') : ''
         }
-        function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up) }
-        document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up)
-      }
-      blk.onmousedown = function (ev) { dragClip(ev, 'body') }
-      body.onmousedown = function (ev) { dragClip(ev, 'body') }
-      hL.onmousedown = function (ev) { dragClip(ev, 'l') }
-      hR.onmousedown = function (ev) { dragClip(ev, 'r') }
-      alane.appendChild(blk); arow.appendChild(anm); arow.appendChild(alane); tracks.appendChild(arow)
+        function paintWave() {
+          var f = assetFileFor(cue.slot)
+          if (!f) return
+          var url = API.replace('/config', '/template-asset/') + encodeURIComponent(tpl.id) + '/' + encodeURIComponent(f)
+          if (!WAVE_CACHE[url]) {
+            WAVE_CACHE[url] = fetch(url).then(function (r) { return r.ok ? r.arrayBuffer() : null })
+              .then(function (buf) {
+                if (!buf) return null
+                var Ctx = window.AudioContext || window.webkitAudioContext
+                if (!Ctx) return null
+                var ac2 = new Ctx()
+                return new Promise(function (res) { ac2.decodeAudioData(buf, function (dd) { res(dd) }, function () { res(null) }) })
+              }).catch(function () { return null })
+          }
+          WAVE_CACHE[url].then(function (audio) {
+            if (!audio || !wave.isConnected) return
+            var wpx = Math.max(20, Math.round(blk.clientWidth - 16))
+            wave.width = wpx; wave.height = 18
+            var ctx2 = wave.getContext('2d'); if (!ctx2) return
+            ctx2.clearRect(0, 0, wpx, 18)
+            var data = audio.getChannelData(0), sr = audio.sampleRate
+            var offSec = (Number(cue.off) || 0) / 1000, durSec = (Number(dur0) || 1500) / 1000
+            var s0all = Math.max(0, Math.floor(offSec * sr)), s1all = Math.min(data.length, Math.floor((offSec + durSec) * sr))
+            var span = Math.max(1, s1all - s0all)
+            ctx2.fillStyle = 'rgba(207,228,255,0.85)'
+            for (var px = 0; px < wpx; px++) {
+              var i0 = s0all + Math.floor(span * px / wpx), i1 = s0all + Math.floor(span * (px + 1) / wpx)
+              var peak = 0
+              for (var si = i0; si < i1; si += 8) { var v = Math.abs(data[si]); if (v > peak) peak = v }
+              var hh = Math.max(1, Math.round(peak * 16))
+              ctx2.fillRect(px, 9 - hh / 2, 1, hh)
+            }
+          })
+        }
+        function dragClip(ev, kind) {
+          ev.preventDefault(); ev.stopPropagation()
+          var laneRect = alane.getBoundingClientRect()
+          var startX = ev.clientX
+          var o = { t: Number(cue.t) || 0, off: Number(cue.off) || 0, dur: dur0 }
+          function mv(e2) {
+            var dm = Math.round((e2.clientX - startX) / laneRect.width * d)
+            if (kind === 'body') cue.t = Math.max(0, Math.min(d - 100, o.t + dm))
+            else if (kind === 'l') {
+              var dOff = Math.max(-o.off, Math.min(o.dur - 100, dm))
+              cue.t = Math.max(0, o.t + dOff); cue.off = Math.max(0, o.off + dOff)
+              dur0 = o.dur - dOff; cue.dur = dur0
+            } else { dur0 = Math.max(100, o.dur + dm); cue.dur = dur0 }
+            paintClip(); tlSync(); renderTlPanel()
+          }
+          function up() { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up) }
+          document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up)
+        }
+        blk.onmousedown = function (ev) { dragClip(ev, 'body') }
+        hL.onmousedown = function (ev) { dragClip(ev, 'l') }
+        hR.onmousedown = function (ev) { dragClip(ev, 'r') }
+        paintClip()
+        alane.appendChild(blk)
+      })
+      arow.appendChild(anm); arow.appendChild(alane); tracks.appendChild(arow)
     })
+
     var pick = document.getElementById('tlLayerPick')
     if (pick) {
       pick.innerHTML = ''
@@ -2013,10 +2031,21 @@
     tlSync(); renderTlPanel(); renderTlTracks()
   }
 
+  document.getElementById('tlAddBus').onclick = function () {
+    if (!tpl) return
+    if (!tpl.audioBuses) tpl.audioBuses = {}
+    var n = 4
+    while (tpl.audioBuses['bus' + n]) n++
+    var key = 'bus' + n
+    tpl.audioBuses[key] = { vol: 1, mute: false }
+    renderTlTracks(); renderTlPanel()
+    say('已新增音轨 ' + key, 'ok')
+  }
+
   document.getElementById('tlAddAudio').onclick = function () {
     if (!tpl) return
     if (!Array.isArray(tpl.audio)) tpl.audio = []
-    tpl.audio.push({ t: Math.round(tl.playhead), slot: 'line-1' })
+    tpl.audio.push({ t: Math.round(tl.playhead), slot: 'line-4', bus: 'sfx', vol: 0.6 })
     if (!tpl.assets) tpl.assets = {}
     renderTlTracks(); renderTlPanel()
     say('已加音频 cue（拖它改时间）', 'ok')
