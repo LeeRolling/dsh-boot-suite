@@ -438,7 +438,18 @@
   function scheduleDraft() {
     clearTimeout(timer)
     pbar.textContent = '预览中…'
-    timer = setTimeout(pushDraft, 350)
+    timer = setTimeout(function () {
+      /* 优先热更新：不重建草稿、不重载 iframe，播放头与暂停状态都保持 */
+      var ctl0 = null
+      var hotOK = tlView && Array.isArray(tpl.layers) && tpl.layers.length > 0
+      try { if (hotOK) ctl0 = frame.contentWindow && frame.contentWindow.__DSH_STARTUP_TL__ } catch (eCtl) { ctl0 = null }
+      if (ctl0 && typeof ctl0.setTemplate === 'function') {
+        try {
+          if (ctl0.setTemplate(tpl) === true) { pbar.textContent = '实时预览（热更新）'; return }
+        } catch (eHot) { /* 落回重建 */ }
+      }
+      pushDraft()
+    }, 220)
   }
 
   /* opts.start / opts.count：从第几幕开始、只播几幕（不传就是从头整段播） */
