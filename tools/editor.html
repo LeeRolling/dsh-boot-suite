@@ -462,6 +462,20 @@
       if (typeof opts.start === 'number') q += '&start=' + opts.start
       if (typeof opts.count === 'number') q += '&count=' + opts.count
       frame.src = API + '/editor/preview' + q
+      if (pendingSeek !== null) {
+        var wantSeek = pendingSeek
+        pendingSeek = null
+        if (restoreIv) { clearInterval(restoreIv); restoreIv = 0 }
+        var tries2 = 0
+        restoreIv = setInterval(function () {
+          var a2 = previewApi()
+          if (a2 && typeof a2.seek === 'function') {
+            clearInterval(restoreIv); restoreIv = 0
+            try { a2.seek(wantSeek); if (typeof a2.pause === 'function') a2.pause() } catch (e3) {}
+            try { seekTo(wantSeek) } catch (e4) {}
+          } else if (++tries2 > 60) { clearInterval(restoreIv); restoreIv = 0 }
+        }, 50)
+      }
       var wantTitle = (typeof opts.start === 'number') ? ('jump:' + opts.start + ':' + (typeof opts.count === 'number' ? opts.count : '-')) : 'jump:-'
       setTimeout(function () {
         try {
@@ -1850,7 +1864,12 @@
   }
 
   /* 每次改模板都推一次草稿给预览（复用表单视图那条通道） */
-  function tlSync() { scheduleDraft() }
+  var pendingSeek = null, restoreIv = 0
+  function tlSync() {
+    /* 记下当前播放头：草稿重建会让预览 iframe 回到 0，重载后要把它拉回来 */
+    pendingSeek = Math.max(0, Math.round(tl.playhead))
+    scheduleDraft()
+  }
 
   function makeTimelineTemplate() {
     tpl = {
