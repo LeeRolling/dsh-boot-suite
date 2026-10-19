@@ -663,6 +663,8 @@
   }
 
   /** 把播放头挪到 ms：先暂停运行时，再 seek */
+  window.__TL_STATE__ = function () { return { playhead: tl.playhead, kfSel: tl.kfSel, selected: tl.selected, selCue: !!tl.selCue, multi: tl.multi.length } }
+
   function seekTo(ms) {
     var d = tlDur()
     tl.playhead = Math.max(0, Math.min(d, Math.round(ms)))
@@ -1653,8 +1655,13 @@
           function up() {
             document.removeEventListener('mousemove', move)
             document.removeEventListener('mouseup', up)
-            if (dragging) tl.kfSel = (L.keyframes || []).indexOf(k)
-            tlSync(); renderTlTracks(); renderTlPanel()
+            if (dragging) {
+              tl.kfSel = (L.keyframes || []).indexOf(k)
+              tlSync(); renderTlTracks(); renderTlPanel(); seekTo(k.t)
+            } else {
+              /* 只是点选：不要 tlSync —— 会重建草稿并让预览回到 0，表现为"点一下播放头回 0" */
+              renderTlTracks(); renderTlPanel()
+            }
           }
           document.addEventListener('mousemove', move)
           document.addEventListener('mouseup', up)
