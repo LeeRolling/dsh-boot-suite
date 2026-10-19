@@ -694,7 +694,7 @@
     for (var i = 0; i < kfs.length; i++) if (Math.abs(kfs[i].t - tl.playhead) <= 12) { hit = kfs[i]; break }
     if (!hit) {
       hit = { t: tl.playhead }
-      var props = ['opacity', 'offsetX', 'offsetY', 'scale', 'rotate', 'reveal', 'assemble', 'draw', 'globeScale', 'boxScale']
+      var props = ['opacity', 'offsetX', 'offsetY', 'scale', 'rotate', 'reveal', 'assemble', 'draw', 'globeScale', 'boxScale', 'wipe']
       for (var p = 0; p < props.length; p++) {
         var v = valueAt(layer, props[p], undefined)
         if (v !== undefined) hit[props[p]] = v
@@ -887,6 +887,7 @@
     numField('透视', 'skew', -30, 30, 1, 0)
     if (L.type === 'chars') numField('球体半径倍率', 'globeScale', 0.2, 8, 0.1, 1)
     if (L.type === 'chars') numField('画布出血倍数（自动，一般不用改）', 'boxScale', 1, 3.9, 0.1, 1)
+    if (L.type === 'text') numField('擦除（wipe）', 'wipe', 0, 1, 0.01, 1)
     if (L.type === 'line') numField('展开', 'reveal', 0, 1, 0.01, 1)
     if (L.type === 'logo') numField('绘制进度', 'draw', 0, 1, 0.01, 1)
     side.appendChild(grid)
