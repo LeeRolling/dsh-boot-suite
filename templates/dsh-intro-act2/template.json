@@ -34,7 +34,14 @@
     }
   ],
   "assets": {
-    "line-2": "sfx-tick.mp3"
+    "line-2": "sfx-tick.mp3",
+    "line-1": "voice-main.wav",
+    "line-3": "sfx-run.mp3",
+    "line-4": "sfx-click.wav",
+    "line-5": "sfx-switch.wav",
+    "line-6": "sfx-thump.wav",
+    "line-7": "sfx-hum.wav",
+    "line-8": "sfx-progress.wav"
   },
   "layers": [
     {
@@ -479,18 +486,11 @@
     },
     {
       "id": "qr",
-      "type": "text",
-      "text": "▛▀▜▄▙▘▝▗▖▄▀▛▜▙\n▌▐█▛▜▌▓▒░█▀▄▌\n▖▗▘▝▛▜▙▟▛▀▜▄▙",
+      "type": "image",
       "pos": [
         640,
         360
       ],
-      "align": "center",
-      "font": {
-        "size": 12,
-        "weight": 400,
-        "tracking": 0.02
-      },
       "color": "rgba(232,244,255,.85)",
       "keyframes": [
         {
@@ -511,6 +511,11 @@
           "offsetX": 115,
           "offsetY": 90
         }
+      ],
+      "src": "fake-qr.png",
+      "size": [
+        150,
+        150
       ]
     },
     {
@@ -719,5 +724,22 @@
       "type": "vignette",
       "opacity": 0.42
     }
-  ]
+  ],
+  "assetNames": {
+    "line-8": "载入嘟声"
+  },
+  "audioBuses": {
+    "voice": {
+      "vol": 1,
+      "mute": false
+    },
+    "sfx": {
+      "vol": 0.6,
+      "mute": false
+    },
+    "amb": {
+      "vol": 0.35,
+      "mute": false
+    }
+  }
 }
