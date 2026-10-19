@@ -1696,6 +1696,7 @@
         var wave = document.createElement('canvas'); wave.className = 'tlaudio-wave'
         blk.appendChild(hL); blk.appendChild(body); blk.appendChild(wave); blk.appendChild(hR)
         if (cue.mute) blk.style.opacity = '0.45'
+        if (tl.selCue === cue) blk.classList.add('sel')
         function paintClip() {
           blk.style.left = (Number(cue.t) / d * 100) + '%'
           blk.style.width = (dur0 / d * 100) + '%'
