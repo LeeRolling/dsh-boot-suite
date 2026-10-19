@@ -178,9 +178,19 @@ foreach ($profile in $targets) {
   Copy-Item (Join-Path $profileDir 'package.json') $bk.FullName -Force
   Copy-Item (Join-Path $profileDir 'pnpm-lock.yaml') $bk.FullName -Force -ErrorAction SilentlyContinue
 
-  Say '  [1/3] 卸掉同类旧插件（没装就跳过）…'
+  Say '  [1/3] 检查并卸掉同类旧插件…'
   foreach ($old in @('dsh-startup-screen', 'dsh-chat-wallpaper')) {
-    & $dsh plugin --profile $profile remove $old 2>&1 | Out-Null
+    $installedOld = $false
+    try {
+      $pjTmp = [System.IO.File]::ReadAllText((Join-Path $profileDir 'package.json')) | ConvertFrom-Json
+      if ($pjTmp.dependencies -and $pjTmp.dependencies.PSObject.Properties[$old]) { $installedOld = $true }
+    } catch {}
+    if (-not $installedOld) { Say ('        跳过 ' + $old + '（未安装）'); continue }
+    Say ('        卸载旧插件 ' + $old + ' …')
+    $eapOld = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try { & $dsh plugin --profile $profile remove $old 2>&1 | ForEach-Object { '        ' + $_ } } catch { Say ('        卸载失败（继续安装）：' + $_.Exception.Message) }
+    $ErrorActionPreference = $eapOld
   }
 
   Say '  [2/3] 安装本插件（link 方式，改代码即生效）…'
