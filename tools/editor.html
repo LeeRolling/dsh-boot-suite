@@ -153,9 +153,8 @@
   .tlaudio { position:absolute; top:50%; transform:translateY(-50%); height:22px; min-width:14px;
     background:linear-gradient(180deg, rgba(114,162,234,.34), rgba(114,162,234,.18));
     border:1px solid rgba(114,162,234,.85); border-radius:3px; cursor:grab; user-select:none; z-index:3; }
-  .tlaudio-body { position:absolute; inset:3px 8px; border-radius:2px;
-    background-image:repeating-linear-gradient(90deg, rgba(207,228,255,.55) 0 2px, transparent 2px 5px);
-    opacity:.75; pointer-events:none; }
+  .tlaudio-body { display:none; }
+  .tlaudio-wave { position:absolute; left:8px; right:8px; top:2px; width:calc(100% - 16px); height:18px; pointer-events:none; }
   .tlaudio-h { position:absolute; top:0; bottom:0; width:8px; background:rgba(207,228,255,.9); cursor:ew-resize; }
   .tlaudio-h.l { left:0; border-radius:2px 0 0 2px; }
   .tlaudio-h.r { right:0; border-radius:0 2px 2px 0; }
@@ -1496,20 +1495,72 @@
       if (!cue || !isFinite(Number(cue.t))) return
       var arow = document.createElement('div'); arow.className = 'tlrow'
       var anm = document.createElement('div'); anm.className = 'tlname'
-      anm.textContent = '🔊 ' + (cue.slot || 'audio')
+      anm.textContent = (cue.mute ? '🔇 ' : '🔊 ') + (cue.slot || 'audio')
+      anm.style.cursor = 'pointer'
+      anm.title = '点一下静音 / 再点恢复'
+      anm.onclick = function (ev) { ev.stopPropagation(); cue.mute = !cue.mute; tlSync(); renderTlTracks(); say(cue.mute ? '已静音这条音频' : '已恢复这条音频', 'ok') }
       var alane = document.createElement('div'); alane.className = 'tllane'
       var blk = document.createElement('div')
       blk.className = 'tlaudio'
       var dur0 = Number(cue.dur) > 0 ? Number(cue.dur) : 1500
+      var WAVE_CACHE = window.__WAVE_CACHE__ || (window.__WAVE_CACHE__ = {})
+      function assetFileFor(slot) {
+        var map = (tpl.assets || {})
+        var f = map[slot]
+        return f ? String(f).replace(/^.*\//, '') : ''
+      }
+      function paintWave() {
+        if (!wave) return
+        var f = assetFileFor(cue.slot)
+        if (!f) return
+        var url = API.replace('/config', '/template-asset/') + encodeURIComponent(tpl.id) + '/' + encodeURIComponent(f)
+        if (!WAVE_CACHE[url]) {
+          WAVE_CACHE[url] = fetch(url).then(function (r) { return r.ok ? r.arrayBuffer() : null })
+            .then(function (buf) {
+              if (!buf) return null
+              var Ctx = window.AudioContext || window.webkitAudioContext
+              if (!Ctx) return null
+              var ac2 = new Ctx()
+              return new Promise(function (res) { ac2.decodeAudioData(buf, function (d) { res(d) }, function () { res(null) }) })
+            }).catch(function () { return null })
+        }
+        WAVE_CACHE[url].then(function (audio) {
+          if (!audio || !wave.isConnected) return
+          var wpx = Math.max(20, Math.round(blk.clientWidth - 16))
+          wave.width = wpx; wave.height = 18
+          var ctx2 = wave.getContext('2d'); if (!ctx2) return
+          ctx2.clearRect(0, 0, wpx, 18)
+          var data = audio.getChannelData(0)
+          var sr = audio.sampleRate
+          var offSec = (Number(cue.off) || 0) / 1000
+          var durSec = (Number(dur0) || 1500) / 1000
+          var startSample = Math.max(0, Math.floor(offSec * sr))
+          var endSample = Math.min(data.length, Math.floor((offSec + durSec) * sr))
+          var span = Math.max(1, endSample - startSample)
+          ctx2.fillStyle = 'rgba(207,228,255,0.85)'
+          for (var px = 0; px < wpx; px++) {
+            var s0 = startSample + Math.floor(span * px / wpx)
+            var s1 = startSample + Math.floor(span * (px + 1) / wpx)
+            var peak = 0
+            for (var si = s0; si < s1; si += 8) { var v = Math.abs(data[si]); if (v > peak) peak = v }
+            var hh = Math.max(1, Math.round(peak * 16))
+            ctx2.fillRect(px, 9 - hh / 2, 1, hh)
+          }
+        })
+      }
+
       function paintClip() {
         blk.style.left = (Number(cue.t) / d * 100) + '%'
         blk.style.width = (dur0 / d * 100) + '%'
-        blk.title = 't=' + Math.round(cue.t) + 'ms  off=' + Math.round(cue.off || 0) + '  时长=' + Math.round(dur0) + 'ms'
+        blk.title = 't=' + Math.round(cue.t) + 'ms  off=' + Math.round(cue.off || 0) + '  时长=' + Math.round(dur0) + 'ms' + (cue.mute ? '  [静音]' : '')
+        setTimeout(paintWave, 30)
       }
       var hL = document.createElement('div'); hL.className = 'tlaudio-h l'; hL.title = '拖我掐头'
       var hR = document.createElement('div'); hR.className = 'tlaudio-h r'; hR.title = '拖我去尾'
       var body = document.createElement('div'); body.className = 'tlaudio-body'
-      blk.appendChild(hL); blk.appendChild(body); blk.appendChild(hR)
+      var wave = document.createElement('canvas'); wave.className = 'tlaudio-wave'
+      blk.appendChild(hL); blk.appendChild(body); blk.appendChild(wave); blk.appendChild(hR)
+      if (cue.mute) blk.style.opacity = '0.45'
       paintClip()
       function dragClip(ev, kind) {
         ev.preventDefault(); ev.stopPropagation()
