@@ -211,6 +211,7 @@
         <button id="tlAddGlobe" class="mini">+ 地球仪</button>
         <button id="tlAddChars" class="mini">+ 字符地球</button>
         <button id="tlAddCard" class="mini">+ 身份卡</button>
+        <button id="tlAddPanel" class="mini">+ 面板</button>
       </div>
       <div class="tlruler" id="tlruler"><div class="tlplayhead" id="tlplayhead"></div></div>
       <div class="tltracks" id="tltracks"></div>
@@ -927,6 +928,11 @@
       if (L.box) numField('框大小（1=默认，5=最大）', 'boxScale', 0.2, 5, 0.1, 1)
     }
     if (L.type === 'line') numField('展开', 'reveal', 0, 1, 0.01, 1)
+    if (L.type === 'panel') {
+      numField('面板宽', 'panelW', 20, 1200, 1, 380)
+      numField('面板高', 'panelH', 20, 800, 1, 240)
+      numField('圆角', 'radius', 0, 100, 1, 6)
+    }
     if (L.type === 'logo') numField('绘制进度', 'draw', 0, 1, 0.01, 1)
     side.appendChild(grid)
 
@@ -2123,6 +2129,19 @@
     tl.selected = tpl.layers.length - 1
     tlSync(); renderTlPanel(); renderTlTracks()
     say('已添加字符地球（' + dots.length + ' 个陆地点）', 'ok')
+  }
+
+  document.getElementById('tlAddPanel').onclick = function () {
+    if (!tpl) return
+    if (!Array.isArray(tpl.layers)) tpl.layers = []
+    tpl.layers.push({
+      id: 'panel' + (tpl.layers.length + 1), type: 'panel', pos: [640, 360],
+      panelW: 380, panelH: 240, radius: 6,
+      borderColor: 'rgba(140,200,255,.35)', fill: 'rgba(8,18,32,.55)',
+      keyframes: [{ t: 0, opacity: 0 }, { t: 400, opacity: 1 }]
+    })
+    tl.selected = tpl.layers.length - 1
+    tlSync(); renderTlPanel(); renderTlTracks()
   }
 
   document.getElementById('tlAddCard').onclick = function () {
