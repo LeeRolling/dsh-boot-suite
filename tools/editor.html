@@ -1261,12 +1261,47 @@
     letterbox: '电影黑边', hud: 'HUD 四角', bloom: '中心光晕', readout: '四角实时读数'
   }
 
+  /* 自建输入弹窗（Electron 里没有 window.prompt） */
+  function askText(title, initial, cb) {
+    var mask = document.createElement('div')
+    mask.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center'
+    var box = document.createElement('div')
+    box.style.cssText = 'background:#121a26;border:1px solid rgba(140,200,255,.35);border-radius:8px;padding:16px 18px;min-width:320px;color:#e8f4ff;font:13px/1.5 system-ui'
+    var h = document.createElement('div'); h.textContent = title; h.style.cssText = 'font-weight:600;margin-bottom:10px'
+    var inp = document.createElement('input'); inp.type = 'text'; inp.value = initial || ''
+    inp.style.cssText = 'width:100%;box-sizing:border-box;padding:6px 8px;border-radius:5px;border:1px solid rgba(140,200,255,.35);background:#0b1320;color:#e8f4ff;font:inherit;margin-bottom:12px'
+    var row = document.createElement('div'); row.style.cssText = 'display:flex;gap:8px;justify-content:flex-end'
+    var cancel = document.createElement('button'); cancel.className = 'mini'; cancel.textContent = '取消'
+    var ok = document.createElement('button'); ok.className = 'mini primary'; ok.textContent = '确定'
+    function close() { if (mask.parentNode) mask.parentNode.removeChild(mask) }
+    cancel.onclick = close
+    ok.onclick = function () { var v = inp.value.trim(); close(); cb(v) }
+    inp.onkeydown = function (ev) { if (ev.key === 'Enter') ok.click(); if (ev.key === 'Escape') close() }
+    row.appendChild(cancel); row.appendChild(ok)
+    box.appendChild(h); box.appendChild(inp); box.appendChild(row); mask.appendChild(box); document.body.appendChild(mask)
+    setTimeout(function () { inp.focus(); inp.select() }, 30)
+  }
+
+  /* 重命名总线：同时迁移该总线下的 cue */
+  function renameBus(oldKey) {
+    askText('给这条音轨改名（小写英文/数字/连字符）', oldKey, function (v) {
+      var nk = String(v || '').trim().replace(/[^a-z0-9_-]/gi, '')
+      if (!nk || nk === oldKey) return
+      if (tpl.audioBuses[nk]) { say('已经有同名音轨了', 'err'); return }
+      tpl.audioBuses[nk] = tpl.audioBuses[oldKey]; delete tpl.audioBuses[oldKey]
+      ;(tpl.audio || []).forEach(function (c) { if ((c.bus || 'voice') === oldKey) c.bus = nk })
+      tlSync(); renderTlTracks(); renderTlPanel(); say('音轨已改名为 ' + nk, 'ok')
+    })
+  }
   /* 音频面板：精确时间 + 删除 */
   function renderAudioPanel() {
     var arr = Array.isArray(tpl.audio) ? tpl.audio : []
     var h = document.createElement('h2'); h.textContent = '音频（' + arr.length + '）'; side.appendChild(h)
+    var opsHint = document.createElement('div'); opsHint.className = 'hint'
+    opsHint.textContent = '新增音轨：点上面工具栏「＋音轨」；给音轨改名：点下面每行的「改名」；加片段：点「＋音频」。'
+    side.appendChild(opsHint)
     var tip = document.createElement('div'); tip.className = 'hint'
-    tip.textContent = '下面轨道上的蓝色块可直接拖动改时间；这里可精确输入、选总线与音效预设。'
+    tip.textContent = '轨道块：拖中间挪位置 / 拖两端剪长短 / 点名称静音；这里可精确输入、选总线与音效预设。'
     side.appendChild(tip)
     /* 导入音频 */
     var impBtn = document.createElement('button'); impBtn.className = 'mini'; impBtn.textContent = '导入音频文件…'
@@ -1330,14 +1365,9 @@
       var key = b
       var cfg = tpl.audioBuses[key]
       var row2 = document.createElement('div'); row2.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:4px'
-      var lb2 = document.createElement('input'); lb2.type = 'text'; lb2.value = key; lb2.style.cssText = 'width:74px;font-size:11px'
-      lb2.onchange = function () {
-        var nk = lb2.value.trim().replace(/[^a-z0-9_-]/gi, '')
-        if (!nk || nk === key) { lb2.value = key; return }
-        tpl.audioBuses[nk] = tpl.audioBuses[key]; delete tpl.audioBuses[key]
-        ;(tpl.audio || []).forEach(function (c) { if ((c.bus || 'voice') === key) c.bus = nk })
-        renderTlTracks(); renderTlPanel(); tlSync()
-      }
+      var lb2 = document.createElement('span'); lb2.textContent = key; lb2.style.cssText = 'width:66px;font-size:12px;overflow:hidden;text-overflow:ellipsis'
+      var renBtn = document.createElement('button'); renBtn.className = 'mini'; renBtn.textContent = '改名'; renBtn.title = '给这条音轨起个名字'
+      renBtn.onclick = function () { renameBus(key) }
       var rng = document.createElement('input'); rng.type = 'range'; rng.min = 0; rng.max = 1; rng.step = 0.05; rng.value = cfg.vol; rng.style.flex = '1 1 auto'
       var muteBtn = document.createElement('button'); muteBtn.className = 'mini'; muteBtn.textContent = cfg.mute ? '🔇' : '🔊'
       rng.oninput = function () { cfg.vol = Number(rng.value); tlSync() }
@@ -1349,7 +1379,7 @@
         if (key === 'voice') { say('人声总线不能删', 'err'); return }
         delete tpl.audioBuses[key]; renderTlTracks(); renderTlPanel(); tlSync()
       }
-      row2.appendChild(lb2); row2.appendChild(rng); row2.appendChild(muteBtn); row2.appendChild(delBus); side.appendChild(row2)
+      row2.appendChild(lb2); row2.appendChild(rng); row2.appendChild(muteBtn); row2.appendChild(renBtn); row2.appendChild(delBus); side.appendChild(row2)
       var pickRow = document.createElement('div'); pickRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin:0 0 6px 0'
       var pickLb = document.createElement('span'); pickLb.style.cssText = 'font-size:11px;opacity:.6;flex:0 0 66px'; pickLb.textContent = '放入轨道'
       var pickSel = document.createElement('select'); pickSel.style.flex = '1 1 auto'
@@ -1636,8 +1666,10 @@
 
     /* ── 音频轨：按总线分轨（amb / voice / sfx / 自定义），每条 cue 一块 ── */
     function busOrder() {
-      if (!tpl.audioBuses) tpl.audioBuses = {}
-      ;['amb', 'voice', 'sfx'].forEach(function (k) { if (!tpl.audioBuses[k]) tpl.audioBuses[k] = { vol: 1, mute: false } })
+      /* 只在完全没有总线时补默认三条；否则改名/删除会被这里"复活" */
+      if (!tpl.audioBuses || !Object.keys(tpl.audioBuses).length) {
+        tpl.audioBuses = { amb: { vol: 0.3, mute: false }, voice: { vol: 1, mute: false }, sfx: { vol: 0.6, mute: false } }
+      }
       var order = ['amb', 'voice', 'sfx']
       Object.keys(tpl.audioBuses).forEach(function (k) { if (order.indexOf(k) < 0) order.push(k) })
       return order.filter(function (k) { return !!tpl.audioBuses[k] })
@@ -2156,10 +2188,13 @@
     if (!tpl.audioBuses) tpl.audioBuses = {}
     var n = 4
     while (tpl.audioBuses['bus' + n]) n++
-    var key = 'bus' + n
-    tpl.audioBuses[key] = { vol: 1, mute: false }
-    renderTlTracks(); renderTlPanel()
-    say('已新增音轨 ' + key, 'ok')
+    askText('新增一条音轨（起个名字，如 ui / foley）', 'bus' + n, function (v) {
+      var key = String(v || '').trim().replace(/[^a-z0-9_-]/gi, '') || ('bus' + n)
+      if (tpl.audioBuses[key]) { say('已经有同名音轨了', 'err'); return }
+      tpl.audioBuses[key] = { vol: 1, mute: false }
+      renderTlTracks(); renderTlPanel(); tlSync()
+      say('已新增音轨 ' + key + '（在右侧面板「放入轨道」下拉里选音频）', 'ok')
+    })
   }
 
   document.getElementById('tlAddAudio').onclick = function () {
