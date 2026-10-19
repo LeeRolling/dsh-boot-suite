@@ -197,9 +197,13 @@ foreach ($profile in $targets) {
   if ($ManualMode) {
     Install-Manual $profileDir
   } else {
+    $eapAdd = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
     & $dsh plugin --profile $profile add $spec 2>&1 | ForEach-Object { '        ' + $_ }
+    $addExit = $LASTEXITCODE
+    $ErrorActionPreference = $eapAdd
   }
-  if (-not $ManualMode -and $LASTEXITCODE -ne 0) {
+  if (-not $ManualMode -and $addExit -ne 0) {
     Say '  [x] 安装失败，正在回滚 profile 配置'
     Copy-Item (Join-Path $bk.FullName 'package.json') (Join-Path $profileDir 'package.json') -Force
     Copy-Item (Join-Path $bk.FullName 'pnpm-lock.yaml') (Join-Path $profileDir 'pnpm-lock.yaml') -Force -ErrorAction SilentlyContinue
