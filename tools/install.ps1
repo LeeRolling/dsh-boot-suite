@@ -37,25 +37,62 @@ if ($CheckOnly) { Say '[检查模式] 只报告计划，不修改任何东西' }
 # ── 1. 找 DSH 命令行 ────────────────────────────────────────────────────────
 function Find-DshCli {
   $c = Get-Command dsh -ErrorAction SilentlyContinue
-  if ($c) { return $c.Source }
+  if ($c -and $c.Source) { return $c.Source }
+
+  # 桌面端可能装在任意目录：命令行 / 常见位置 / 注册表 / 正在运行的进程 / 有界递归
+  $candidates = New-Object System.Collections.Generic.List[string]
   $roots = @(
-    (Join-Path $env:LOCALAPPDATA 'Programs\DeepSeek Harness'),
-    (Join-Path ([Environment]::GetEnvironmentVariable('ProgramFiles')) 'DeepSeek Harness'),
-    (Join-Path ([Environment]::GetEnvironmentVariable('ProgramFiles(x86)')) 'DeepSeek Harness')
+    (Join-Path $env:LOCALAPPDATA 'Programs'),
+    ([Environment]::GetEnvironmentVariable('ProgramFiles')),
+    ([Environment]::GetEnvironmentVariable('ProgramFiles(x86)')),
+    (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Packages')
   )
   foreach ($r in $roots) {
-    if (-not $r) { continue }
-    $p = Join-Path $r 'resources\runtime\cli\bin\dsh.cmd'
-    if (Test-Path $p) { return $p }
+    if (-not $r -or -not (Test-Path $r)) { continue }
+    $candidates.Add((Join-Path $r 'DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd'))
+  }
+  $uninstallRoots = @(
+    'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+    'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+    'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
+  )
+  foreach ($u in $uninstallRoots) {
+    try {
+      Get-ItemProperty $u -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like '*DeepSeek*' -and $_.InstallLocation } | ForEach-Object {
+        $candidates.Add((Join-Path $_.InstallLocation 'resources\runtime\cli\bin\dsh.cmd'))
+      }
+    } catch {}
+  }
+  try {
+    Get-Process -ErrorAction SilentlyContinue | ForEach-Object {
+      if ($_.Path -and ($_.ProcessName -like '*DeepSeek*' -or $_.ProcessName -like '*dsh*')) {
+        $candidates.Add((Join-Path (Split-Path -Parent $_.Path) 'resources\runtime\cli\bin\dsh.cmd'))
+      }
+    }
+  } catch {}
+  foreach ($cand in $candidates) { if (Test-Path -LiteralPath $cand) { return $cand } }
+
+  # 有界递归兜底（深度 4）
+  foreach ($r in $roots) {
+    if (-not $r -or -not (Test-Path $r)) { continue }
+    try {
+      $hit = Get-ChildItem -LiteralPath $r -Filter 'dsh.cmd' -Recurse -Depth 4 -ErrorAction SilentlyContinue | Where-Object { $_.FullName -match '[/\\]cli[/\\]bin[/\\]dsh\.cmd$' } | Select-Object -First 1
+      if ($hit) { return $hit.FullName }
+    } catch {}
   }
   return $null
 }
 
 $dsh = Find-DshCli
+$ManualMode = $false
 if (-not $dsh) {
-  Die '找不到 DeepSeek Harness 的命令行。请先安装桌面端（或 npm i -g @deepseek-ai/dsh）再运行本脚本。'
+  Say '[!] 没找到 DeepSeek Harness 的命令行（dsh）。'
+  Say '    不一定是没装：精简安装 / 便携版可能不带 CLI。'
+  Say '    本脚本改用「手动安装」：直接改 profile 配置 + 建目录联接，效果一样。'
+  $ManualMode = $true
+} else {
+  Say ('DSH 命令行：' + $dsh)
 }
-Say ('DSH 命令行：' + $dsh)
 
 # ── 2. 找 profile ───────────────────────────────────────────────────────────
 $profilesRoot = Join-Path $env:USERPROFILE '.dsh\profiles'
@@ -102,6 +139,29 @@ function Fix-Bundles([string]$profileDir) {
   [System.IO.File]::WriteAllText($pj, ($pkg | ConvertTo-Json -Depth 20), (New-Object System.Text.UTF8Encoding($false)))
 }
 
+function Install-Manual([string]$profileDir) {
+  $pj = Join-Path $profileDir 'package.json'
+  $pkgObj = [System.IO.File]::ReadAllText($pj) | ConvertFrom-Json
+  if (-not $pkgObj.PSObject.Properties['dependencies']) {
+    $pkgObj | Add-Member -NotePropertyName dependencies -NotePropertyValue ([pscustomobject]@{}) -Force
+  }
+  $pkgObj.dependencies | Add-Member -NotePropertyName 'dsh-boot-suite' -NotePropertyValue $spec -Force
+  [System.IO.File]::WriteAllText($pj, ($pkgObj | ConvertTo-Json -Depth 20), (New-Object System.Text.UTF8Encoding($false)))
+  $nm = Join-Path $profileDir 'node_modules'
+  if (-not (Test-Path $nm)) { New-Item -ItemType Directory -Force -Path $nm | Out-Null }
+  $linkPath = Join-Path $nm 'dsh-boot-suite'
+  if (Test-Path $linkPath) {
+    $item = Get-Item $linkPath -Force
+    if ($item.LinkType) { cmd /c rmdir "$linkPath" | Out-Null }
+    else { Move-Item $linkPath (Join-Path $bk.FullName 'node_modules-old') -Force -ErrorAction SilentlyContinue }
+  }
+  cmd /c mklink /J "$linkPath" "$RepoRoot" | Out-Null
+  if (-not (Test-Path $linkPath)) {
+    Copy-Item (Join-Path $bk.FullName 'package.json') $pj -Force
+    Die '手动安装失败：无法创建 node_modules 目录联接（可能被杀毒软件拦截）'
+  }
+  Say ('        ok -> ' + $linkPath)
+}
 foreach ($profile in $targets) {
   $profileDir = Join-Path $profilesRoot $profile
   Say ''
@@ -124,8 +184,12 @@ foreach ($profile in $targets) {
   }
 
   Say '  [2/3] 安装本插件（link 方式，改代码即生效）…'
-  & $dsh plugin --profile $profile add $spec 2>&1 | ForEach-Object { '        ' + $_ }
-  if ($LASTEXITCODE -ne 0) {
+  if ($ManualMode) {
+    Install-Manual $profileDir
+  } else {
+    & $dsh plugin --profile $profile add $spec 2>&1 | ForEach-Object { '        ' + $_ }
+  }
+  if (-not $ManualMode -and $LASTEXITCODE -ne 0) {
     Say '  [x] 安装失败，正在回滚 profile 配置'
     Copy-Item (Join-Path $bk.FullName 'package.json') (Join-Path $profileDir 'package.json') -Force
     Copy-Item (Join-Path $bk.FullName 'pnpm-lock.yaml') (Join-Path $profileDir 'pnpm-lock.yaml') -Force -ErrorAction SilentlyContinue
