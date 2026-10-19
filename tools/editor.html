@@ -1796,7 +1796,7 @@
   document.getElementById('importFile').onchange = function (ev) {
     var f = ev.target.files && ev.target.files[0]
     if (!f) return
-    if (f.size > 512 * 1024) { say('文件太大（>512KB）', 'err'); ev.target.value = ''; return }
+    if (f.size > 2 * 1024 * 1024) { say('文件太大（>2MB）', 'err'); ev.target.value = ''; return }
     var rd = new FileReader()
     rd.onload = function () {
       try {
