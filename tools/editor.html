@@ -1256,8 +1256,22 @@
     var arr = Array.isArray(tpl.audio) ? tpl.audio : []
     var h = document.createElement('h2'); h.textContent = '音频（' + arr.length + '）'; side.appendChild(h)
     var tip = document.createElement('div'); tip.className = 'hint'
-    tip.textContent = '下面轨道上的蓝色块可以直接拖动改时间；这里可以精确输入。'
+    tip.textContent = '下面轨道上的蓝色块可直接拖动改时间；这里可精确输入、选总线与音效预设。'
     side.appendChild(tip)
+    /* 总线音量 */
+    if (!tpl.audioBuses) tpl.audioBuses = {}
+    ;[['voice', '人声'], ['sfx', '音效'], ['amb', '环境']].forEach(function (b) {
+      var key = b[0]
+      if (!tpl.audioBuses[key]) tpl.audioBuses[key] = { vol: 1, mute: false }
+      var cfg = tpl.audioBuses[key]
+      var row2 = document.createElement('div'); row2.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:4px'
+      var lb2 = document.createElement('span'); lb2.style.cssText = 'font-size:11px;opacity:.8;flex:0 0 66px'; lb2.textContent = key + ' ' + b[1]
+      var rng = document.createElement('input'); rng.type = 'range'; rng.min = 0; rng.max = 1; rng.step = 0.05; rng.value = cfg.vol; rng.style.flex = '1 1 auto'
+      var muteBtn = document.createElement('button'); muteBtn.className = 'mini'; muteBtn.textContent = cfg.mute ? '🔇' : '🔊'
+      rng.oninput = function () { cfg.vol = Number(rng.value); tlSync() }
+      muteBtn.onclick = function () { cfg.mute = !cfg.mute; muteBtn.textContent = cfg.mute ? '🔇' : '🔊'; tlSync() }
+      row2.appendChild(lb2); row2.appendChild(rng); row2.appendChild(muteBtn); side.appendChild(row2)
+    })
     var d2 = tlDur()
     arr.forEach(function (cue, ci) {
       var row = document.createElement('div'); row.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:4px'
@@ -1278,6 +1292,15 @@
       })
       fxSel.onchange = function () { cue.fx = fxSel.value; tlSync(); renderTlTracks(); say('音效预设：' + fxSel.options[fxSel.selectedIndex].textContent, 'ok') }
       fxRow.appendChild(fxLb); fxRow.appendChild(fxSel); side.appendChild(fxRow)
+      var busRow = document.createElement('div'); busRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin:0 0 4px 0'
+      var busLb = document.createElement('span'); busLb.style.cssText = 'font-size:11px;opacity:.75;flex:0 0 66px'; busLb.textContent = '总线'
+      var busSel = document.createElement('select'); busSel.style.flex = '1 1 auto'
+      ;[['voice', 'voice 人声'], ['sfx', 'sfx 音效'], ['amb', 'amb 环境']].forEach(function (o) {
+        var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]
+        if ((cue.bus || 'voice') === o[0]) op.selected = true; busSel.appendChild(op)
+      })
+      busSel.onchange = function () { cue.bus = busSel.value; tlSync(); renderTlTracks(); say('已归到 ' + cue.bus + ' 总线', 'ok') }
+      busRow.appendChild(busLb); busRow.appendChild(busSel); side.appendChild(busRow)
       function cueNum(label, key, step, def) {
         var r2 = document.createElement('div'); r2.style.cssText = 'display:flex;gap:6px;align-items:center;margin:0 0 4px 0'
         var lb2 = document.createElement('span'); lb2.style.cssText = 'font-size:11px;opacity:.75;flex:0 0 66px'; lb2.textContent = label
@@ -1505,7 +1528,7 @@
       if (!cue || !isFinite(Number(cue.t))) return
       var arow = document.createElement('div'); arow.className = 'tlrow'
       var anm = document.createElement('div'); anm.className = 'tlname'
-      anm.textContent = (cue.mute ? '🔇 ' : '🔊 ') + (cue.slot || 'audio')
+      anm.textContent = (cue.mute ? '🔇 ' : '🔊 ') + (cue.bus || 'voice') + '·' + (cue.slot || 'audio')
       anm.style.cursor = 'pointer'
       anm.title = '点一下静音 / 再点恢复'
       anm.onclick = function (ev) { ev.stopPropagation(); cue.mute = !cue.mute; tlSync(); renderTlTracks(); say(cue.mute ? '已静音这条音频' : '已恢复这条音频', 'ok') }
