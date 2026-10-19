@@ -1,1 +1,137 @@
-{"schemaVersion":2,"id":"earth-globe","name":"可旋转地球","author":"DeepSeek","adaptedBy":"LeeRolling","license":"MIT","version":"0.1.0","description":"正射投影地球：59 段真实海岸线实时投影，自转 + 经纬网格；纯 SVG，无图片无 WebGL。","tags":["globe","earth","demo"],"duration":8000,"theme":{"mode":"dark","bg":"#04070c","ink":"#eaf6ff","inkSoft":"#a9c4d8","muted":"#5d7084","accent":"#6fd0ff"},"segments":[{"name":"起","from":0,"to":2000},{"name":"转","from":2000,"to":6500},{"name":"收","from":6500,"to":8000}],"layers":[{"id":"globe","type":"globe","logoSize":520,"color":"#7fd8ff","strokeWidth":1.1,"spinMs":22000,"rotation0":-0.32,"tilt":0.12,"showGrid":true,"pos":[640,360],"keyframes":[{"t":300,"opacity":0,"scale":0.92},{"t":1400,"opacity":1,"scale":1,"ease":"outCubic"},{"t":7000,"opacity":1,"scale":1},{"t":7800,"opacity":0,"scale":1.04}],"ringsFile":"earth-rings.json"},{"id":"label","type":"text","text":"EARTH / 07","pos":[640,660],"color":"#7fa8c4","font":{"size":13,"weight":400,"tracking":0.34},"keyframes":[{"t":1200,"opacity":0},{"t":1800,"opacity":1},{"t":7000,"opacity":1},{"t":7600,"opacity":0}]}],"effects":[{"type":"hud","opacity":0.55},{"type":"vignette","opacity":0.45},{"type":"scanline","opacity":0.18}]}
+{
+  "schemaVersion": 2,
+  "id": "earth-globe",
+  "name": "可旋转地球",
+  "author": "DeepSeek",
+  "adaptedBy": "LeeRolling",
+  "license": "MIT",
+  "version": "0.1.0",
+  "description": "正射投影地球：59 段真实海岸线实时投影，自转 + 经纬网格；纯 SVG，无图片无 WebGL。",
+  "tags": [
+    "globe",
+    "earth",
+    "demo"
+  ],
+  "duration": 8000,
+  "theme": {
+    "mode": "dark",
+    "bg": "#04070c",
+    "ink": "#eaf6ff",
+    "inkSoft": "#a9c4d8",
+    "muted": "#5d7084",
+    "accent": "#6fd0ff"
+  },
+  "segments": [
+    {
+      "name": "起",
+      "from": 0,
+      "to": 2000
+    },
+    {
+      "name": "转",
+      "from": 2000,
+      "to": 6500
+    },
+    {
+      "name": "收",
+      "from": 6500,
+      "to": 8000
+    }
+  ],
+  "layers": [
+    {
+      "id": "globe",
+      "type": "globe",
+      "logoSize": 520,
+      "color": "#7fd8ff",
+      "strokeWidth": 1.1,
+      "spinMs": 22000,
+      "rotation0": -0.32,
+      "tilt": 0.12,
+      "showGrid": true,
+      "pos": [
+        640,
+        360
+      ],
+      "keyframes": [
+        {
+          "t": 300,
+          "opacity": 0,
+          "scale": 0.92
+        },
+        {
+          "t": 1400,
+          "opacity": 1,
+          "scale": 1,
+          "ease": "outCubic"
+        },
+        {
+          "t": 7000,
+          "opacity": 1,
+          "scale": 1
+        },
+        {
+          "t": 7800,
+          "opacity": 0,
+          "scale": 1.04
+        }
+      ],
+      "ringsFile": "earth-rings.json"
+    },
+    {
+      "id": "label",
+      "type": "text",
+      "text": "EARTH / 07",
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#7fa8c4",
+      "font": {
+        "size": 13,
+        "weight": 400,
+        "tracking": 0.34
+      },
+      "keyframes": [
+        {
+          "t": 1200,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 300
+        },
+        {
+          "t": 1800,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 300
+        },
+        {
+          "t": 7000,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 300
+        },
+        {
+          "t": 7600,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 300
+        }
+      ]
+    }
+  ],
+  "effects": [
+    {
+      "type": "hud",
+      "opacity": 0.55
+    },
+    {
+      "type": "vignette",
+      "opacity": 0.45
+    },
+    {
+      "type": "scanline",
+      "opacity": 0.18
+    }
+  ]
+}

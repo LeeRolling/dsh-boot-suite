@@ -41,7 +41,7 @@
       "id": "lpanel",
       "type": "panel",
       "pos": [
-        240,
+        640,
         360
       ],
       "panelW": 340,
@@ -54,17 +54,21 @@
         {
           "t": 200,
           "opacity": 0,
-          "offsetY": 12
+          "offsetY": 12,
+          "offsetX": -400
         },
         {
           "t": 700,
           "opacity": 1,
           "offsetY": 0,
-          "ease": "outCubic"
+          "ease": "outCubic",
+          "offsetX": -400
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -400,
+          "offsetY": 0
         }
       ]
     },
@@ -73,8 +77,8 @@
       "type": "text",
       "text": "ACCESS CREDENTIAL",
       "pos": [
-        100,
-        155
+        640,
+        360
       ],
       "align": "left",
       "font": {
@@ -86,15 +90,21 @@
       "keyframes": [
         {
           "t": 700,
-          "opacity": 0
+          "opacity": 0,
+          "offsetX": -540,
+          "offsetY": -205
         },
         {
           "t": 900,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -540,
+          "offsetY": -205
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -540,
+          "offsetY": -205
         }
       ]
     },
@@ -103,8 +113,8 @@
       "type": "text",
       "text": "> load identity.profile  0x7F3A",
       "pos": [
-        100,
-        200
+        640,
+        360
       ],
       "align": "left",
       "font": {
@@ -118,17 +128,21 @@
           "t": 1000,
           "opacity": 0,
           "typed": 0,
-          "offsetY": 0
+          "offsetY": -160,
+          "offsetX": -540
         },
         {
           "t": 1250,
           "opacity": 1,
           "typed": 1,
-          "offsetY": 0
+          "offsetY": -160,
+          "offsetX": -540
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -540,
+          "offsetY": -160
         }
       ]
     },
@@ -137,8 +151,8 @@
       "type": "text",
       "text": "> verify credential ... OK",
       "pos": [
-        100,
-        232
+        640,
+        360
       ],
       "align": "left",
       "font": {
@@ -151,16 +165,22 @@
         {
           "t": 1350,
           "opacity": 0,
-          "typed": 0
+          "typed": 0,
+          "offsetX": -540,
+          "offsetY": -128
         },
         {
           "t": 1600,
           "opacity": 1,
-          "typed": 1
+          "typed": 1,
+          "offsetX": -540,
+          "offsetY": -128
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -540,
+          "offsetY": -128
         }
       ]
     },
@@ -169,8 +189,8 @@
       "type": "text",
       "text": "> cross-check registry ... OK",
       "pos": [
-        100,
-        264
+        640,
+        360
       ],
       "align": "left",
       "font": {
@@ -183,16 +203,22 @@
         {
           "t": 1700,
           "opacity": 0,
-          "typed": 0
+          "typed": 0,
+          "offsetX": -540,
+          "offsetY": -96
         },
         {
           "t": 1950,
           "opacity": 1,
-          "typed": 1
+          "typed": 1,
+          "offsetX": -540,
+          "offsetY": -96
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -540,
+          "offsetY": -96
         }
       ]
     },
@@ -201,8 +227,8 @@
       "type": "text",
       "text": "> environment integrity ... PASS",
       "pos": [
-        100,
-        296
+        640,
+        360
       ],
       "align": "left",
       "font": {
@@ -215,16 +241,22 @@
         {
           "t": 2050,
           "opacity": 0,
-          "typed": 0
+          "typed": 0,
+          "offsetX": -540,
+          "offsetY": -64
         },
         {
           "t": 2300,
           "opacity": 1,
-          "typed": 1
+          "typed": 1,
+          "offsetX": -540,
+          "offsetY": -64
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -540,
+          "offsetY": -64
         }
       ]
     },
@@ -232,8 +264,8 @@
       "id": "lbar",
       "type": "progress",
       "pos": [
-        100,
-        520
+        640,
+        360
       ],
       "barW": 320,
       "barH": 2,
@@ -242,22 +274,30 @@
         {
           "t": 1200,
           "opacity": 0,
-          "value": 0
+          "value": 0,
+          "offsetX": -400,
+          "offsetY": 160
         },
         {
           "t": 1400,
           "opacity": 1,
-          "value": 0
+          "value": 0,
+          "offsetX": -400,
+          "offsetY": 160
         },
         {
           "t": 3000,
           "value": 1,
-          "ease": "inOutCubic"
+          "ease": "inOutCubic",
+          "offsetX": -400,
+          "offsetY": 160
         },
         {
           "t": 6000,
           "opacity": 1,
-          "value": 1
+          "value": 1,
+          "offsetX": -400,
+          "offsetY": 160
         }
       ]
     },
@@ -266,8 +306,8 @@
       "type": "text",
       "text": "【身份比对完成 · 授权等级 甲】",
       "pos": [
-        100,
-        560
+        640,
+        360
       ],
       "align": "left",
       "font": {
@@ -279,15 +319,21 @@
       "keyframes": [
         {
           "t": 2950,
-          "opacity": 0
+          "opacity": 0,
+          "offsetX": -540,
+          "offsetY": 200
         },
         {
           "t": 3200,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -540,
+          "offsetY": 200
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -540,
+          "offsetY": 200
         }
       ]
     },
@@ -295,8 +341,8 @@
       "id": "card",
       "type": "panel",
       "pos": [
-        660,
-        380
+        640,
+        360
       ],
       "panelW": 400,
       "panelH": 320,
@@ -308,18 +354,24 @@
         {
           "t": 400,
           "opacity": 0,
-          "scale": 0.96
+          "scale": 0.96,
+          "offsetX": 20,
+          "offsetY": 20
         },
         {
           "t": 1000,
           "opacity": 1,
           "scale": 1,
-          "ease": "outCubic"
+          "ease": "outCubic",
+          "offsetX": 20,
+          "offsetY": 20
         },
         {
           "t": 6000,
           "opacity": 1,
-          "scale": 1
+          "scale": 1,
+          "offsetX": 20,
+          "offsetY": 20
         }
       ]
     },
@@ -328,22 +380,28 @@
       "type": "logo",
       "logo": "whale",
       "pos": [
-        515,
-        265
+        640,
+        360
       ],
       "logoSize": 46,
       "keyframes": [
         {
           "t": 1000,
-          "opacity": 0
+          "opacity": 0,
+          "offsetX": -125,
+          "offsetY": -95
         },
         {
           "t": 1300,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -125,
+          "offsetY": -95
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -125,
+          "offsetY": -95
         }
       ]
     },
@@ -352,8 +410,8 @@
       "type": "text",
       "text": "LOGIN USER",
       "pos": [
-        615,
-        240
+        640,
+        360
       ],
       "align": "left",
       "font": {
@@ -365,15 +423,21 @@
       "keyframes": [
         {
           "t": 1000,
-          "opacity": 0
+          "opacity": 0,
+          "offsetX": -25,
+          "offsetY": -120
         },
         {
           "t": 1300,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -25,
+          "offsetY": -120
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -25,
+          "offsetY": -120
         }
       ]
     },
@@ -382,8 +446,8 @@
       "type": "text",
       "text": "ACCESS LEVEL · 甲",
       "pos": [
-        615,
-        268
+        640,
+        360
       ],
       "align": "left",
       "font": {
@@ -395,15 +459,21 @@
       "keyframes": [
         {
           "t": 1150,
-          "opacity": 0
+          "opacity": 0,
+          "offsetX": -25,
+          "offsetY": -92
         },
         {
           "t": 1400,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -25,
+          "offsetY": -92
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -25,
+          "offsetY": -92
         }
       ]
     },
@@ -412,8 +482,8 @@
       "type": "text",
       "text": "▛▀▜▄▙▘▝▗▖▄▀▛▜▙\n▌▐█▛▜▌▓▒░█▀▄▌\n▖▗▘▝▛▜▙▟▛▀▜▄▙",
       "pos": [
-        755,
-        450
+        640,
+        360
       ],
       "align": "center",
       "font": {
@@ -425,15 +495,21 @@
       "keyframes": [
         {
           "t": 1300,
-          "opacity": 0
+          "opacity": 0,
+          "offsetX": 115,
+          "offsetY": 90
         },
         {
           "t": 1600,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": 115,
+          "offsetY": 90
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": 115,
+          "offsetY": 90
         }
       ]
     },
@@ -441,8 +517,8 @@
       "id": "scan",
       "type": "line",
       "pos": [
-        660,
-        300
+        640,
+        360
       ],
       "width": 320,
       "rotate": 0,
@@ -451,23 +527,27 @@
         {
           "t": 1500,
           "opacity": 0,
-          "offsetY": 0,
-          "reveal": 1
+          "offsetY": -60,
+          "reveal": 1,
+          "offsetX": 20
         },
         {
           "t": 1600,
           "opacity": 0.9,
-          "offsetY": 0
+          "offsetY": -60,
+          "offsetX": 20
         },
         {
           "t": 2600,
           "opacity": 0.9,
-          "offsetY": 0
+          "offsetY": -60,
+          "offsetX": 20
         },
         {
           "t": 2650,
           "opacity": 0,
-          "offsetY": 0
+          "offsetY": -60,
+          "offsetX": 20
         }
       ]
     },
@@ -476,8 +556,8 @@
       "type": "text",
       "text": "ISSUED BY LOGIN USER · VERIFIED BY DEEPSEEK",
       "pos": [
-        660,
-        600
+        640,
+        360
       ],
       "font": {
         "size": 10,
@@ -488,15 +568,21 @@
       "keyframes": [
         {
           "t": 1700,
-          "opacity": 0
+          "opacity": 0,
+          "offsetX": 20,
+          "offsetY": 240
         },
         {
           "t": 2000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": 20,
+          "offsetY": 240
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": 20,
+          "offsetY": 240
         }
       ]
     },
@@ -506,25 +592,29 @@
       "dotsFile": "sphere-dots.json",
       "logoSize": 300,
       "pos": [
-        1050,
-        300
+        640,
+        360
       ],
       "keyframes": [
         {
           "t": 600,
           "opacity": 0,
           "assemble": 1,
-          "globeScale": 1
+          "globeScale": 1,
+          "offsetX": 410,
+          "offsetY": -60
         },
         {
           "t": 1200,
           "opacity": 1,
-          "offsetX": 0,
-          "offsetY": 0
+          "offsetX": 410,
+          "offsetY": -60
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": 410,
+          "offsetY": -60
         }
       ]
     },
@@ -533,8 +623,8 @@
       "type": "text",
       "text": "正在检查登录环境",
       "pos": [
-        1050,
-        500
+        640,
+        360
       ],
       "font": {
         "size": 14,
@@ -545,15 +635,21 @@
       "keyframes": [
         {
           "t": 1200,
-          "opacity": 0
+          "opacity": 0,
+          "offsetX": 410,
+          "offsetY": 140
         },
         {
           "t": 1500,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": 410,
+          "offsetY": 140
         },
         {
           "t": 6000,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": 410,
+          "offsetY": 140
         }
       ]
     },
@@ -561,8 +657,8 @@
       "id": "gcount",
       "type": "counter",
       "pos": [
-        1050,
-        545
+        640,
+        360
       ],
       "barW": 180,
       "barH": 40,
@@ -576,22 +672,30 @@
         {
           "t": 1200,
           "opacity": 0,
-          "value": 0
+          "value": 0,
+          "offsetX": 410,
+          "offsetY": 185
         },
         {
           "t": 1400,
           "opacity": 1,
-          "value": 0
+          "value": 0,
+          "offsetX": 410,
+          "offsetY": 185
         },
         {
           "t": 3400,
           "value": 100,
-          "ease": "inOutCubic"
+          "ease": "inOutCubic",
+          "offsetX": 410,
+          "offsetY": 185
         },
         {
           "t": 6000,
           "opacity": 1,
-          "value": 100
+          "value": 100,
+          "offsetX": 410,
+          "offsetY": 185
         }
       ]
     }

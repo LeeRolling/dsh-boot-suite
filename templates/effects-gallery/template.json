@@ -30,7 +30,7 @@
       "text": "效果总览",
       "pos": [
         640,
-        300
+        360
       ],
       "font": {
         "size": 44,
@@ -41,13 +41,15 @@
         {
           "t": 150,
           "opacity": 0,
-          "offsetY": 20,
-          "ease": "outCubic"
+          "offsetY": -40,
+          "ease": "outCubic",
+          "offsetX": 0
         },
         {
           "t": 800,
           "opacity": 1,
-          "offsetY": 0
+          "offsetY": -60,
+          "offsetX": 0
         }
       ]
     },

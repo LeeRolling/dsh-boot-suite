@@ -503,8 +503,27 @@
     }).catch(function (e) { say('预览失败：' + e.message, 'err') })
   }
 
+  /* 坐标规范：老模板可能把绝对坐标写进 pos。载入时自动搬到 offset，pos 归中心。 */
+  function normalizeCoords(obj) {
+    var n = 0
+    ;((obj && obj.layers) || []).forEach(function (L) {
+      if (!L) return
+      if (!Array.isArray(L.pos)) { L.pos = [640, 360]; n++; return }
+      var dx = Number(L.pos[0] === undefined ? 640 : L.pos[0]) - 640
+      var dy = Number(L.pos[1] === undefined ? 360 : L.pos[1]) - 360
+      if (!dx && !dy) { L.pos = [640, 360]; return }
+      if (!Array.isArray(L.keyframes) || !L.keyframes.length) L.keyframes = [{ t: 0, offsetX: dx, offsetY: dy }]
+      else L.keyframes.forEach(function (k) { k.offsetX = Number(k.offsetX || 0) + dx; k.offsetY = Number(k.offsetY || 0) + dy })
+      L.pos = [640, 360]
+      n++
+    })
+    return n
+  }
+
   function loadTemplate(obj) {
     tpl = obj
+    var moved = normalizeCoords(tpl)
+    if (moved) say('已把 ' + moved + ' 个图层的绝对坐标搬到偏移（坐标规范统一）', 'ok')
     if (!Array.isArray(tpl.steps)) tpl.steps = [{}]
     if (!tpl.theme) tpl.theme = {}
     if (tlView) { tl.selected = 0; tl.kfSel = -1; renderTlPanel(); renderTlTracks() } else { render() }

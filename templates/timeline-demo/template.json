@@ -42,7 +42,7 @@
       "text": "时间线开始工作",
       "pos": [
         640,
-        320
+        360
       ],
       "font": {
         "size": 46,
@@ -53,15 +53,17 @@
         {
           "t": 200,
           "opacity": 0,
-          "offsetY": 26,
+          "offsetY": -14,
           "scale": 0.985,
-          "ease": "outCubic"
+          "ease": "outCubic",
+          "offsetX": 0
         },
         {
           "t": 1000,
           "opacity": 1,
-          "offsetY": 0,
-          "scale": 1
+          "offsetY": -40,
+          "scale": 1,
+          "offsetX": 0
         }
       ]
     },
@@ -69,8 +71,8 @@
       "id": "rule",
       "type": "line",
       "pos": [
-        400,
-        392
+        640,
+        360
       ],
       "width": 480,
       "keyframes": [
@@ -78,12 +80,16 @@
           "t": 700,
           "reveal": 0,
           "opacity": 1,
-          "ease": "outCubic"
+          "ease": "outCubic",
+          "offsetX": -240,
+          "offsetY": 32
         },
         {
           "t": 1250,
           "reveal": 1,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": -240,
+          "offsetY": 32
         }
       ]
     },
@@ -93,7 +99,7 @@
       "text": "TIMELINE IS ALIVE",
       "pos": [
         640,
-        430
+        360
       ],
       "font": {
         "size": 14,
@@ -105,11 +111,15 @@
         {
           "t": 950,
           "opacity": 0,
-          "ease": "outCubic"
+          "ease": "outCubic",
+          "offsetX": 0,
+          "offsetY": 70
         },
         {
           "t": 1500,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 70
         }
       ]
     },
@@ -119,7 +129,7 @@
       "text": "DSH · LAYERS DEMO",
       "pos": [
         640,
-        646
+        360
       ],
       "font": {
         "size": 11,
@@ -131,19 +141,27 @@
         {
           "t": 1500,
           "opacity": 0,
-          "ease": "linear"
+          "ease": "linear",
+          "offsetX": 0,
+          "offsetY": 286
         },
         {
           "t": 2100,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 286
         },
         {
           "t": 4300,
-          "opacity": 1
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 286
         },
         {
           "t": 4700,
-          "opacity": 0
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 286
         }
       ]
     },
@@ -153,7 +171,7 @@
       "text": "时间线开始工作",
       "pos": [
         640,
-        320
+        360
       ],
       "font": {
         "size": 46,
@@ -164,15 +182,17 @@
         {
           "t": 4300,
           "opacity": 0,
-          "offsetY": 0,
+          "offsetY": -40,
           "scale": 1,
-          "ease": "inCubic"
+          "ease": "inCubic",
+          "offsetX": 0
         },
         {
           "t": 4700,
           "opacity": 0,
-          "offsetY": -18,
-          "scale": 1
+          "offsetY": -58,
+          "scale": 1,
+          "offsetX": 0
         }
       ]
     }
