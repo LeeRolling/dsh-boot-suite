@@ -858,15 +858,23 @@
     function numField(label, prop, min, max, step, fallback) {
       var cur = valueAt(L, prop, fallback)
       var d = document.createElement('div'); d.className = 'field'
-      var lb = document.createElement('label'); lb.textContent = label + '（' + Number(cur).toFixed(2) + '）'
+      var lb = document.createElement('label'); lb.textContent = label
+      var row2 = document.createElement('div'); row2.style.cssText = 'display:flex;gap:6px;align-items:center'
       var inp = document.createElement('input'); inp.type = 'range'; inp.min = min; inp.max = max; inp.step = step; inp.value = cur
-      inp.oninput = function () {
-        var v = Number(inp.value)
+      inp.style.flex = '1 1 auto'
+      var num = document.createElement('input'); num.type = 'number'; num.min = min; num.max = max; num.step = step; num.value = cur
+      num.style.cssText = 'width:74px;flex:0 0 auto'
+      function apply(v, fromNum) {
+        v = Math.max(Number(min), Math.min(Number(max), Number(v) || 0))
         setAt(L, prop, v)
-        lb.textContent = label + '（' + v.toFixed(2) + '）'
+        inp.value = v
+        if (!fromNum) num.value = v
         tlSync(); renderTlTracks()
       }
-      d.appendChild(lb); d.appendChild(inp); grid.appendChild(d)
+      inp.oninput = function () { apply(inp.value, false) }
+      num.onchange = function () { apply(num.value, true) }
+      row2.appendChild(inp); row2.appendChild(num)
+      d.appendChild(lb); d.appendChild(row2); grid.appendChild(d)
     }
     numField('透明度', 'opacity', 0, 1, 0.01, 1)
     numField('缩放', 'scale', 0.2, 3, 0.01, 1)
