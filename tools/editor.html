@@ -1406,7 +1406,7 @@
       var sl = document.createElement('select'); sl.style.width = '160px'
       for (var sk = 1; sk <= 8; sk++) {
         var slotKey = 'line-' + sk
-        var op = document.createElement('option'); op.value = slotKey; op.textContent = slotLabel(slotKey)
+        var op = document.createElement('option'); op.value = slotKey; op.textContent = slotLabel(slotKey) + ((tpl.assets && tpl.assets[slotKey]) ? '' : '（空）')
         if ((cue.slot || '') === slotKey) op.selected = true
         sl.appendChild(op)
       }
@@ -2200,7 +2200,9 @@
   document.getElementById('tlAddAudio').onclick = function () {
     if (!tpl) return
     if (!Array.isArray(tpl.audio)) tpl.audio = []
-    tpl.audio.push({ t: Math.round(tl.playhead), slot: 'line-4', bus: 'sfx', vol: 0.6 })
+    var firstSlot = ''
+    Object.keys(tpl.assets || {}).forEach(function (k) { if (!firstSlot && tpl.assets[k]) firstSlot = k })
+    tpl.audio.push({ t: Math.round(tl.playhead), slot: firstSlot || 'line-1', bus: 'sfx', vol: 0.6 })
     if (!tpl.assets) tpl.assets = {}
     renderTlTracks(); renderTlPanel()
     say('已加音频 cue（拖它改时间）', 'ok')
