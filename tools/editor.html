@@ -878,8 +878,11 @@
     }
     numField('透明度', 'opacity', 0, 1, 0.01, 1)
     numField('缩放', 'scale', 0.2, 3, 0.01, 1)
-    numField('位置X', 'offsetX', -600, 600, 1, 0)
-    numField('位置Y', 'offsetY', -400, 400, 1, 0)
+    var cohint = document.createElement('div'); cohint.className = 'hint'
+    cohint.textContent = '位置 = 相对画布中心的偏移：0,0 就是画面正中心（1280×720 的中心 640,360）。'
+    side.appendChild(cohint)
+    numField('位置X（0=中心）', 'offsetX', -640, 640, 1, 0)
+    numField('位置Y（0=中心）', 'offsetY', -360, 360, 1, 0)
     numField('旋转', 'rotate', -180, 180, 1, 0)
     numField('透视', 'skew', -30, 30, 1, 0)
     if (L.type === 'line') numField('展开', 'reveal', 0, 1, 0.01, 1)
@@ -1148,9 +1151,9 @@
     side.appendChild(posRow)
     /* 居中：画布是 1280×720，中心 (640, 360) */
     var alignRow = document.createElement('div'); alignRow.style.cssText = 'display:flex;gap:6px;margin-top:6px'
-    ;[['水平居中', function () { if (!L.pos) L.pos = [640, 360]; L.pos[0] = 640 }],
-      ['垂直居中', function () { if (!L.pos) L.pos = [640, 360]; L.pos[1] = 360 }],
-      ['画布居中', function () { L.pos = [640, 360] }]].forEach(function (o) {
+    ;[['水平居中', function () { L.pos = [640, L.pos ? (L.pos[1] || 360) : 360]; setAt(L, 'offsetX', 0) }],
+      ['垂直居中', function () { L.pos = [L.pos ? (L.pos[0] || 640) : 640, 360]; setAt(L, 'offsetY', 0) }],
+      ['画布居中', function () { L.pos = [640, 360]; setAt(L, 'offsetX', 0); setAt(L, 'offsetY', 0) }]].forEach(function (o) {
       var b = document.createElement('button'); b.className = 'mini'; b.textContent = o[0]
       b.onclick = function () { o[1](); tlSync(); renderTlPanel(); updateSelBox() }
       alignRow.appendChild(b)
