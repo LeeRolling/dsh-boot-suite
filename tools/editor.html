@@ -886,7 +886,7 @@
     numField('旋转', 'rotate', -180, 180, 1, 0)
     numField('透视', 'skew', -30, 30, 1, 0)
     if (L.type === 'chars') numField('球体半径倍率', 'globeScale', 0.2, 8, 0.1, 1)
-    if (L.type === 'chars') numField('画布扩展倍数', 'boxScale', 1, 3, 0.1, 1)
+    if (L.type === 'chars') numField('画布出血倍数（自动，一般不用改）', 'boxScale', 1, 3.9, 0.1, 1)
     if (L.type === 'line') numField('展开', 'reveal', 0, 1, 0.01, 1)
     if (L.type === 'logo') numField('绘制进度', 'draw', 0, 1, 0.01, 1)
     side.appendChild(grid)
