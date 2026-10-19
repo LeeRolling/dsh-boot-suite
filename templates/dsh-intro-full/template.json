@@ -1202,30 +1202,32 @@
         {
           "t": 11250,
           "opacity": 0,
-          "offsetX": 115,
-          "offsetY": 90
+          "offsetX": 135,
+          "offsetY": 135
         },
         {
           "t": 12000,
           "opacity": 1,
-          "offsetX": 115,
-          "offsetY": 90
+          "offsetX": 135,
+          "offsetY": 135
         },
         {
           "t": 18360,
           "opacity": 1,
-          "offsetX": 115,
-          "offsetY": 90
+          "offsetX": 135,
+          "offsetY": 135
         },
         {
           "t": 19000,
-          "opacity": 0
+          "opacity": 0,
+          "offsetX": 135,
+          "offsetY": 135
         }
       ],
       "src": "fake-qr.png",
       "size": [
-        150,
-        150
+        88,
+        88
       ]
     },
     {
@@ -1541,6 +1543,774 @@
           "t": 26125,
           "opacity": 0,
           "offsetY": 88
+        }
+      ]
+    },
+    {
+      "id": "cardHead",
+      "type": "text",
+      "text": "UEG  ACCESS  PERMIT",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 11,
+        "weight": 500,
+        "tracking": 0.32
+      },
+      "color": "#9DB8DE",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": -160
+        },
+        {
+          "t": 12400,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": -160
+        },
+        {
+          "t": 12700,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": -160
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": -160
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": -160
+        }
+      ]
+    },
+    {
+      "id": "cardHeadCn",
+      "type": "text",
+      "text": "身份许可",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.22
+      },
+      "color": "rgba(157,184,222,.8)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": 120,
+          "offsetY": -160
+        },
+        {
+          "t": 12500,
+          "opacity": 0,
+          "offsetX": 120,
+          "offsetY": -160
+        },
+        {
+          "t": 12800,
+          "opacity": 1,
+          "offsetX": 120,
+          "offsetY": -160
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": 120,
+          "offsetY": -160
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": 120,
+          "offsetY": -160
+        }
+      ]
+    },
+    {
+      "id": "f1l",
+      "type": "text",
+      "text": "证件编号",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": -42
+        },
+        {
+          "t": 12900,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": -42
+        },
+        {
+          "t": 13160,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": -42
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": -42
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": -42
+        }
+      ]
+    },
+    {
+      "id": "f1v",
+      "type": "text",
+      "text": "UEG-550C-CD716F04",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": -26
+        },
+        {
+          "t": 13000,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": -26
+        },
+        {
+          "t": 13300,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": -26
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": -26
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": -26
+        }
+      ]
+    },
+    {
+      "id": "f2l",
+      "type": "text",
+      "text": "授权等级",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 6
+        },
+        {
+          "t": 13200,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 6
+        },
+        {
+          "t": 13460,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": 6
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": 6
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 6
+        }
+      ]
+    },
+    {
+      "id": "f2v",
+      "type": "text",
+      "text": "特级权限",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 22
+        },
+        {
+          "t": 13300,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 22
+        },
+        {
+          "t": 13600,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": 22
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": 22
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 22
+        }
+      ]
+    },
+    {
+      "id": "f3l",
+      "type": "text",
+      "text": "许可范围",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 54
+        },
+        {
+          "t": 13500,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 54
+        },
+        {
+          "t": 13760,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": 54
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": 54
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 54
+        }
+      ]
+    },
+    {
+      "id": "f3v",
+      "type": "text",
+      "text": "领航员空间站全域",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 70
+        },
+        {
+          "t": 13600,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 70
+        },
+        {
+          "t": 13900,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": 70
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": 70
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 70
+        }
+      ]
+    },
+    {
+      "id": "f4l",
+      "type": "text",
+      "text": "核验状态",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 102
+        },
+        {
+          "t": 13800,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 102
+        },
+        {
+          "t": 14060,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": 102
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": 102
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 102
+        }
+      ]
+    },
+    {
+      "id": "f4v",
+      "type": "text",
+      "text": "比对中…",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 118
+        },
+        {
+          "t": 13900,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 118
+        },
+        {
+          "t": 14200,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": 118
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -166,
+          "offsetY": 118
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 118
+        }
+      ]
+    },
+    {
+      "id": "f5l",
+      "type": "text",
+      "text": "签发机构",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": -42
+        },
+        {
+          "t": 13050,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": -42
+        },
+        {
+          "t": 13310,
+          "opacity": 1,
+          "offsetX": -20,
+          "offsetY": -42
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -20,
+          "offsetY": -42
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": -42
+        }
+      ]
+    },
+    {
+      "id": "f5v",
+      "type": "text",
+      "text": "地球联合政府UEG最高议会",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": -26
+        },
+        {
+          "t": 13150,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": -26
+        },
+        {
+          "t": 13450,
+          "opacity": 1,
+          "offsetX": -20,
+          "offsetY": -26
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -20,
+          "offsetY": -26
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": -26
+        }
+      ]
+    },
+    {
+      "id": "f6l",
+      "type": "text",
+      "text": "有效期",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 6
+        },
+        {
+          "t": 13350,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 6
+        },
+        {
+          "t": 13610,
+          "opacity": 1,
+          "offsetX": -20,
+          "offsetY": 6
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -20,
+          "offsetY": 6
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 6
+        }
+      ]
+    },
+    {
+      "id": "f6v",
+      "type": "text",
+      "text": "2030.10.14",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 22
+        },
+        {
+          "t": 13450,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 22
+        },
+        {
+          "t": 13750,
+          "opacity": 1,
+          "offsetX": -20,
+          "offsetY": 22
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -20,
+          "offsetY": 22
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 22
+        }
+      ]
+    },
+    {
+      "id": "f7l",
+      "type": "text",
+      "text": "生物特征",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 54
+        },
+        {
+          "t": 13650,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 54
+        },
+        {
+          "t": 13910,
+          "opacity": 1,
+          "offsetX": -20,
+          "offsetY": 54
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -20,
+          "offsetY": 54
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 54
+        }
+      ]
+    },
+    {
+      "id": "f7v",
+      "type": "text",
+      "text": "DNA图谱已录入",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 70
+        },
+        {
+          "t": 13750,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 70
+        },
+        {
+          "t": 14050,
+          "opacity": 1,
+          "offsetX": -20,
+          "offsetY": 70
+        },
+        {
+          "t": 18360,
+          "opacity": 1,
+          "offsetX": -20,
+          "offsetY": 70
+        },
+        {
+          "t": 19000,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 70
         }
       ]
     }
