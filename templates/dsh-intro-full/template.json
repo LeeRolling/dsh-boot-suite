@@ -1,0 +1,1469 @@
+{
+  "schemaVersion": 2,
+  "id": "dsh-intro-full",
+  "name": "DeepSeek 片头 · 完整版",
+  "version": "0.1.0",
+  "description": "三幕连播：片头 → 登录自检 → 欢迎回来。地球贯穿三幕做位置/大小/爆炸成字。",
+  "tags": [
+    "intro",
+    "full"
+  ],
+  "duration": 21600,
+  "theme": {
+    "mode": "dark",
+    "bg": "#04070D",
+    "bg2": "#081226",
+    "ink": "#F4F8FF",
+    "inkSoft": "#9DB8DE",
+    "muted": "#4E6484",
+    "hair": "rgba(114,162,234,0.22)",
+    "accent": "#72A2EA"
+  },
+  "segments": [
+    {
+      "name": "第一幕 · 开场",
+      "from": 0,
+      "to": 8000
+    },
+    {
+      "name": "第二幕 · 登录",
+      "from": 8000,
+      "to": 14000
+    },
+    {
+      "name": "第三幕 · 欢迎回来",
+      "from": 14000,
+      "to": 21600
+    }
+  ],
+  "assets": {
+    "line-1": "voice-main.wav",
+    "line-2": "sfx-tick.mp3",
+    "line-3": "sfx-run.mp3",
+    "line-4": "sfx-click.wav",
+    "line-5": "sfx-switch.wav",
+    "line-6": "sfx-thump.wav",
+    "line-7": "sfx-hum.wav",
+    "line-8": "sfx-progress.wav"
+  },
+  "assetNames": {
+    "line-8": "载入嘟声"
+  },
+  "audioBuses": {
+    "voice": {
+      "vol": 1,
+      "mute": false
+    },
+    "sfx": {
+      "vol": 0.6,
+      "mute": false
+    },
+    "amb": {
+      "vol": 0.35,
+      "mute": false
+    }
+  },
+  "audio": [],
+  "layers": [
+    {
+      "id": "bgchars",
+      "type": "chars",
+      "logoSize": 400,
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#72A2EA",
+      "spinMs": 30000,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.42,
+          "assemble": 0,
+          "outline": 0,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "t": 7840,
+          "opacity": 0.42,
+          "assemble": 0,
+          "outline": 0,
+          "offsetX": 0,
+          "offsetY": 0
+        }
+      ],
+      "dotsFile": "bgchars-dots.json"
+    },
+    {
+      "id": "whale",
+      "type": "logo",
+      "shape": "whale",
+      "logoSize": 96,
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 240,
+          "draw": 0,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 14,
+          "scale": 1.5
+        },
+        {
+          "t": 1600,
+          "draw": 1,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 14,
+          "ease": "outCubic",
+          "scale": 1.5
+        },
+        {
+          "t": 2320,
+          "draw": 1,
+          "opacity": 1,
+          "offsetX": -255,
+          "offsetY": 14,
+          "ease": "inCubic",
+          "scale": 1.5
+        },
+        {
+          "t": 7300,
+          "draw": 1,
+          "opacity": 1,
+          "offsetX": -255,
+          "offsetY": 14,
+          "scale": 1.5
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "text": "DS 深度求索",
+      "pos": [
+        640,
+        360
+      ],
+      "font": {
+        "size": 40,
+        "weight": 500,
+        "tracking": 0.26
+      },
+      "keyframes": [
+        {
+          "t": 1920,
+          "opacity": 0,
+          "offsetX": 100,
+          "offsetY": 0,
+          "wipe": 1,
+          "scale": 1.5
+        },
+        {
+          "t": 2640,
+          "opacity": 1,
+          "offsetX": 100,
+          "offsetY": 0,
+          "ease": "outCubic",
+          "scale": 1.5
+        },
+        {
+          "t": 7300,
+          "opacity": 1,
+          "offsetX": 100,
+          "offsetY": 0,
+          "scale": 1.5
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ],
+      "align": "center"
+    },
+    {
+      "id": "sub",
+      "type": "text",
+      "text": "DeepSeek Artificial Intelligence Research",
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#9DB8DE",
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "keyframes": [
+        {
+          "t": 2320,
+          "opacity": 0,
+          "offsetX": 100,
+          "offsetY": 25,
+          "scale": 1.5
+        },
+        {
+          "t": 2880,
+          "opacity": 1,
+          "offsetX": 100,
+          "offsetY": 60,
+          "ease": "outCubic",
+          "scale": 1.5
+        },
+        {
+          "t": 7300,
+          "opacity": 1,
+          "offsetX": 100,
+          "offsetY": 60,
+          "scale": 1.5
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ],
+      "align": "center"
+    },
+    {
+      "id": "loading",
+      "type": "text",
+      "text": "正在载入中",
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#9DB8DE",
+      "font": {
+        "size": 14,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "keyframes": [
+        {
+          "t": 3440,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 3760,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 4720,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 4832,
+          "opacity": 0.15,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 4928,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 5024,
+          "opacity": 0.15,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 5120,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 5280,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 7300,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "bar",
+      "type": "progress",
+      "pos": [
+        640,
+        360
+      ],
+      "barW": 420,
+      "barH": 3,
+      "barColor": "#72A2EA",
+      "keyframes": [
+        {
+          "t": 3440,
+          "opacity": 0,
+          "value": 0,
+          "offsetX": 0,
+          "offsetY": 240
+        },
+        {
+          "t": 3701,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 240
+        },
+        {
+          "t": 4880,
+          "opacity": 1,
+          "value": 1,
+          "offsetX": 0,
+          "offsetY": 240,
+          "ease": "inOutCubic"
+        },
+        {
+          "t": 5200,
+          "opacity": 0,
+          "value": 1,
+          "offsetX": 0,
+          "offsetY": 240
+        },
+        {
+          "t": 7300,
+          "opacity": 1,
+          "value": 1,
+          "offsetX": 0,
+          "offsetY": 240
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "text": "申请访问许可",
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#F4F8FF",
+      "font": {
+        "size": 12,
+        "weight": 500,
+        "tracking": 0.12
+      },
+      "keyframes": [
+        {
+          "t": 5216,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 240
+        },
+        {
+          "t": 5456,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 240,
+          "ease": "outCubic"
+        },
+        {
+          "t": 7300,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 240
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ],
+      "box": true
+    },
+    {
+      "id": "ctaEn",
+      "type": "text",
+      "text": "REQUEST ACCESS PERMISSION",
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#72A2EA",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.24
+      },
+      "keyframes": [
+        {
+          "t": 4960,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 142
+        },
+        {
+          "t": 5200,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 142,
+          "ease": "outCubic"
+        },
+        {
+          "t": 7300,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 142
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "sphere",
+      "type": "chars",
+      "logoSize": 165,
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#F4F8FF",
+      "spinMs": 24000,
+      "formText": "WELCOME BACK",
+      "keyframes": [
+        {
+          "t": 7360,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 0,
+          "outline": 1,
+          "offsetX": 0,
+          "offsetY": -232,
+          "globeScale": 1
+        },
+        {
+          "t": 7850,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 0,
+          "outline": 1,
+          "offsetX": 0,
+          "offsetY": -232,
+          "globeScale": 1
+        },
+        {
+          "t": 9600,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 0,
+          "outline": 0,
+          "offsetX": 410,
+          "offsetY": -60,
+          "globeScale": 1.8,
+          "ease": "inOutCubic"
+        },
+        {
+          "t": 13600,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 0,
+          "outline": 0,
+          "offsetX": 410,
+          "offsetY": -60,
+          "globeScale": 1.8
+        },
+        {
+          "t": 15100,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 0,
+          "outline": 0,
+          "offsetX": 0,
+          "offsetY": 0,
+          "globeScale": 1.9,
+          "ease": "inOutCubic"
+        },
+        {
+          "t": 15500,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 0,
+          "outline": 0,
+          "offsetX": 0,
+          "offsetY": 0,
+          "globeScale": 4.2,
+          "ease": "inOutCubic"
+        },
+        {
+          "t": 16300,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 0,
+          "outline": 0,
+          "offsetX": 0,
+          "offsetY": 0,
+          "globeScale": 1
+        },
+        {
+          "t": 17900,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 1,
+          "outline": 0,
+          "offsetX": 0,
+          "offsetY": 0,
+          "globeScale": 1,
+          "ease": "inOutCubic"
+        },
+        {
+          "t": 19000,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 1,
+          "outline": 0,
+          "offsetX": 0,
+          "offsetY": 0,
+          "globeScale": 1
+        },
+        {
+          "t": 19250,
+          "opacity": 0,
+          "assemble": 1,
+          "form": 1,
+          "outline": 0,
+          "offsetX": 0,
+          "offsetY": 0,
+          "globeScale": 1
+        }
+      ],
+      "dotsFile": "sphere-dots.json"
+    },
+    {
+      "id": "divider",
+      "type": "line",
+      "pos": [
+        640,
+        360
+      ],
+      "width": 96,
+      "color": "#72A2EA",
+      "rotate": 90,
+      "keyframes": [
+        {
+          "t": 2240,
+          "opacity": 0,
+          "reveal": 0,
+          "rotate": 90,
+          "offsetX": -100,
+          "offsetY": -35
+        },
+        {
+          "t": 2720,
+          "opacity": 1,
+          "reveal": 1,
+          "rotate": 90,
+          "offsetX": -100,
+          "offsetY": -35,
+          "ease": "outCubic"
+        },
+        {
+          "t": 7300,
+          "opacity": 1,
+          "reveal": 1,
+          "rotate": 90,
+          "offsetX": -100,
+          "offsetY": -35
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "lpanel",
+      "type": "panel",
+      "pos": [
+        640,
+        360
+      ],
+      "panelW": 340,
+      "panelH": 460,
+      "radius": 6,
+      "borderColor": "rgba(114,162,234,.40)",
+      "fill": "rgba(6,14,26,.62)",
+      "clip": true,
+      "keyframes": [
+        {
+          "t": 8200,
+          "opacity": 0,
+          "offsetY": 12,
+          "offsetX": -400
+        },
+        {
+          "t": 8700,
+          "opacity": 1,
+          "offsetY": 0,
+          "ease": "outCubic",
+          "offsetX": -400
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "offsetY": 0,
+          "offsetX": -400
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "lhead",
+      "type": "text",
+      "text": "ACCESS CREDENTIAL",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 12,
+        "weight": 500,
+        "tracking": 0.32
+      },
+      "color": "#9DB8DE",
+      "keyframes": [
+        {
+          "t": 8700,
+          "opacity": 0,
+          "offsetX": -540,
+          "offsetY": -205
+        },
+        {
+          "t": 8900,
+          "opacity": 1,
+          "offsetX": -540,
+          "offsetY": -205
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "offsetX": -540,
+          "offsetY": -205
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "code1",
+      "type": "text",
+      "text": "> load identity.profile  0x7F3A",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.04
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 9000,
+          "opacity": 0,
+          "typed": 0,
+          "offsetY": -160,
+          "offsetX": -540
+        },
+        {
+          "t": 9250,
+          "opacity": 1,
+          "typed": 1,
+          "offsetY": -160,
+          "offsetX": -540
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "typed": 1,
+          "offsetY": -160,
+          "offsetX": -540
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "code2",
+      "type": "text",
+      "text": "> verify credential ... OK",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.04
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 9350,
+          "opacity": 0,
+          "typed": 0,
+          "offsetX": -540,
+          "offsetY": -128
+        },
+        {
+          "t": 9600,
+          "opacity": 1,
+          "typed": 1,
+          "offsetX": -540,
+          "offsetY": -128
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "typed": 1,
+          "offsetX": -540,
+          "offsetY": -128
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "code3",
+      "type": "text",
+      "text": "> cross-check registry ... OK",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.04
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 9700,
+          "opacity": 0,
+          "typed": 0,
+          "offsetX": -540,
+          "offsetY": -96
+        },
+        {
+          "t": 9950,
+          "opacity": 1,
+          "typed": 1,
+          "offsetX": -540,
+          "offsetY": -96
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "typed": 1,
+          "offsetX": -540,
+          "offsetY": -96
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "code4",
+      "type": "text",
+      "text": "> environment integrity ... PASS",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.04
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 10050,
+          "opacity": 0,
+          "typed": 0,
+          "offsetX": -540,
+          "offsetY": -64
+        },
+        {
+          "t": 10300,
+          "opacity": 1,
+          "typed": 1,
+          "offsetX": -540,
+          "offsetY": -64
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "typed": 1,
+          "offsetX": -540,
+          "offsetY": -64
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "lbar",
+      "type": "progress",
+      "pos": [
+        640,
+        360
+      ],
+      "barW": 320,
+      "barH": 2,
+      "barColor": "#72A2EA",
+      "keyframes": [
+        {
+          "t": 9200,
+          "opacity": 0,
+          "value": 0,
+          "offsetX": -400,
+          "offsetY": 160
+        },
+        {
+          "t": 9400,
+          "opacity": 1,
+          "value": 0,
+          "offsetX": -400,
+          "offsetY": 160
+        },
+        {
+          "t": 11000,
+          "value": 1,
+          "ease": "inOutCubic",
+          "offsetX": -400,
+          "offsetY": 160
+        },
+        {
+          "t": 13400,
+          "value": 1,
+          "offsetX": -400,
+          "offsetY": 160,
+          "opacity": 1
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "lres",
+      "type": "text",
+      "text": "【身份比对完成 · 授权等级 甲】",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.08
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 10950,
+          "opacity": 0,
+          "offsetX": -540,
+          "offsetY": 200
+        },
+        {
+          "t": 11200,
+          "opacity": 1,
+          "offsetX": -540,
+          "offsetY": 200
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "offsetX": -540,
+          "offsetY": 200
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "card",
+      "type": "panel",
+      "pos": [
+        640,
+        360
+      ],
+      "panelW": 400,
+      "panelH": 320,
+      "radius": 10,
+      "borderColor": "rgba(140,200,255,.45)",
+      "fill": "rgba(10,20,34,.72)",
+      "glow": 22,
+      "keyframes": [
+        {
+          "t": 8400,
+          "opacity": 0,
+          "scale": 0.96,
+          "offsetX": 20,
+          "offsetY": 20
+        },
+        {
+          "t": 9000,
+          "opacity": 1,
+          "scale": 1,
+          "ease": "outCubic",
+          "offsetX": 20,
+          "offsetY": 20
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "scale": 1,
+          "offsetX": 20,
+          "offsetY": 20
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "avatar",
+      "type": "logo",
+      "logo": "whale",
+      "pos": [
+        640,
+        360
+      ],
+      "logoSize": 46,
+      "keyframes": [
+        {
+          "t": 9000,
+          "opacity": 0,
+          "offsetX": -125,
+          "offsetY": -95
+        },
+        {
+          "t": 9300,
+          "opacity": 1,
+          "offsetX": -125,
+          "offsetY": -95
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "offsetX": -125,
+          "offsetY": -95
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "uname",
+      "type": "text",
+      "text": "LOGIN USER",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 16,
+        "weight": 500,
+        "tracking": 0.14
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 9000,
+          "opacity": 0,
+          "offsetX": -25,
+          "offsetY": -120
+        },
+        {
+          "t": 9300,
+          "opacity": 1,
+          "offsetX": -25,
+          "offsetY": -120
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "offsetX": -25,
+          "offsetY": -120
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "urole",
+      "type": "text",
+      "text": "ACCESS LEVEL · 甲",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.12
+      },
+      "color": "#9DB8DE",
+      "keyframes": [
+        {
+          "t": 9150,
+          "opacity": 0,
+          "offsetX": -25,
+          "offsetY": -92
+        },
+        {
+          "t": 9400,
+          "opacity": 1,
+          "offsetX": -25,
+          "offsetY": -92
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "offsetX": -25,
+          "offsetY": -92
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "qr",
+      "type": "image",
+      "pos": [
+        640,
+        360
+      ],
+      "color": "rgba(232,244,255,.85)",
+      "keyframes": [
+        {
+          "t": 9300,
+          "opacity": 0,
+          "offsetX": 115,
+          "offsetY": 90
+        },
+        {
+          "t": 9600,
+          "opacity": 1,
+          "offsetX": 115,
+          "offsetY": 90
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "offsetX": 115,
+          "offsetY": 90
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ],
+      "src": "fake-qr.png",
+      "size": [
+        150,
+        150
+      ]
+    },
+    {
+      "id": "scan",
+      "type": "line",
+      "pos": [
+        640,
+        360
+      ],
+      "width": 320,
+      "rotate": 0,
+      "color": "rgba(114,162,234,.9)",
+      "keyframes": [
+        {
+          "t": 9500,
+          "opacity": 0,
+          "offsetY": -60,
+          "reveal": 1,
+          "offsetX": 20
+        },
+        {
+          "t": 9600,
+          "opacity": 0.9,
+          "offsetY": -60,
+          "offsetX": 20
+        },
+        {
+          "t": 10600,
+          "opacity": 0.9,
+          "offsetY": -60,
+          "offsetX": 20
+        },
+        {
+          "t": 10650,
+          "opacity": 0,
+          "offsetY": -60,
+          "offsetX": 20
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "offsetY": -60,
+          "offsetX": 20
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "foot",
+      "type": "text",
+      "text": "ISSUED BY LOGIN USER · VERIFIED BY DEEPSEEK",
+      "pos": [
+        640,
+        360
+      ],
+      "font": {
+        "size": 10,
+        "weight": 400,
+        "tracking": 0.22
+      },
+      "color": "rgba(157,184,222,.7)",
+      "keyframes": [
+        {
+          "t": 9700,
+          "opacity": 0,
+          "offsetX": 20,
+          "offsetY": 240
+        },
+        {
+          "t": 10000,
+          "opacity": 1,
+          "offsetX": 20,
+          "offsetY": 240
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "offsetX": 20,
+          "offsetY": 240
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "gtext",
+      "type": "text",
+      "text": "正在检查登录环境",
+      "pos": [
+        640,
+        360
+      ],
+      "font": {
+        "size": 14,
+        "weight": 500,
+        "tracking": 0.12
+      },
+      "color": "#9DB8DE",
+      "keyframes": [
+        {
+          "t": 9200,
+          "opacity": 0,
+          "offsetX": 410,
+          "offsetY": 140
+        },
+        {
+          "t": 9500,
+          "opacity": 1,
+          "offsetX": 410,
+          "offsetY": 140
+        },
+        {
+          "t": 13400,
+          "opacity": 1,
+          "offsetX": 410,
+          "offsetY": 140
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "gcount",
+      "type": "counter",
+      "pos": [
+        640,
+        360
+      ],
+      "barW": 180,
+      "barH": 40,
+      "suffix": "%",
+      "font": {
+        "size": 28,
+        "weight": 500
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 9200,
+          "opacity": 0,
+          "value": 0,
+          "offsetX": 410,
+          "offsetY": 185
+        },
+        {
+          "t": 9400,
+          "opacity": 1,
+          "value": 0,
+          "offsetX": 410,
+          "offsetY": 185
+        },
+        {
+          "t": 11400,
+          "value": 100,
+          "ease": "inOutCubic",
+          "offsetX": 410,
+          "offsetY": 185
+        },
+        {
+          "t": 13400,
+          "value": 100,
+          "offsetX": 410,
+          "offsetY": 185,
+          "opacity": 1
+        },
+        {
+          "t": 13950,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "flashFull",
+      "type": "panel",
+      "pos": [
+        640,
+        360
+      ],
+      "panelW": 1400,
+      "panelH": 800,
+      "radius": 0,
+      "borderColor": "rgba(0,0,0,0)",
+      "fill": "rgba(244,248,255,1)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0
+        },
+        {
+          "t": 19050,
+          "opacity": 0
+        },
+        {
+          "t": 19150,
+          "opacity": 0.95
+        },
+        {
+          "t": 19280,
+          "opacity": 0
+        },
+        {
+          "t": 20650,
+          "opacity": 0
+        },
+        {
+          "t": 20740,
+          "opacity": 0.9
+        },
+        {
+          "t": 20860,
+          "opacity": 0
+        },
+        {
+          "t": 21600,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "cnTitle",
+      "type": "text",
+      "text": "欢迎回来",
+      "pos": [
+        640,
+        360
+      ],
+      "font": {
+        "size": 76,
+        "weight": 600,
+        "tracking": 0.3
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0
+        },
+        {
+          "t": 19250,
+          "opacity": 0,
+          "wipe": 0,
+          "typed": 0
+        },
+        {
+          "t": 19480,
+          "opacity": 1,
+          "wipe": 0.2,
+          "typed": 0.2
+        },
+        {
+          "t": 20200,
+          "opacity": 1,
+          "wipe": 1,
+          "typed": 1,
+          "ease": "outCubic"
+        },
+        {
+          "t": 20650,
+          "opacity": 1,
+          "wipe": 1,
+          "typed": 1
+        },
+        {
+          "t": 21000,
+          "opacity": 0,
+          "wipe": 1,
+          "typed": 1
+        }
+      ]
+    },
+    {
+      "id": "cnSub",
+      "type": "text",
+      "text": "SECURE SESSION RESTORED",
+      "pos": [
+        640,
+        360
+      ],
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.42
+      },
+      "color": "#9DB8DE",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0
+        },
+        {
+          "t": 19700,
+          "opacity": 0,
+          "offsetY": 88
+        },
+        {
+          "t": 20050,
+          "opacity": 1,
+          "offsetY": 88
+        },
+        {
+          "t": 20650,
+          "opacity": 1,
+          "offsetY": 88
+        },
+        {
+          "t": 21000,
+          "opacity": 0,
+          "offsetY": 88
+        }
+      ]
+    }
+  ],
+  "effects": [
+    {
+      "type": "readout",
+      "opacity": 0.5,
+      "from": 0,
+      "to": 21600
+    },
+    {
+      "type": "scanline",
+      "opacity": 0.15
+    },
+    {
+      "type": "vignette",
+      "opacity": 0.42
+    }
+  ]
+}
