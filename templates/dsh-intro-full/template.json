@@ -44,10 +44,22 @@
     "line-5": "sfx-switch.wav",
     "line-6": "sfx-thump.wav",
     "line-7": "sfx-hum.wav",
-    "line-8": "sfx-progress.wav"
+    "line-8": "sfx-progress.wav",
+    "line-9": "archive-line-1.mp3",
+    "line-10": "archive-line-2.mp3",
+    "line-11": "archive-line-3.mp3",
+    "line-12": "archive-line-4.mp3",
+    "line-13": "archive-line-5.mp3",
+    "line-14": "archive-line-6.mp3"
   },
   "assetNames": {
-    "line-8": "载入嘟声"
+    "line-8": "载入嘟声",
+    "line-9": "档案暖白·台词1",
+    "line-10": "档案暖白·台词2",
+    "line-11": "档案暖白·台词3",
+    "line-12": "档案暖白·台词4",
+    "line-13": "档案暖白·台词5",
+    "line-14": "档案暖白·台词6"
   },
   "audioBuses": {
     "voice": {

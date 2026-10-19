@@ -1394,7 +1394,7 @@
             if (!j || !j.ok) { say('导入失败：' + ((j && j.error) || '未知错误'), 'err'); return }
             if (!tpl.assets) tpl.assets = {}
             var slot = null
-            for (var k = 1; k <= 8; k++) { if (!tpl.assets['line-' + k]) { slot = 'line-' + k; break } }
+            for (var k = 1; k <= 16; k++) { if (!tpl.assets['line-' + k]) { slot = 'line-' + k; break } }
             if (!slot) { say('音频槽位满了（line-1~8）', 'err'); return }
             tpl.assets[slot] = name
             tlSync(); renderTlTracks(); renderTlPanel()
@@ -1412,7 +1412,7 @@
     side.appendChild(nameHint)
     if (!tpl.assetNames) tpl.assetNames = {}
     var nameGrid = document.createElement('div')
-    for (var ns = 1; ns <= 8; ns++) {
+    for (var ns = 1; ns <= 16; ns++) {
       var skey = 'line-' + ns
       if (!(tpl.assets || {})[skey]) continue
       var nrow = document.createElement('div'); nrow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:3px'
@@ -1475,7 +1475,7 @@
     arr.forEach(function (cue, ci) {
       var row = document.createElement('div'); row.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:4px'
       var sl = document.createElement('select'); sl.style.width = '160px'
-      for (var sk = 1; sk <= 8; sk++) {
+      for (var sk = 1; sk <= 16; sk++) {
         var slotKey = 'line-' + sk
         var op = document.createElement('option'); op.value = slotKey; op.textContent = slotLabel(slotKey) + ((tpl.assets && tpl.assets[slotKey]) ? '' : '（空）')
         if ((cue.slot || '') === slotKey) op.selected = true
