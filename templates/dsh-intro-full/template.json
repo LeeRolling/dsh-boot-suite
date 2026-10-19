@@ -63,7 +63,94 @@
       "mute": false
     }
   },
-  "audio": [],
+  "audio": [
+    {
+      "t": 4960,
+      "slot": "line-1",
+      "bus": "voice",
+      "off": 0,
+      "dur": 1650,
+      "vol": 0.95,
+      "fadeIn": 60,
+      "fadeOut": 200,
+      "fx": "ai-mech"
+    },
+    {
+      "t": 9600,
+      "slot": "line-1",
+      "bus": "voice",
+      "off": 1760,
+      "dur": 1320,
+      "vol": 0.95,
+      "fadeIn": 40,
+      "fadeOut": 120,
+      "fx": "ai-mech"
+    },
+    {
+      "t": 11050,
+      "slot": "line-1",
+      "bus": "voice",
+      "off": 3470,
+      "dur": 2540,
+      "vol": 0.95,
+      "fadeIn": 40,
+      "fadeOut": 200,
+      "fx": "ai-mech"
+    },
+    {
+      "t": 17900,
+      "slot": "line-1",
+      "bus": "voice",
+      "off": 13400,
+      "dur": 700,
+      "vol": 1,
+      "fadeIn": 40,
+      "fadeOut": 120
+    },
+    {
+      "t": 19250,
+      "slot": "line-1",
+      "bus": "voice",
+      "off": 14230,
+      "dur": 580,
+      "vol": 1,
+      "fadeIn": 40,
+      "fadeOut": 200
+    },
+    {
+      "t": 4900,
+      "slot": "line-4",
+      "bus": "sfx",
+      "off": 0,
+      "dur": 120,
+      "vol": 0.35
+    },
+    {
+      "t": 15100,
+      "slot": "line-6",
+      "bus": "sfx",
+      "off": 0,
+      "dur": 550,
+      "vol": 0.55,
+      "fadeOut": 200
+    },
+    {
+      "t": 19050,
+      "slot": "line-5",
+      "bus": "sfx",
+      "off": 0,
+      "dur": 200,
+      "vol": 0.4
+    },
+    {
+      "t": 20650,
+      "slot": "line-5",
+      "bus": "sfx",
+      "off": 0,
+      "dur": 200,
+      "vol": 0.35
+    }
+  ],
   "layers": [
     {
       "id": "bgchars",
