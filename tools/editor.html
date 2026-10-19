@@ -1355,6 +1355,25 @@
     var tip = document.createElement('div'); tip.className = 'hint'
     tip.textContent = '轨道块：拖中间挪位置 / 拖两端剪长短 / 点名称静音；这里可精确输入、选总线与音效预设。'
     side.appendChild(tip)
+    /* 一键加音效（放到当前播放头、sfx 总线、第一个已绑定槽位） */
+    var quickSfx = document.createElement('button')
+    quickSfx.className = 'mini primary'
+    quickSfx.textContent = '＋ 加一条音效（播放头位置）'
+    quickSfx.onclick = function () {
+      if (!tpl) return
+      if (!Array.isArray(tpl.audio)) tpl.audio = []
+      if (!tpl.audioBuses) tpl.audioBuses = {}
+      if (!tpl.audioBuses.sfx) tpl.audioBuses.sfx = { vol: 0.6, mute: false }
+      var slotPick = ''
+      ;['line-4', 'line-2', 'line-3', 'line-5', 'line-6', 'line-7', 'line-8', 'line-1'].forEach(function (k) {
+        if (!slotPick && tpl.assets && tpl.assets[k]) slotPick = k
+      })
+      tpl.audio.push({ t: Math.round(tl.playhead), slot: slotPick || 'line-1', bus: 'sfx', dur: 0, vol: 0.5 })
+      tlSync(); renderTlTracks(); renderTlPanel()
+      say('已加一条音效 → 在轨道上拖它到想要的位置；下面下拉可换音效', 'ok')
+    }
+    side.appendChild(quickSfx)
+
     /* 导入音频 */
     var impBtn = document.createElement('button'); impBtn.className = 'mini'; impBtn.textContent = '导入音频文件…'
     var impInp = document.createElement('input'); impInp.type = 'file'; impInp.accept = '.mp3,.wav,.ogg,.m4a,.aac'; impInp.multiple = true; impInp.hidden = true
