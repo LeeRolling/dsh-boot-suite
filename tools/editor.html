@@ -1351,10 +1351,17 @@
       var sl = document.createElement('input'); sl.type = 'text'; sl.value = cue.slot || ''; sl.style.width = '74px'
       sl.oninput = function () { cue.slot = sl.value; tlSync(); renderTlTracks() }
       var tm = document.createElement('input'); tm.type = 'number'; tm.min = 0; tm.max = d2; tm.step = 10; tm.value = cue.t; tm.style.width = '86px'
+      var mapHint = document.createElement('span'); mapHint.style.cssText = 'font-size:10px;opacity:.55;flex:1 1 100%;margin:-2px 0 4px 0'
+      function refreshHint() {
+        var f = (tpl.assets || {})[cue.slot]
+        mapHint.textContent = f ? ('→ 用文件 ' + f) : '→ 这个槽位还没绑定文件（模板 assets 里没有 ' + cue.slot + '）'
+      }
+      refreshHint()
+      sl.addEventListener('input', refreshHint)
       tm.onchange = function () { cue.t = Math.max(0, Math.min(d2, Number(tm.value) || 0)); tlSync(); renderTlTracks() }
       var del = document.createElement('button'); del.className = 'mini danger'; del.textContent = '✕'
       del.onclick = function () { arr.splice(ci, 1); tlSync(); renderTlTracks(); renderTlPanel() }
-      row.appendChild(sl); row.appendChild(tm); row.appendChild(del); side.appendChild(row)
+      row.appendChild(sl); row.appendChild(tm); row.appendChild(del); side.appendChild(row); side.appendChild(mapHint)
       var fxRow = document.createElement('div'); fxRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin:0 0 4px 0'
       var fxLb = document.createElement('span'); fxLb.style.cssText = 'font-size:11px;opacity:.75;flex:0 0 66px'; fxLb.textContent = '音效预设'
       var fxSel = document.createElement('select'); fxSel.style.flex = '1 1 auto'
@@ -1912,6 +1919,12 @@
 
   /* 空格播放/暂停；左右方向键微调（输入框里不拦） */
   document.addEventListener('keydown', function (ev) {
+    if ((ev.ctrlKey || ev.metaKey) && (ev.key === 's' || ev.key === 'S')) {
+      ev.preventDefault()
+      var sv = document.getElementById('save')
+      if (sv) { sv.click(); say('已保存到本地（Ctrl+S）', 'ok') }
+      return
+    }
     if (!tlView) return
     var tag = (ev.target && ev.target.tagName) ? ev.target.tagName.toLowerCase() : ''
     if (tag === 'input' || tag === 'textarea' || tag === 'select') return
