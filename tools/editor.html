@@ -1259,6 +1259,42 @@
     var tip = document.createElement('div'); tip.className = 'hint'
     tip.textContent = '下面轨道上的蓝色块可直接拖动改时间；这里可精确输入、选总线与音效预设。'
     side.appendChild(tip)
+    /* 导入音频 */
+    var impBtn = document.createElement('button'); impBtn.className = 'mini'; impBtn.textContent = '导入音频文件…'
+    var impInp = document.createElement('input'); impInp.type = 'file'; impInp.accept = '.mp3,.wav,.ogg,.m4a,.aac'; impInp.multiple = true; impInp.hidden = true
+    impBtn.onclick = function () { impInp.click() }
+    impInp.onchange = function () {
+      var files = [].slice.call(impInp.files || [])
+      files.forEach(function (f) {
+        var raw = f.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9._-]+/g, '-').slice(0, 30) || 'audio'
+        var ext = (f.name.match(/\.[^.]+$/)[0] || '.wav').toLowerCase()
+        var name = raw + ext
+        var rd = new FileReader()
+        rd.onload = function () {
+          var b64 = String(rd.result).split(',')[1] || ''
+          fetch(API.replace('/config', '/template-assets/upload'), {
+            method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ id: tpl.id, name: name, data: b64 })
+          }).then(function (r) { return r.json() }).then(function (j) {
+            if (!j || !j.ok) { say('导入失败：' + ((j && j.error) || '未知错误'), 'err'); return }
+            if (!tpl.assets) tpl.assets = {}
+            var slot = null
+            for (var k = 1; k <= 8; k++) { if (!tpl.assets['line-' + k]) { slot = 'line-' + k; break } }
+            if (!slot) { say('音频槽位满了（line-1~8）', 'err'); return }
+            tpl.assets[slot] = name
+            tlSync(); renderTlTracks(); renderTlPanel()
+            say('已导入 ' + name + ' → ' + slot, 'ok')
+          }).catch(function (e) { say('导入失败：' + e.message, 'err') })
+        }
+        rd.readAsDataURL(f)
+      })
+      impInp.value = ''
+    }
+    side.appendChild(impBtn); side.appendChild(impInp)
+    var pathTip = document.createElement('div'); pathTip.className = 'hint'
+    pathTip.textContent = '推荐目录：%USERPROFILE%\\.dsh\\startup-templates\\' + (tpl.id || '<模板id>') + '\\assets\\（也可以直接把文件拷进去，再点导入会在上方列表出现）'
+    side.appendChild(pathTip)
+
     /* 总线音量 */
     if (!tpl.audioBuses) tpl.audioBuses = {}
     ;(function () {
@@ -1289,6 +1325,25 @@
         delete tpl.audioBuses[key]; renderTlTracks(); renderTlPanel(); tlSync()
       }
       row2.appendChild(lb2); row2.appendChild(rng); row2.appendChild(muteBtn); row2.appendChild(delBus); side.appendChild(row2)
+      var pickRow = document.createElement('div'); pickRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin:0 0 6px 0'
+      var pickLb = document.createElement('span'); pickLb.style.cssText = 'font-size:11px;opacity:.6;flex:0 0 66px'; pickLb.textContent = '放入轨道'
+      var pickSel = document.createElement('select'); pickSel.style.flex = '1 1 auto'
+      var first = document.createElement('option'); first.value = ''; first.textContent = '选一个音频 → 放到 0 帧'; pickSel.appendChild(first)
+      Object.keys(tpl.assets || {}).forEach(function (slotKey) {
+        var f2 = String(tpl.assets[slotKey] || '')
+        if (!f2) return
+        var op2 = document.createElement('option'); op2.value = slotKey; op2.textContent = slotKey + ' · ' + f2
+        pickSel.appendChild(op2)
+      })
+      pickSel.onchange = function () {
+        if (!pickSel.value) return
+        if (!Array.isArray(tpl.audio)) tpl.audio = []
+        tpl.audio.push({ t: 0, slot: pickSel.value, bus: key, vol: 1, dur: 0 })
+        pickSel.value = ''
+        tlSync(); renderTlTracks(); renderTlPanel()
+        say('已把 ' + pickSel.options[0] + ' 放到 ' + key + ' 轨 0 帧', 'ok')
+      }
+      pickRow.appendChild(pickLb); pickRow.appendChild(pickSel); side.appendChild(pickRow)
     })
     var d2 = tlDur()
     arr.forEach(function (cue, ci) {
