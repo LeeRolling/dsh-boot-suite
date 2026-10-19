@@ -44,10 +44,22 @@
     "line-5": "sfx-switch.wav",
     "line-6": "sfx-thump.wav",
     "line-7": "sfx-hum.wav",
-    "line-8": "sfx-progress.wav"
+    "line-8": "sfx-progress.wav",
+    "line-9": "sfx-beep.wav",
+    "line-10": "sfx-data.wav",
+    "line-11": "sfx-dong.wav",
+    "line-12": "sfx-clack.wav",
+    "line-13": "sfx-sweep-up.wav",
+    "line-14": "sfx-sweep-down.wav"
   },
   "assetNames": {
-    "line-8": "载入嘟声"
+    "line-8": "载入嘟声",
+    "line-9": "电子哔",
+    "line-10": "数据滋啦",
+    "line-11": "低频咚",
+    "line-12": "机械咔哒",
+    "line-13": "上升扫频",
+    "line-14": "下降扫频"
   },
   "audioBuses": {
     "voice": {
