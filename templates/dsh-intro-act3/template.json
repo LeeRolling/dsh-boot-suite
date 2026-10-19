@@ -1,0 +1,387 @@
+{
+  "schemaVersion": 2,
+  "id": "dsh-intro-act3",
+  "name": "DeepSeek 片头 · 第三幕",
+  "version": "0.1.0",
+  "description": "第三幕：地球粒子归中 → 聚合成 WELCOME BACK → 闪白 → 欢迎回来 → 闪白 → 回桌面",
+  "tags": [
+    "intro",
+    "act3"
+  ],
+  "duration": 4400,
+  "theme": {
+    "mode": "dark",
+    "bg": "#04070D",
+    "ink": "#F4F8FF",
+    "inkSoft": "#9DB8DE",
+    "accent": "#72A2EA"
+  },
+  "segments": [
+    {
+      "name": "归中 · 成形",
+      "from": 0,
+      "to": 2000
+    },
+    {
+      "name": "闪白 · 欢迎回来",
+      "from": 2000,
+      "to": 3400
+    },
+    {
+      "name": "再闪 · 退场",
+      "from": 3400,
+      "to": 4400
+    }
+  ],
+  "assets": {
+    "line-1": "voice-main.wav",
+    "line-2": "sfx-tick.mp3",
+    "line-3": "sfx-run.mp3",
+    "line-4": "sfx-click.wav",
+    "line-5": "sfx-switch.wav",
+    "line-6": "sfx-thump.wav",
+    "line-7": "sfx-hum.wav",
+    "line-8": "sfx-progress.wav"
+  },
+  "assetNames": {
+    "line-1": "台词",
+    "line-2": "滴答",
+    "line-3": "连击",
+    "line-4": "点击",
+    "line-5": "开关",
+    "line-6": "低冲击",
+    "line-7": "嗡鸣",
+    "line-8": "载入嘟声"
+  },
+  "audioBuses": {
+    "amb": {
+      "vol": 0.3,
+      "mute": false
+    },
+    "voice": {
+      "vol": 1,
+      "mute": false
+    },
+    "sfx": {
+      "vol": 0.6,
+      "mute": false
+    }
+  },
+  "layers": [
+    {
+      "id": "bgchars",
+      "type": "chars",
+      "dotsFile": "bgchars-dots.json",
+      "logoSize": 720,
+      "pos": [
+        640,
+        360
+      ],
+      "color": "rgba(114,162,234,0.55)",
+      "spinMs": 26000,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.35,
+          "assemble": 0,
+          "outline": 0
+        },
+        {
+          "t": 4400,
+          "opacity": 0.35,
+          "assemble": 0,
+          "outline": 0
+        }
+      ]
+    },
+    {
+      "id": "globeA",
+      "type": "chars",
+      "dotsFile": "sphere-dots.json",
+      "logoSize": 360,
+      "pos": [
+        640,
+        360
+      ],
+      "formText": "WELCOME BACK",
+      "color": "#eaf6ff",
+      "spinMs": 20000,
+      "outline": 1,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 0,
+          "outline": 1,
+          "globeScale": 1
+        },
+        {
+          "t": 500,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 0,
+          "outline": 1,
+          "globeScale": 1
+        },
+        {
+          "t": 1900,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 1,
+          "outline": 0,
+          "globeScale": 1,
+          "ease": "inOutCubic"
+        },
+        {
+          "t": 2350,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 1,
+          "outline": 0
+        },
+        {
+          "t": 2500,
+          "opacity": 0,
+          "assemble": 1,
+          "form": 1,
+          "outline": 0
+        }
+      ]
+    },
+    {
+      "id": "globeB",
+      "type": "chars",
+      "dotsFile": "sphere-dots.json",
+      "logoSize": 360,
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#eaf6ff",
+      "spinMs": 20000,
+      "outline": 0,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "assemble": 1,
+          "form": 0,
+          "outline": 0,
+          "globeScale": 1
+        },
+        {
+          "t": 2350,
+          "opacity": 0,
+          "assemble": 1,
+          "form": 0,
+          "outline": 0,
+          "globeScale": 1
+        },
+        {
+          "t": 2450,
+          "opacity": 0.55,
+          "assemble": 0,
+          "globeScale": 2.2
+        },
+        {
+          "t": 3600,
+          "opacity": 0.55,
+          "assemble": 0,
+          "globeScale": 2.6
+        },
+        {
+          "t": 3900,
+          "opacity": 0,
+          "assemble": 0,
+          "globeScale": 2.8
+        }
+      ]
+    },
+    {
+      "id": "flash",
+      "type": "panel",
+      "pos": [
+        640,
+        360
+      ],
+      "panelW": 1400,
+      "panelH": 800,
+      "radius": 0,
+      "borderColor": "rgba(0,0,0,0)",
+      "fill": "rgba(244,248,255,1)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0
+        },
+        {
+          "t": 2280,
+          "opacity": 0
+        },
+        {
+          "t": 2380,
+          "opacity": 0.95
+        },
+        {
+          "t": 2480,
+          "opacity": 0
+        },
+        {
+          "t": 3660,
+          "opacity": 0
+        },
+        {
+          "t": 3740,
+          "opacity": 0.9
+        },
+        {
+          "t": 3860,
+          "opacity": 0
+        },
+        {
+          "t": 4400,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "line",
+      "type": "line",
+      "pos": [
+        640,
+        360
+      ],
+      "width": 220,
+      "rotate": 0,
+      "color": "rgba(114,162,234,.8)",
+      "keyframes": [
+        {
+          "t": 300,
+          "opacity": 0,
+          "reveal": 0,
+          "offsetY": 120
+        },
+        {
+          "t": 700,
+          "opacity": 0.9,
+          "reveal": 1,
+          "offsetY": 120,
+          "ease": "outCubic"
+        },
+        {
+          "t": 1900,
+          "opacity": 0,
+          "reveal": 1,
+          "offsetY": 120
+        }
+      ]
+    },
+    {
+      "id": "cnTitle",
+      "type": "text",
+      "text": "欢迎回来",
+      "pos": [
+        640,
+        360
+      ],
+      "font": {
+        "size": 76,
+        "weight": 600,
+        "tracking": 0.3
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 2350,
+          "opacity": 0,
+          "wipe": 0,
+          "typed": 0,
+          "scale": 1.02
+        },
+        {
+          "t": 2550,
+          "opacity": 1,
+          "wipe": 0.15,
+          "typed": 0.15,
+          "scale": 1.02
+        },
+        {
+          "t": 3200,
+          "opacity": 1,
+          "wipe": 1,
+          "typed": 1,
+          "scale": 1,
+          "ease": "outCubic"
+        },
+        {
+          "t": 3600,
+          "opacity": 1,
+          "wipe": 1,
+          "typed": 1,
+          "scale": 1
+        },
+        {
+          "t": 3900,
+          "opacity": 0,
+          "wipe": 1,
+          "typed": 1,
+          "scale": 1
+        }
+      ]
+    },
+    {
+      "id": "cnSub",
+      "type": "text",
+      "text": "SECURE SESSION RESTORED",
+      "pos": [
+        640,
+        360
+      ],
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.42
+      },
+      "color": "#9DB8DE",
+      "keyframes": [
+        {
+          "t": 2700,
+          "opacity": 0,
+          "offsetY": 88
+        },
+        {
+          "t": 3000,
+          "opacity": 1,
+          "offsetY": 88
+        },
+        {
+          "t": 3600,
+          "opacity": 1,
+          "offsetY": 88
+        },
+        {
+          "t": 3900,
+          "opacity": 0,
+          "offsetY": 88
+        }
+      ]
+    }
+  ],
+  "effects": [
+    {
+      "type": "readout",
+      "opacity": 0.5,
+      "from": 0,
+      "to": 4400
+    },
+    {
+      "type": "scanline",
+      "opacity": 0.16
+    },
+    {
+      "type": "vignette",
+      "opacity": 0.45
+    }
+  ]
+}
