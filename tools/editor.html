@@ -1258,6 +1258,19 @@
       var del = document.createElement('button'); del.className = 'mini danger'; del.textContent = '✕'
       del.onclick = function () { arr.splice(ci, 1); tlSync(); renderTlTracks(); renderTlPanel() }
       row.appendChild(sl); row.appendChild(tm); row.appendChild(del); side.appendChild(row)
+      function cueNum(label, key, step, def) {
+        var r2 = document.createElement('div'); r2.style.cssText = 'display:flex;gap:6px;align-items:center;margin:0 0 4px 0'
+        var lb2 = document.createElement('span'); lb2.style.cssText = 'font-size:11px;opacity:.75;flex:0 0 66px'; lb2.textContent = label
+        var inp2 = document.createElement('input'); inp2.type = 'number'; inp2.min = 0; inp2.step = step; inp2.style.flex = '1 1 auto'
+        inp2.value = cue[key] === undefined ? def : cue[key]
+        inp2.onchange = function () { cue[key] = Number(inp2.value) || 0; tlSync(); renderTlTracks() }
+        r2.appendChild(lb2); r2.appendChild(inp2); side.appendChild(r2)
+      }
+      cueNum('开始偏移ms', 'off', 10, 0)
+      cueNum('播放时长ms（0=整段）', 'dur', 50, 0)
+      cueNum('音量0-1', 'vol', 0.05, 0.9)
+      cueNum('淡入ms', 'fadeIn', 20, 0)
+      cueNum('淡出ms', 'fadeOut', 20, 0)
     })
   }
   function renderFxPanel() {
@@ -1477,6 +1490,7 @@
       var blk = document.createElement('div')
       blk.className = 'tlaudio'
       blk.style.left = (Number(cue.t) / d * 100) + '%'
+      if (Number(cue.dur) > 0) blk.style.width = (Number(cue.dur) / d * 100) + '%'
       blk.title = (Number(cue.t) / 1000).toFixed(2) + 's'
       blk.onmousedown = function (ev) {
         ev.preventDefault(); ev.stopPropagation()
