@@ -77,37 +77,15 @@
   },
   "audio": [
     {
-      "t": 4960,
+      "t": 4918,
       "slot": "line-1",
       "bus": "voice",
       "off": 0,
       "dur": 1650,
-      "vol": 0.95,
+      "vol": 0.8,
       "fadeIn": 60,
       "fadeOut": 200,
-      "fx": "ai-mech"
-    },
-    {
-      "t": 11904,
-      "slot": "line-1",
-      "bus": "voice",
-      "off": 1664,
-      "dur": 1823,
-      "vol": 0.95,
-      "fadeIn": 40,
-      "fadeOut": 120,
-      "fx": "ai-mech"
-    },
-    {
-      "t": 15625,
-      "slot": "line-1",
-      "bus": "voice",
-      "off": 3470,
-      "dur": 2612,
-      "vol": 0.95,
-      "fadeIn": 40,
-      "fadeOut": 200,
-      "fx": "ai-mech"
+      "fx": "robot"
     },
     {
       "t": 23025,
@@ -117,7 +95,8 @@
       "dur": 700,
       "vol": 1,
       "fadeIn": 40,
-      "fadeOut": 120
+      "fadeOut": 120,
+      "fx": "robot"
     },
     {
       "t": 24662,
@@ -126,16 +105,18 @@
       "off": 14230,
       "dur": 580,
       "vol": 1,
-      "fadeIn": 40,
-      "fadeOut": 200
+      "fadeIn": 0,
+      "fadeOut": 0,
+      "fx": "robot"
     },
     {
-      "t": 4900,
+      "t": 3522,
       "slot": "line-4",
       "bus": "sfx",
       "off": 0,
-      "dur": 120,
-      "vol": 0.35
+      "dur": 100,
+      "vol": 0.35,
+      "fx": "none"
     },
     {
       "t": 20225,
@@ -161,6 +142,59 @@
       "off": 0,
       "dur": 200,
       "vol": 0.35
+    },
+    {
+      "t": 119,
+      "slot": "line-3",
+      "bus": "sfx",
+      "dur": 0,
+      "vol": 0.5
+    },
+    {
+      "t": 1816,
+      "slot": "line-10",
+      "bus": "sfx",
+      "dur": 0,
+      "vol": 0.5,
+      "fx": "ai-mech"
+    },
+    {
+      "t": 4050,
+      "slot": "line-11",
+      "bus": "sfx",
+      "dur": 0,
+      "vol": 0.5
+    },
+    {
+      "t": 7245,
+      "slot": "line-6",
+      "bus": "sfx",
+      "dur": 0,
+      "vol": 0.5
+    },
+    {
+      "t": 18018,
+      "slot": "line-11",
+      "bus": "sfx",
+      "dur": 0,
+      "vol": 0.5
+    },
+    {
+      "t": 9208,
+      "slot": "line-6",
+      "bus": "sfx",
+      "dur": 0,
+      "vol": 0.5,
+      "fx": "radio"
+    },
+    {
+      "t": 10982,
+      "slot": "line-1",
+      "bus": "voice",
+      "dur": 8308,
+      "vol": 0.5,
+      "fx": "robot",
+      "off": 1691
     }
   ],
   "layers": [
@@ -180,16 +214,16 @@
           "opacity": 0.42,
           "assemble": 0,
           "outline": 0,
-          "offsetX": 0,
-          "offsetY": 0
+          "offsetX": 631,
+          "offsetY": 19
         },
         {
           "t": 7840,
           "opacity": 0.42,
           "assemble": 0,
           "outline": 0,
-          "offsetX": 0,
-          "offsetY": 0
+          "offsetX": 631,
+          "offsetY": 19
         }
       ],
       "dotsFile": "bgchars-dots.json"
@@ -1202,26 +1236,30 @@
         {
           "t": 11250,
           "opacity": 0,
-          "offsetX": 135,
-          "offsetY": 135
+          "offsetX": 170,
+          "offsetY": -100,
+          "scale": 0.35
         },
         {
           "t": 12000,
           "opacity": 1,
-          "offsetX": 135,
-          "offsetY": 135
+          "offsetX": 170,
+          "offsetY": -100,
+          "scale": 0.35
         },
         {
           "t": 18360,
           "opacity": 1,
-          "offsetX": 135,
-          "offsetY": 135
+          "offsetX": 170,
+          "offsetY": -100,
+          "scale": 0.35
         },
         {
           "t": 19000,
           "opacity": 0,
-          "offsetX": 135,
-          "offsetY": 135
+          "scale": 0.35,
+          "offsetY": -100,
+          "offsetX": 170
         }
       ],
       "src": "fake-qr.png",
