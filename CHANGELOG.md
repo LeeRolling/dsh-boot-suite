@@ -7,6 +7,20 @@
 
 ---
 
+## [2.8.2] — 2026-10-21
+
+### 新增
+
+- **`诊断.cmd`**：一键收集 DSH 安装目录/版本、profile 依赖与 bundles、node_modules 链接、
+  插件配置、用户模板目录、残留解压目录，输出到桌面 `dsh诊断-时间.txt`，方便用户反馈。
+
+### 修复
+
+- **卸载不彻底**：卸载脚本现在同时处理 `desktop` 和 `web` 两个 profile，
+  并从 dependencies、bundles、node_modules 三处清理 `dsh-boot-suite` / `dsh-startup-screen` / `dsh-chat-wallpaper`。
+- 卸载脚本在客户端未完全退出时给出明确提示（以前可能一闪而过让人以为卸载成功）。
+---
+
 ## [2.8.1] — 2026-10-20
 
 ### 修复

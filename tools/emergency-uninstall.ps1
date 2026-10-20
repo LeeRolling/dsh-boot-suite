@@ -1,85 +1,93 @@
 ﻿#Requires -Version 5.1
 <#
-  dsh-boot-suite —— 急救：把插件从 desktop profile 里彻底卸掉
-
-  什么时候用：开机黑屏、动画卡死、界面点不动，你想先让客户端恢复正常。
-  用法：
-    1) 用任务管理器结束全部 "DeepSeek Harness" 进程
-    2) 右键 tools\emergency-uninstall.cmd → 运行（或 powershell -File 本文件）
-    3) 重新打开桌面端，就是没有开机动画的干净界面
-
-  只做减法：卸载插件 + 从 bundles 列表里去掉它，不碰你的配置和素材。
+  dsh-boot-suite —— 彻底卸载（急救）
+  会处理 desktop 和 web 两个 profile，清掉：
+    · dsh-boot-suite 依赖与 node_modules 链接
+    · bundles 列表里的 dsh-boot-suite / dsh-startup-screen / dsh-chat-wallpaper
+    · 残留的旧插件链接
+  用法：先完全退出桌面端（托盘也退），再双击「卸载.cmd」。
 #>
 [CmdletBinding()]
-param([string]$Profile = 'desktop')
+param([string[]]$Profiles)
 
 $ErrorActionPreference = 'Stop'
 function Say($m) { Write-Host $m }
 function Die($m) { Write-Host ('[x] ' + $m) -ForegroundColor Red; exit 1 }
 
-function Get-NodeExe {
-  $c = Get-Command node -ErrorAction SilentlyContinue
-  if ($c) { return $c.Source }
-  Die 'PATH 里找不到 node'
-}
-
-# pnpm：优先 PATH，其次 DSH 自带（在安装目录 runtime 下）
-function Get-PnpmCjs {
-  $c = Get-Command pnpm -ErrorAction SilentlyContinue
-  if ($c) { return @{ node = Get-NodeExe; pnpm = $c.Source } }
-  $roots = @(
-    (Join-Path $env:LOCALAPPDATA 'Programs\DeepSeek Harness'),
-    (Join-Path ([Environment]::GetEnvironmentVariable('ProgramFiles')) 'DeepSeek Harness'),
-    (Join-Path ([Environment]::GetEnvironmentVariable('ProgramFiles(x86)')) 'DeepSeek Harness')
-  )
-  foreach ($r in $roots) {
-    if (-not $r -or -not (Test-Path $r)) { continue }
-    $hit = Get-ChildItem $r -Recurse -Filter 'pnpm.cjs' -ErrorAction SilentlyContinue |
-      Where-Object { $_.FullName -match 'pnpm\\bin\\pnpm\.cjs$' } | Select-Object -First 1
-    if ($hit) { return @{ node = Get-NodeExe; pnpm = $hit.FullName } }
-  }
-  Die '找不到 pnpm（PATH 和 DeepSeek Harness 安装目录里都没有）'
-}
-
 $profilesRoot = Join-Path $env:USERPROFILE '.dsh\profiles'
-$ProfileDir = Join-Path $profilesRoot $Profile
-$pj = Join-Path $ProfileDir 'package.json'
-if (-not (Test-Path $pj)) { Die ('找不到 profile：' + $ProfileDir) }
+if (-not (Test-Path $profilesRoot)) { Die '找不到 profile 目录，可能还没装过 DeepSeek Harness。' }
 
 $running = @(Get-Process -Name 'DeepSeek Harness' -ErrorAction SilentlyContinue)
 if ($running.Count -gt 0) {
-  Die ('桌面端还在运行（' + $running.Count + ' 个进程）。先用任务管理器结束它，再运行本脚本。')
+  Die ('桌面端还在运行（' + $running.Count + ' 个进程）。请先在任务管理器结束全部 DeepSeek Harness，再从托盘确认已退出。')
 }
 
-$pm = Get-PnpmCjs
+$targets = @()
+if ($Profiles) {
+  foreach ($p in $Profiles) { if (Test-Path (Join-Path $profilesRoot $p)) { $targets += $p } }
+} else {
+  foreach ($p in @('desktop', 'web')) { if (Test-Path (Join-Path $profilesRoot $p)) { $targets += $p } }
+}
+if ($targets.Count -eq 0) { Die '没有找到 desktop / web profile。' }
+
+$pluginNames = @('dsh-boot-suite', 'dsh-startup-screen', 'dsh-chat-wallpaper')
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$bk = Join-Path $ProfileDir ('_backup-emergency-' + $stamp)
-New-Item -ItemType Directory -Force -Path $bk | Out-Null
-Copy-Item $pj (Join-Path $bk 'package.json') -Force
-Say ('[1/3] 已备份 profile 配置 → ' + $bk)
 
-Say '[2/3] 卸载 dsh-boot-suite …'
-& $pm.node $pm.pnpm remove --dir $ProfileDir dsh-boot-suite 2>&1 | ForEach-Object { '    ' + $_ }
+foreach ($profile in $targets) {
+  $dir = Join-Path $profilesRoot $profile
+  $pj = Join-Path $dir 'package.json'
+  Say ''
+  Say ('=== profile: ' + $profile + ' ===')
+  if (-not (Test-Path $pj)) { Say '  （没有 package.json，跳过）'; continue }
 
-Say '[3/3] 清理 bundles 列表与残留链接 …'
-$pkg = [System.IO.File]::ReadAllText($pj) | ConvertFrom-Json
-if ($pkg.dsh -and $pkg.dsh.profile) {
-  $keep = @()
-  foreach ($b in @($pkg.dsh.profile.bundles)) {
-    if ($b -in @('dsh-boot-suite', 'dsh-startup-screen', 'dsh-chat-wallpaper')) { continue }
-    $keep += $b
+  $bk = Join-Path $dir ('_backup-uninstall-' + $stamp)
+  New-Item -ItemType Directory -Force -Path $bk | Out-Null
+  Copy-Item $pj (Join-Path $bk 'package.json') -Force
+  Say ('  备份 → ' + $bk)
+
+  # 1) 从 dependencies 删掉（直接改 JSON，不依赖 pnpm/npm 是否可用）
+  $pkg = [System.IO.File]::ReadAllText($pj) | ConvertFrom-Json
+  $removed = @()
+  if ($pkg.dependencies) {
+    foreach ($name in $pluginNames) {
+      if ($pkg.dependencies.PSObject.Properties[$name]) {
+        $pkg.dependencies.PSObject.Properties.Remove($name)
+        $removed += $name
+      }
+    }
   }
-  $pkg.dsh.profile.bundles = $keep
-  [System.IO.File]::WriteAllText($pj, ($pkg | ConvertTo-Json -Depth 20), (New-Object System.Text.UTF8Encoding($false)))
-  Say ('    bundles = ' + ($keep -join ', '))
-}
 
-$inst = Join-Path $ProfileDir 'node_modules\dsh-boot-suite'
-if (Test-Path $inst) {
-  $item = Get-Item $inst -Force
-  if ($item.LinkType) { cmd /c rmdir "$inst" | Out-Null } else { Remove-Item $inst -Recurse -Force -ErrorAction SilentlyContinue }
-  Say '    已清掉 node_modules\dsh-boot-suite'
+  # 2) bundles 列表清理
+  $keep = @()
+  if ($pkg.dsh -and $pkg.dsh.profile -and $pkg.dsh.profile.bundles) {
+    foreach ($b in @($pkg.dsh.profile.bundles)) {
+      if ($b -in $pluginNames) { continue }
+      $keep += $b
+    }
+    $pkg.dsh.profile.bundles = $keep
+  }
+  [System.IO.File]::WriteAllText($pj, ($pkg | ConvertTo-Json -Depth 20), (New-Object System.Text.UTF8Encoding($false)))
+  Say ('  依赖已移除：' + (($removed -join ', ') -replace '^$', '（本来就没有）'))
+  Say ('  bundles = ' + (($keep -join ', ') -replace '^$', '（空）'))
+
+  # 3) 删 node_modules 里的链接/目录
+  $nm = Join-Path $dir 'node_modules'
+  if (Test-Path $nm) {
+    foreach ($name in $pluginNames + @('dsh-boot-suite-link')) {
+      $inst = Join-Path $nm $name
+      if (-not (Test-Path $inst)) { continue }
+      $item = Get-Item $inst -Force
+      try {
+        if ($item.LinkType) { cmd /c rmdir "$inst" | Out-Null }
+        else { Remove-Item $inst -Recurse -Force -ErrorAction SilentlyContinue }
+        Say ('  已删除 node_modules\' + $name)
+      } catch { Say ('  [!] 删除失败：' + $inst) }
+    }
+  }
+  # 4) 残留 lockfile 备份，不删
 }
 
 Say ''
-Say '完成 —— 重新打开桌面端，就是没有开机动画的干净界面。'
+Say '完成。请重新打开 DeepSeek Harness，确认界面恢复且没有开机动画。'
+Say '如果仍有动画：说明还有第二份安装（另一个 profile 或另一个插件目录），'
+Say '请双击「诊断.cmd」生成报告发给作者。'
