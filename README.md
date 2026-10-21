@@ -44,7 +44,7 @@ DeepSeek Harness（DSH）冷启动时会先播六幕动画，播完进聊天，�
 打开 PowerShell，粘贴这一行：
 
 ~~~powershell
-irm https://raw.githubusercontent.com/LeeRolling/dsh-boot-suite/main/安装-在线.ps1 | iex
+irm https://raw.githubusercontent.com/LeeRolling/dsh-boot-suite/main/install-online.ps1 | iex
 ~~~
 
 或者直接下载最新版压缩包：
