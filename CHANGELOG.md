@@ -7,6 +7,18 @@
 
 ---
 
+## [2.8.3] — 2026-10-21
+
+### 修复
+
+- **新版 DSH 禁止命令行管理 desktop profile**（error: profile "desktop" is managed exclusively by the Electron application）：
+  - CLI 查找优先用 DSH 安装目录里的官方 dsh.cmd，跳过 PATH 里的第三方包装脚本（如 ai-manager 的 dsh.ps1）
+  - 卸载旧插件被拒绝时自动改为手动清理（dependencies / bundles / node_modules）
+  - 安装被拒绝时自动改为手动安装（改 profile 依赖 + 目录联接），不再直接失败
+- 同时兼容旧版允许 CLI 管理 profile 的 DSH
+
+---
+
 ## [2.8.2] — 2026-10-21
 
 ### 新增

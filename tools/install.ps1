@@ -36,8 +36,17 @@ if ($CheckOnly) { Say '[检查模式] 只报告计划，不修改任何东西' }
 
 # ── 1. 找 DSH 命令行 ────────────────────────────────────────────────────────
 function Find-DshCli {
+  # 优先 DSH 安装目录里的官方 CLI（跳过 PATH 里的第三方包装脚本，如 ai-manager 的 dsh.ps1）
+  $official = @(
+    (Join-Path $env:LOCALAPPDATA 'Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd'),
+    (Join-Path ([Environment]::GetEnvironmentVariable('ProgramFiles')) 'DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd'),
+    (Join-Path ([Environment]::GetEnvironmentVariable('ProgramFiles(x86)')) 'DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd')
+  )
+  foreach ($op in $official) { if ($op -and (Test-Path $op)) { return $op } }
   $c = Get-Command dsh -ErrorAction SilentlyContinue
-  if ($c -and $c.Source) { return $c.Source }
+  if ($c -and $c.Source) {
+    if ($c.Source -match '\.ai-manager') { $c = $null } else { return $c.Source }
+  }
 
   # 桌面端可能装在任意目录：命令行 / 常见位置 / 注册表 / 正在运行的进程 / 有界递归
   $candidates = New-Object System.Collections.Generic.List[string]
@@ -139,6 +148,24 @@ function Fix-Bundles([string]$profileDir) {
   [System.IO.File]::WriteAllText($pj, ($pkg | ConvertTo-Json -Depth 20), (New-Object System.Text.UTF8Encoding($false)))
 }
 
+function Remove-Manual([string]$profileDir, [string]$name) {
+  $pj = Join-Path $profileDir 'package.json'
+  if (-not (Test-Path $pj)) { return }
+  $pkg = [System.IO.File]::ReadAllText($pj) | ConvertFrom-Json
+  if ($pkg.dependencies) { $pkg.dependencies.PSObject.Properties.Remove($name) }
+  if ($pkg.dsh -and $pkg.dsh.profile -and $pkg.dsh.profile.bundles) {
+    $keep = @()
+    foreach ($b in @($pkg.dsh.profile.bundles)) { if ($b -ne $name) { $keep += $b } }
+    $pkg.dsh.profile.bundles = $keep
+  }
+  [System.IO.File]::WriteAllText($pj, ($pkg | ConvertTo-Json -Depth 20), (New-Object System.Text.UTF8Encoding($false)))
+  $inst = Join-Path $profileDir ('node_modules' + [char]92 + $name)
+  if (Test-Path $inst) {
+    $item = Get-Item $inst -Force
+    if ($item.LinkType) { cmd /c rmdir "$inst" | Out-Null } else { Remove-Item $inst -Recurse -Force -ErrorAction SilentlyContinue }
+  }
+}
+
 function Install-Manual([string]$profileDir) {
   $pj = Join-Path $profileDir 'package.json'
   $pkgObj = [System.IO.File]::ReadAllText($pj) | ConvertFrom-Json
@@ -189,7 +216,13 @@ foreach ($profile in $targets) {
     Say ('        卸载旧插件 ' + $old + ' …')
     $eapOld = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
-    try { & $dsh plugin --profile $profile remove $old 2>&1 | ForEach-Object { '        ' + $_ } } catch { Say ('        卸载失败（继续安装）：' + $_.Exception.Message) }
+    $outRm = ''
+    try { $outRm = (& $dsh plugin --profile $profile remove $old 2>&1 | Out-String) } catch { $outRm = $_.Exception.Message }
+    if ($outRm.Trim()) { $outRm.Trim().Split([char]10) | ForEach-Object { '        ' + $_ } }
+    if ($outRm -match 'managed exclusively' -or $outRm -match 'not installed' -or $outRm -match '未安装') {
+      Remove-Manual $profileDir $old
+      Say '        已改为手动清理（命令行不允许管理 desktop profile）'
+    }
     $ErrorActionPreference = $eapOld
   }
 
@@ -199,9 +232,16 @@ foreach ($profile in $targets) {
   } else {
     $eapAdd = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
-    & $dsh plugin --profile $profile add $spec 2>&1 | ForEach-Object { '        ' + $_ }
+    $outAdd = ''
+    try { $outAdd = (& $dsh plugin --profile $profile add $spec 2>&1 | Out-String) } catch { $outAdd = $_.Exception.Message }
+    if ($outAdd.Trim()) { $outAdd.Trim().Split([char]10) | ForEach-Object { '        ' + $_ } }
     $addExit = $LASTEXITCODE
     $ErrorActionPreference = $eapAdd
+    if ($addExit -ne 0 -or $outAdd -match 'managed exclusively') {
+      Say '  [2/3] 命令行被拒绝（desktop profile 仅允许客户端管理），改用「手动安装」…'
+      Install-Manual $profileDir
+      if (Test-Path (Join-Path $profileDir 'node_modules\dsh-boot-suite')) { $addExit = 0 } else { $addExit = 1 }
+    }
   }
   if (-not $ManualMode -and $addExit -ne 0) {
     Say '  [x] 安装失败，正在回滚 profile 配置'
