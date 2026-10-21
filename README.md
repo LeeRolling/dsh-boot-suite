@@ -197,13 +197,16 @@ MIT（只覆盖作者原创代码与文案）。
 模板 JSON 里的 `author` 字段如实标注原作者，`adaptedBy` 标注改版者。
 ## 参考动画与致谢（原版都不是本项目所作）
 
-本项目的片头参考、复刻与描线研究，来源于以下公开作品：
+本项目参考、学习、复刻了以下三个公开作品，版权均归原作者：
 
-| 参考 | 原作者 | 地址 |
-|---|---|---|
-| 550C 启动动画（第一幕参考 / `550c-homage` 复刻对象） | @yannicksong0106 | https://github.com/yannicksong0106/dsh-550c-boot |
-| 龙娘启动动画（描线动画研究参考） | @mytjxs | https://github.com/mytjxs/codex-startup-animation |
-| 更早的启动动画原版（第一套开机动画来源） | @6shenhonghong9 | https://github.com/6shenhonghong9/dsh-startup-screen |
+| # | 动画 | 原作者 | 地址 |
+|---|---|---|---|
+| 1 | **最早的启动动画**（第一幕参考，带空格/回车交互的那支） | **沈宏宏**（@6shenhonghong9） | https://github.com/6shenhonghong9/dsh-startup-screen |
+| 2 | **龙娘启动动画**（线描动画研究参考） | @mytjxs | https://github.com/mytjxs/codex-startup-animation |
+| 3 | **550C 启动动画**（学习复刻对象，对应 `550c-homage`） | @yannicksong0106 | https://github.com/yannicksong0106/dsh-550c-boot |
+
+我们只做**形式参考与工程复刻**，不复用原作者素材；
+如果你喜欢这些动画，请去原仓库给作者点 star。
 
 以上作品版权归原作者所有。本项目只做**形式参考与工程复刻**，不复用其素材；
 如果你喜欢这些动画，请去原仓库给作者点 star。
