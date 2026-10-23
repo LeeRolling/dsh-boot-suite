@@ -7,6 +7,23 @@
 
 ---
 
+## [2.9.0] — 2026-10-24
+
+### 默认集成（装完即有）
+
+- 默认模板改为 dsh-intro-full：片头 → 扫描登录 → 欢迎回来，三幕连续，含配音与音效
+- 聊天壁纸自带默认视频 lib/assets/wallpaper-default.mp4（代码生成抽象渐变，约 60 KB）
+- 语音素材随包内置（lib/assets/line-1..6.mp3 + 界面音效），默认直接播
+
+### 鸣谢（设置页新增鸣谢区，README/CREDITS 同步）
+
+- 片头动画参考：沈宏宏（@6shenhonghong9） https://github.com/6shenhonghong9/dsh-startup-screen
+- 扫描动画参考：@mytjxs https://github.com/mytjxs/codex-startup-animation
+- 配音：DeepSeek
+- 550C 复刻模板保留为可选，不进入默认播放
+
+---
+
 ## [2.8.3] — 2026-10-21
 
 ### 修复
