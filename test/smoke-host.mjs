@@ -257,8 +257,8 @@ check('同一行表被重复通知时仍只注入一次',
   String(duplicateDeliveryRows.length))
 check('行表里有 style 行（首帧黑幕）', rows.some((r) => r.kind === 'style' && r.text.includes('#dsh-startup-root.dsu-boot')))
 check('行表里有 splash.css 的 head 行', rows.some((r) => r.kind === 'html' && r.placement === 'head' && r.html.includes('/dsh-startup/splash.css')))
-check('行表里有三个 global 行（BOOT / VERSION / 配置）',
-  rows.filter((r) => r.kind === 'global').length === 3 &&
+check('行表里有四个 global 行（BOOT / VERSION / 配置 / 模板）',
+  rows.filter((r) => r.kind === 'global').length === 4 &&
   rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_BOOT__' && r.value === 'index') &&
   rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_VERSION__') &&
   rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP__') &&
