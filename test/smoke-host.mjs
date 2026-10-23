@@ -248,11 +248,11 @@ function inlinePayload(html) {
 console.log('\n[6] index.html 注入：结构化注入行（源: ' + REAL_INDEX.path + '）')
 const before = REAL_INDEX.html
 const rows = collectRows()
-check('发出了注入行（9 条）', rows.length === 9, String(rows.length))
+check('发出了注入行（10 条：默认模板多一条 TEMPLATE 行）', rows.length === 10, String(rows.length))
 const duplicateDeliveryRows = []
 for (const fn of INJECT_LISTENERS) { fn(duplicateDeliveryRows); fn(duplicateDeliveryRows) }
 check('同一行表被重复通知时仍只注入一次',
-  duplicateDeliveryRows.length === 9 &&
+  duplicateDeliveryRows.length === 10 &&
   duplicateDeliveryRows.filter((r) => r.kind === 'html' && r.html.includes('dsh-startup-root')).length === 1,
   String(duplicateDeliveryRows.length))
 check('行表里有 style 行（首帧黑幕）', rows.some((r) => r.kind === 'style' && r.text.includes('#dsh-startup-root.dsu-boot')))
@@ -261,7 +261,8 @@ check('行表里有三个 global 行（BOOT / VERSION / 配置）',
   rows.filter((r) => r.kind === 'global').length === 3 &&
   rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_BOOT__' && r.value === 'index') &&
   rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_VERSION__') &&
-  rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP__'))
+  rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP__') &&
+  rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_TEMPLATE__'))
 check('行表里有挂载点 / 兜底脚本 / 运行时脚本',
   rows.some((r) => r.kind === 'html' && r.html.includes('<div id="dsh-startup-root" class="dsu-root dsu-boot">')) &&
   rows.some((r) => r.kind === 'script' && r.text.includes('__DSH_STARTUP_SKIP__')) &&
