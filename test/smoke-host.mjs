@@ -248,21 +248,22 @@ function inlinePayload(html) {
 console.log('\n[6] index.html 注入：结构化注入行（源: ' + REAL_INDEX.path + '）')
 const before = REAL_INDEX.html
 const rows = collectRows()
-check('发出了注入行（10 条：默认模板多一条 TEMPLATE 行）', rows.length === 10, String(rows.length))
+check('发出了注入行（11 条：默认模板多一条 TEMPLATE 行）', rows.length === 11, String(rows.length))
 const duplicateDeliveryRows = []
 for (const fn of INJECT_LISTENERS) { fn(duplicateDeliveryRows); fn(duplicateDeliveryRows) }
 check('同一行表被重复通知时仍只注入一次',
-  duplicateDeliveryRows.length === 10 &&
+  duplicateDeliveryRows.length === 11 &&
   duplicateDeliveryRows.filter((r) => r.kind === 'html' && r.html.includes('dsh-startup-root')).length === 1,
   String(duplicateDeliveryRows.length))
 check('行表里有 style 行（首帧黑幕）', rows.some((r) => r.kind === 'style' && r.text.includes('#dsh-startup-root.dsu-boot')))
 check('行表里有 splash.css 的 head 行', rows.some((r) => r.kind === 'html' && r.placement === 'head' && r.html.includes('/dsh-startup/splash.css')))
-check('行表里有四个 global 行（BOOT / VERSION / 配置 / 模板）',
-  rows.filter((r) => r.kind === 'global').length === 4 &&
+check('行表里有五个 global 行（BOOT / VERSION / 配置 / 第一幕 / 第二幕）',
+  rows.filter((r) => r.kind === 'global').length === 5 &&
   rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_BOOT__' && r.value === 'index') &&
   rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_VERSION__') &&
   rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP__') &&
-  rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_TEMPLATE__'))
+  rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_TEMPLATE__') &&
+  rows.some((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_TEMPLATE2__'))
 check('行表里有挂载点 / 兜底脚本 / 运行时脚本',
   rows.some((r) => r.kind === 'html' && r.html.includes('<div id="dsh-startup-root" class="dsu-root dsu-boot">')) &&
   rows.some((r) => r.kind === 'script' && r.text.includes('__DSH_STARTUP_SKIP__')) &&
@@ -293,7 +294,7 @@ await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { templa
 {
   const rowsWithTpl = collectRows()
   const tplRow = rowsWithTpl.find((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_TEMPLATE__')
-  check('选了模板时多一行 __DSH_STARTUP_TEMPLATE__（9 → 10）', rowsWithTpl.length === 10, String(rowsWithTpl.length))
+  check('选了模板时多一行 __DSH_STARTUP_TEMPLATE__（默认两幕共 11 行）', rowsWithTpl.length === 11, String(rowsWithTpl.length))
   check('模板行带 id（来自插件自带 templates/）', !!tplRow && tplRow.value.id === 'archive-warm', tplRow && tplRow.value.id)
 }
 {
@@ -310,9 +311,9 @@ await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { templa
   check('模板列表带 active 字段', typeof list.active === 'string')
 }
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: '../etc/passwd' } }))
-check('非法的模板 id 被忽略（不读文件、不多行）', collectRows().length === 9)
+check('非法的模板 id 被忽略（不读文件、不多行）', collectRows().length === 10)
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: 'no-such-template' } }))
-check('模板不存在时回落内置（不报错、不多行）', collectRows().length === 9)
+check('模板不存在时回落内置（不报错、不多行）', collectRows().length === 10)
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: '' } }))
 
 console.log('\n[6c] 编辑器：模板读写')
