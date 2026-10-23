@@ -1,0 +1,1212 @@
+{
+  "schemaVersion": 2,
+  "id": "dsh-intro-welcome",
+  "name": "只播片头（WELCOME 收束）",
+  "version": "0.1.0",
+  "description": "第一幕片头，结尾 WELCOME TO DEEPSEEK HARNESS，然后直接进入 DSH 对话窗口。",
+  "tags": [
+    "intro",
+    "full"
+  ],
+  "duration": 9200,
+  "theme": {
+    "mode": "dark",
+    "bg": "#04070D",
+    "bg2": "#081226",
+    "ink": "#F4F8FF",
+    "inkSoft": "#9DB8DE",
+    "muted": "#4E6484",
+    "hair": "rgba(114,162,234,0.22)",
+    "accent": "#72A2EA"
+  },
+  "segments": [
+    {
+      "name": "第一幕 · 片头",
+      "from": 0,
+      "to": 8000
+    },
+    {
+      "name": "欢迎页",
+      "from": 8000,
+      "to": 9200
+    }
+  ],
+  "assets": {
+    "line-1": "voice-main.wav",
+    "line-2": "sfx-tick.mp3",
+    "line-3": "sfx-run.mp3",
+    "line-4": "sfx-click.wav",
+    "line-5": "sfx-switch.wav",
+    "line-6": "sfx-thump.wav",
+    "line-7": "sfx-hum.wav",
+    "line-8": "sfx-progress.wav",
+    "line-9": "sfx-beep.wav",
+    "line-10": "sfx-data.wav",
+    "line-11": "sfx-dong.wav",
+    "line-12": "sfx-clack.wav",
+    "line-13": "sfx-sweep-up.wav",
+    "line-14": "sfx-sweep-down.wav"
+  },
+  "assetNames": {
+    "line-8": "载入嘟声",
+    "line-9": "电子哔",
+    "line-10": "数据滋啦",
+    "line-11": "低频咚",
+    "line-12": "机械咔哒",
+    "line-13": "上升扫频",
+    "line-14": "下降扫频"
+  },
+  "audioBuses": {
+    "voice": {
+      "vol": 1,
+      "mute": false
+    },
+    "sfx": {
+      "vol": 0.6,
+      "mute": false
+    },
+    "amb": {
+      "vol": 0.35,
+      "mute": false
+    }
+  },
+  "audio": [
+    {
+      "t": 4918,
+      "slot": "line-1",
+      "bus": "voice",
+      "off": 0,
+      "dur": 1650,
+      "vol": 0.8,
+      "fadeIn": 60,
+      "fadeOut": 200,
+      "fx": "robot"
+    },
+    {
+      "t": 3522,
+      "slot": "line-4",
+      "bus": "sfx",
+      "off": 0,
+      "dur": 100,
+      "vol": 0.35,
+      "fx": "none"
+    },
+    {
+      "t": 119,
+      "slot": "line-3",
+      "bus": "sfx",
+      "dur": 0,
+      "vol": 0.5
+    },
+    {
+      "t": 1816,
+      "slot": "line-10",
+      "bus": "sfx",
+      "dur": 0,
+      "vol": 0.5,
+      "fx": "ai-mech"
+    },
+    {
+      "t": 4050,
+      "slot": "line-11",
+      "bus": "sfx",
+      "dur": 0,
+      "vol": 0.5
+    },
+    {
+      "t": 7245,
+      "slot": "line-6",
+      "bus": "sfx",
+      "dur": 0,
+      "vol": 0.5
+    }
+  ],
+  "layers": [
+    {
+      "id": "bgchars",
+      "type": "chars",
+      "logoSize": 400,
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#72A2EA",
+      "spinMs": 30000,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0.42,
+          "assemble": 0,
+          "outline": 0,
+          "offsetX": 631,
+          "offsetY": 19
+        },
+        {
+          "t": 7840,
+          "opacity": 0.42,
+          "assemble": 0,
+          "outline": 0,
+          "offsetX": 631,
+          "offsetY": 19
+        }
+      ],
+      "dotsFile": "bgchars-dots.json"
+    },
+    {
+      "id": "whale",
+      "type": "logo",
+      "shape": "whale",
+      "logoSize": 96,
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 240,
+          "draw": 0,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 14,
+          "scale": 1.5
+        },
+        {
+          "t": 1600,
+          "draw": 1,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 14,
+          "ease": "outCubic",
+          "scale": 1.5
+        },
+        {
+          "t": 2320,
+          "draw": 1,
+          "opacity": 1,
+          "offsetX": -255,
+          "offsetY": 14,
+          "ease": "inCubic",
+          "scale": 1.5
+        },
+        {
+          "t": 7300,
+          "draw": 1,
+          "opacity": 1,
+          "offsetX": -255,
+          "offsetY": 14,
+          "scale": 1.5
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "text": "DS 深度求索",
+      "pos": [
+        640,
+        360
+      ],
+      "font": {
+        "size": 40,
+        "weight": 500,
+        "tracking": 0.26
+      },
+      "keyframes": [
+        {
+          "t": 1920,
+          "opacity": 0,
+          "offsetX": 100,
+          "offsetY": 0,
+          "wipe": 1,
+          "scale": 1.5
+        },
+        {
+          "t": 2640,
+          "opacity": 1,
+          "offsetX": 100,
+          "offsetY": 0,
+          "ease": "outCubic",
+          "scale": 1.5
+        },
+        {
+          "t": 7300,
+          "opacity": 1,
+          "offsetX": 100,
+          "offsetY": 0,
+          "scale": 1.5
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ],
+      "align": "center"
+    },
+    {
+      "id": "sub",
+      "type": "text",
+      "text": "DeepSeek Artificial Intelligence Research",
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#9DB8DE",
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "keyframes": [
+        {
+          "t": 2320,
+          "opacity": 0,
+          "offsetX": 100,
+          "offsetY": 25,
+          "scale": 1.5
+        },
+        {
+          "t": 2880,
+          "opacity": 1,
+          "offsetX": 100,
+          "offsetY": 60,
+          "ease": "outCubic",
+          "scale": 1.5
+        },
+        {
+          "t": 7300,
+          "opacity": 1,
+          "offsetX": 100,
+          "offsetY": 60,
+          "scale": 1.5
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ],
+      "align": "center"
+    },
+    {
+      "id": "loading",
+      "type": "text",
+      "text": "正在载入中",
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#9DB8DE",
+      "font": {
+        "size": 14,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "keyframes": [
+        {
+          "t": 3440,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 3760,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 4720,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 4832,
+          "opacity": 0.15,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 4928,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 5024,
+          "opacity": 0.15,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 5120,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 5280,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 5400,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 220
+        },
+        {
+          "t": 5760,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "bar",
+      "type": "progress",
+      "pos": [
+        640,
+        360
+      ],
+      "barW": 420,
+      "barH": 3,
+      "barColor": "#72A2EA",
+      "keyframes": [
+        {
+          "t": 3440,
+          "opacity": 0,
+          "value": 0,
+          "offsetX": 0,
+          "offsetY": 240
+        },
+        {
+          "t": 3701,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 240
+        },
+        {
+          "t": 4880,
+          "opacity": 1,
+          "value": 1,
+          "offsetX": 0,
+          "offsetY": 240,
+          "ease": "inOutCubic"
+        },
+        {
+          "t": 5200,
+          "opacity": 0,
+          "value": 1,
+          "offsetX": 0,
+          "offsetY": 240
+        },
+        {
+          "t": 7300,
+          "opacity": 0,
+          "value": 1,
+          "offsetX": 0,
+          "offsetY": 240
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "cta",
+      "type": "text",
+      "text": "申请访问许可",
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#F4F8FF",
+      "font": {
+        "size": 12,
+        "weight": 500,
+        "tracking": 0.12
+      },
+      "keyframes": [
+        {
+          "t": 6050,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 240
+        },
+        {
+          "t": 6600,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 240,
+          "ease": "outCubic"
+        },
+        {
+          "t": 7300,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 240
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ],
+      "box": true
+    },
+    {
+      "id": "ctaEn",
+      "type": "text",
+      "text": "REQUEST ACCESS PERMISSION",
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#72A2EA",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.24
+      },
+      "keyframes": [
+        {
+          "t": 4960,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 142
+        },
+        {
+          "t": 5200,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 142,
+          "ease": "outCubic"
+        },
+        {
+          "t": 7300,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 142
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "sphere",
+      "type": "chars",
+      "logoSize": 165,
+      "pos": [
+        640,
+        360
+      ],
+      "color": "#F4F8FF",
+      "spinMs": 24000,
+      "formText": "WELCOME BACK",
+      "keyframes": [
+        {
+          "t": 7320,
+          "opacity": 0,
+          "assemble": 1,
+          "form": 0,
+          "outline": 1,
+          "offsetX": 0,
+          "offsetY": -232,
+          "globeScale": 1
+        },
+        {
+          "t": 7850,
+          "opacity": 1,
+          "assemble": 1,
+          "form": 0,
+          "outline": 1,
+          "offsetX": 0,
+          "offsetY": -232,
+          "globeScale": 1
+        }
+      ],
+      "dotsFile": "sphere-dots.json"
+    },
+    {
+      "id": "divider",
+      "type": "line",
+      "pos": [
+        640,
+        360
+      ],
+      "width": 96,
+      "color": "#72A2EA",
+      "rotate": 90,
+      "keyframes": [
+        {
+          "t": 2240,
+          "opacity": 0,
+          "reveal": 0,
+          "rotate": 90,
+          "offsetX": -100,
+          "offsetY": -35
+        },
+        {
+          "t": 2720,
+          "opacity": 1,
+          "reveal": 1,
+          "rotate": 90,
+          "offsetX": -100,
+          "offsetY": -35,
+          "ease": "outCubic"
+        },
+        {
+          "t": 7300,
+          "opacity": 1,
+          "reveal": 1,
+          "rotate": 90,
+          "offsetX": -100,
+          "offsetY": -35
+        },
+        {
+          "t": 7850,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "flashFull",
+      "type": "panel",
+      "pos": [
+        640,
+        360
+      ],
+      "panelW": 1400,
+      "panelH": 800,
+      "radius": 0,
+      "borderColor": "rgba(0,0,0,0)",
+      "fill": "rgba(244,248,255,1)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "cnTitle",
+      "type": "text",
+      "text": "欢迎回来",
+      "pos": [
+        640,
+        360
+      ],
+      "font": {
+        "size": 76,
+        "weight": 600,
+        "tracking": 0.3
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "cnSub",
+      "type": "text",
+      "text": "SECURE SESSION RESTORED",
+      "pos": [
+        640,
+        360
+      ],
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.42
+      },
+      "color": "#9DB8DE",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0
+        }
+      ]
+    },
+    {
+      "id": "cardHead",
+      "type": "text",
+      "text": "UEG  ACCESS  PERMIT",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 11,
+        "weight": 500,
+        "tracking": 0.32
+      },
+      "color": "#9DB8DE",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": -160
+        }
+      ]
+    },
+    {
+      "id": "cardHeadCn",
+      "type": "text",
+      "text": "身份许可",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 11,
+        "weight": 400,
+        "tracking": 0.22
+      },
+      "color": "rgba(157,184,222,.8)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": 120,
+          "offsetY": -160
+        }
+      ]
+    },
+    {
+      "id": "f1l",
+      "type": "text",
+      "text": "证件编号",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": -42
+        }
+      ]
+    },
+    {
+      "id": "f1v",
+      "type": "text",
+      "text": "UEG-550C-CD716F04",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": -26
+        }
+      ]
+    },
+    {
+      "id": "f2l",
+      "type": "text",
+      "text": "授权等级",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 6
+        }
+      ]
+    },
+    {
+      "id": "f2v",
+      "type": "text",
+      "text": "特级权限",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 22
+        }
+      ]
+    },
+    {
+      "id": "f3l",
+      "type": "text",
+      "text": "许可范围",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 54
+        }
+      ]
+    },
+    {
+      "id": "f3v",
+      "type": "text",
+      "text": "领航员空间站全域",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 70
+        }
+      ]
+    },
+    {
+      "id": "f4l",
+      "type": "text",
+      "text": "核验状态",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 102
+        }
+      ]
+    },
+    {
+      "id": "f4v",
+      "type": "text",
+      "text": "比对中…",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -166,
+          "offsetY": 118
+        }
+      ]
+    },
+    {
+      "id": "f5l",
+      "type": "text",
+      "text": "签发机构",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": -42
+        }
+      ]
+    },
+    {
+      "id": "f5v",
+      "type": "text",
+      "text": "地球联合政府UEG最高议会",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": -26
+        }
+      ]
+    },
+    {
+      "id": "f6l",
+      "type": "text",
+      "text": "有效期",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 6
+        }
+      ]
+    },
+    {
+      "id": "f6v",
+      "type": "text",
+      "text": "2030.10.14",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 22
+        }
+      ]
+    },
+    {
+      "id": "f7l",
+      "type": "text",
+      "text": "生物特征",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(157,184,222,.75)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 54
+        }
+      ]
+    },
+    {
+      "id": "f7v",
+      "type": "text",
+      "text": "DNA图谱已录入",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "left",
+      "font": {
+        "size": 13,
+        "weight": 500,
+        "tracking": 0.04
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetX": -20,
+          "offsetY": 70
+        }
+      ]
+    },
+    {
+      "id": "welcome-bg",
+      "type": "panel",
+      "pos": [
+        640,
+        360
+      ],
+      "panelW": 1280,
+      "panelH": 720,
+      "radius": 0,
+      "fill": "#04070D",
+      "borderColor": "rgba(0,0,0,0)",
+      "keyframes": [
+        {
+          "t": 7900,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "t": 8000,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "t": 9080,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        {
+          "t": 9200,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 0
+        }
+      ]
+    },
+    {
+      "id": "welcome-1",
+      "type": "text",
+      "text": "WELCOME TO",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "center",
+      "font": {
+        "size": 18,
+        "weight": 500,
+        "tracking": 0.34
+      },
+      "color": "#9DB8DE",
+      "keyframes": [
+        {
+          "t": 8000,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": -40
+        },
+        {
+          "t": 8150,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": -40
+        },
+        {
+          "t": 9080,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": -40
+        },
+        {
+          "t": 9160,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": -40
+        }
+      ]
+    },
+    {
+      "id": "welcome-2",
+      "type": "text",
+      "text": "DEEPSEEK HARNESS",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "center",
+      "font": {
+        "size": 54,
+        "weight": 600,
+        "tracking": 0.18
+      },
+      "color": "#F4F8FF",
+      "keyframes": [
+        {
+          "t": 8080,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 10,
+          "scale": 0.98
+        },
+        {
+          "t": 8320,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 10,
+          "scale": 1
+        },
+        {
+          "t": 9080,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 10
+        },
+        {
+          "t": 9160,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 10
+        }
+      ]
+    },
+    {
+      "id": "welcome-3",
+      "type": "text",
+      "text": "会话已建立",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "center",
+      "font": {
+        "size": 12,
+        "weight": 400,
+        "tracking": 0.3
+      },
+      "color": "#72A2EA",
+      "keyframes": [
+        {
+          "t": 8250,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 80
+        },
+        {
+          "t": 8500,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 80
+        },
+        {
+          "t": 9080,
+          "opacity": 1,
+          "offsetX": 0,
+          "offsetY": 80
+        },
+        {
+          "t": 9200,
+          "opacity": 0,
+          "offsetX": 0,
+          "offsetY": 80
+        }
+      ]
+    }
+  ],
+  "effects": [
+    {
+      "type": "readout",
+      "opacity": 0.5,
+      "from": 0,
+      "to": 26725
+    },
+    {
+      "type": "scanline",
+      "opacity": 0.15
+    },
+    {
+      "type": "vignette",
+      "opacity": 0.42
+    }
+  ],
+  "__file": "C:/Users/Admin/.dsh/startup-templates/dsh-intro-full/template.json",
+  "steps": [
+    {}
+  ]
+}
