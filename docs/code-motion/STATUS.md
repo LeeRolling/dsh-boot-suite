@@ -27,3 +27,11 @@
 - 字体未内置（Inter / Instrument Serif 缺失时回退）
 - 卡片 3D/受光、粒子密度与原片有差距
 - GitHub 推送偶尔超时，代码本地已提交
+
+## 2026-10-24 更新：圣经验证启动
+
+- 新命题：SIGNAL（12s），见 validation/SIGNAL-命题.md
+- 大肥鱼版已完成：out/signal-v1.mp4，代码归档 docs/code-templates/signal-v1/
+- 给 Claude 的验证提示词：validation/给Claude的验证提示词.md
+- 对比计划：validation/对比计划.md
+- 下一步：Claude 版出来后，按对比计划打分，产出规范 v0.2 增补
