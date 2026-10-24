@@ -1,4 +1,4 @@
-# 更新日志
+﻿# 更新日志
 
 本文件记录 DSH 开机动画（dsh-boot-suite）的所有版本变化。
 格式参考 Keep a Changelog，版本号遵循语义化版本。
