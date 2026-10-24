@@ -35,6 +35,15 @@ try {
   New-Item -ItemType Directory -Force -Path $pkg | Out-Null
   Log '解压新版本…'
   Expand-Archive -Path $Zip -DestinationPath $pkg -Force
+  /* 防止发布包里的 package.json 带 UTF-8 BOM（严格 JSON 解析会拒绝加载插件） */
+  $pkgJson = Join-Path $pkg 'package.json'
+  if (Test-Path $pkgJson) {
+    $bytes = [System.IO.File]::ReadAllBytes($pkgJson)
+    if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+      [System.IO.File]::WriteAllBytes($pkgJson, $bytes[3..($bytes.Length - 1)])
+      Log '已移除 package.json 的 BOM'
+    }
+  }
   Log '备份配置…'
   $bk = Join-Path $work 'backup'
   New-Item -ItemType Directory -Force -Path $bk | Out-Null
