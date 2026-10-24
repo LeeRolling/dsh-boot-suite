@@ -5,8 +5,8 @@
   "author": "素材：NativeDog1/dsh-boot-animation（BSD-3-Clause，原作者待上游确认）；模板维护：LeeRolling",
   "homepage": "https://github.com/LeeRolling/dsh-boot-suite",
   "license": "BSD-3-Clause",
-  "version": "1.0.1",
-  "description": "鲸鱼娘「DeepSeek娘扫描睁眼」原片（2560×1440，7 秒），全屏播放 + 淡入淡出；视频下垫 fallback 文字，底部保留素材署名。素材来源：NativeDog1/dsh-boot-animation 内置片库（BSD-3-Clause，原作者上游未标注）。",
+  "version": "1.0.3",
+  "description": "鲸鱼娘「DeepSeek娘扫描睁眼」原片（2560×1440，7 秒），全屏播放 + 淡入淡出；底部保留素材署名。素材来源：NativeDog1/dsh-boot-animation 内置片库（BSD-3-Clause，原作者上游未标注）。",
   "tags": [
     "anime",
     "whale",
@@ -46,32 +46,6 @@
       ]
     },
     {
-      "id": "fallback",
-      "type": "text",
-      "text": "DEEPSEEK // WHALE GIRL",
-      "pos": [
-        640,
-        360
-      ],
-      "align": "center",
-      "font": {
-        "size": 28,
-        "weight": 600,
-        "tracking": 0.3
-      },
-      "color": "#8be8ff",
-      "keyframes": [
-        {
-          "t": 0,
-          "opacity": 0.85
-        },
-        {
-          "t": 7200,
-          "opacity": 0.85
-        }
-      ]
-    },
-    {
       "id": "whale",
       "type": "video",
       "pos": [
@@ -84,20 +58,11 @@
       "keyframes": [
         {
           "t": 0,
-          "opacity": 0
-        },
-        {
-          "t": 250,
-          "opacity": 1,
-          "ease": "outCubic"
-        },
-        {
-          "t": 6800,
           "opacity": 1
         },
         {
           "t": 7200,
-          "opacity": 0
+          "opacity": 1
         }
       ]
     },
@@ -118,23 +83,18 @@
       "color": "rgba(139,232,255,.55)",
       "keyframes": [
         {
-          "t": 300,
+          "t": 0,
           "opacity": 0,
           "offsetY": 318
         },
         {
-          "t": 800,
-          "opacity": 1,
-          "offsetY": 318
-        },
-        {
-          "t": 6800,
+          "t": 600,
           "opacity": 1,
           "offsetY": 318
         },
         {
           "t": 7200,
-          "opacity": 0,
+          "opacity": 1,
           "offsetY": 318
         }
       ]
