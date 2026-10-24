@@ -58,3 +58,14 @@
   2. 做“许愿式”流水线：AI 交模板 → 自动校验（结构+质量指标）→ 渲染 → 安装
   3. 字体工具链：打包 Inter / JetBrains Mono（或系统安全替代）
   4. 下一轮换命题再验证（避免只对一个题过拟合）
+
+
+## Validator v0.2（2026-10-25，步骤 1–3 完成）
+
+- 代码：`docs/code-motion/validator/`（validate.mjs / metrics.py）
+- 能力：静态检查（结构/规格/禁用项/色彩字体/能力/交付）+ 画面指标（平均亮度/近黑帧/覆盖率）+ 评分门槛
+- 首轮结果：
+  - Claude SIGNAL 提交：**PASS**（规格、交付、画面全过）
+  - 大肥鱼 V1：**FAIL**（近黑帧 31.7%、交付 0/5）
+  - 报告：`09-技术验证-remotion/out/validator-{claude,v1}-report.md`
+- 第 4 步已就绪：命题 `validation/ORIGAMI-命题.md`，Claude 提示词 `validation/给Claude的验证提示词-ORIGAMI.md`
