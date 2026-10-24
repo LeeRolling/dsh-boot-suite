@@ -202,10 +202,10 @@ MIT（只覆盖作者原创代码与文案）。
 | # | 动画 | 原作者 | 地址 |
 |---|---|---|---|
 | 1 | **最早的启动动画**（第一幕参考，带空格/回车交互的那支） | **沈宏宏**（@6shenhonghong9） | https://github.com/6shenhonghong9/dsh-startup-screen |
-| 2 | **龙娘启动动画**（线描动画研究参考） | @mytjxs | https://github.com/mytjxs/codex-startup-animation |
+| 2 | **鲸鱼娘「DeepSeek娘扫描睁眼」**（可选模板 `whale-girl-scan`，素材随包） | NativeDog1/dsh-boot-animation 内置片库（BSD-3-Clause；原作者上游未标注，待确认） | https://github.com/NativeDog1/dsh-boot-animation |
 | 3 | **550C 启动动画**（学习复刻对象，对应 `550c-homage`） | @yannicksong0106 | https://github.com/yannicksong0106/dsh-550c-boot |
 
-我们只做**形式参考与工程复刻**，不复用原作者素材；
+前两项只做**形式参考与工程复刻**；第 2 项「鲸鱼娘扫描睁眼」素材按上游 **BSD-3-Clause** 许可随可选模板提供。
 如果你喜欢这些动画，请去原仓库给作者点 star。
 
 以上作品版权归原作者所有。本项目只做**形式参考与工程复刻**，不复用其素材；

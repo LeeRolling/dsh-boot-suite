@@ -1,9 +1,26 @@
-﻿# 更新日志
+# 更新日志
 
 本文件记录 DSH 开机动画（dsh-boot-suite）的所有版本变化。
 格式参考 Keep a Changelog，版本号遵循语义化版本。
 
 分类：新增 / 修改 / 修复 / 文档 / 性能 / 移除。
+
+---
+
+## [2.11.6] — 2026-10-25
+
+### 新增：视频图层 + 鲸鱼娘可选模板
+
+- 引擎新增 `video` 图层类型（自动静音播放、object-fit: cover、参与透明度/时间窗）
+- 宿主模板素材接口支持 mp4/webm，并支持 HTTP Range（视频可拖动/分段加载）
+- 新增可选模板 `whale-girl-scan`「鲸鱼娘扫描睁眼」：
+  - 2560×1440 原片，7.04 秒，全屏播放 + 淡入淡出
+  - 素材来源：NativeDog1/dsh-boot-animation 内置片库（BSD-3-Clause，原作者待上游确认）
+- 设置页鸣谢同步：标注“可选模板随包提供”，指向 NativeDog1/dsh-boot-animation
+
+### 修复
+
+- 修正 README/CREDITS 中把 ChatGPT「龙娘」（@mytjxs）误列为 DeepSeek 鸣谢的问题
 
 ---
 
