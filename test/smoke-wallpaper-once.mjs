@@ -220,27 +220,20 @@ sandbox.document.body.children.length = 0
 sandbox._styleTags.length = 0
 sandbox.__overlay = null
 const cfgImg = { ...cfg, __imageOk: true, placement: 'front' }
-/* ★ 走**真实路径**：applyNow 装上闸门 → 等闸门开（3s 宽限）→ 它自己把层挂上。
-   不能手动 __mountLayer —— 那样闸门还停在 waiting，之后它照样会去挂，测试会误报。 */
 mod.__applyNow(cfgImg)
 tickTimers(70)
-ok(!!layer(), '闸门打开后视频层在（真实路径）')
+ok(!layer(), '开场视频已移除 → 不挂视频层（真实路径）')
+ok(!!sandbox.document.getElementById('dsh-cw-bg'), '★ 底图仍然挂上')
+ok(mod.__hasCurrent() === true, 'current 非空（有底图）')
+
 mod.__watchTheme(cfgImg)
-const v6 = layer().children.find((c) => c.tagName === 'video')
-v6.duration = 7.0417
-v6.currentTime = 7.0417
-v6.fire('timeupdate')
-runTimeouts()
-ok(!layer(), '★ 视频层被移除（开场演完了）')
-ok(!!sandbox.document.getElementById('dsh-cw-bg'), '★ 底图留着（正确行为）')
-ok(mod.__hasCurrent() === true, 'current 仍非空（有底图所以没 teardown）—— 这正是 bug 的前提')
 fireMutation()
 tickTimers(70)
-ok(!layer(), '★★ 主题变化后视频【没有】被复活（cw-15 那个"动画还在继续"）')
+ok(!layer(), '★★ 主题变化也不会冒出视频层')
 fireMutation()
 fireMutation()
 tickTimers(70)
-ok(!layer(), '连触发三次也不会回来')
+ok(!layer(), '连触发三次也不会出现视频层')
 ok(!!sandbox.document.getElementById('dsh-cw-bg'), '底图始终在')
 
 console.log("\n=== F. front 模式：全屏盖在最前、不动外壳、**绝不吞点击** ===")

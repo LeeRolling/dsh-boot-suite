@@ -252,9 +252,9 @@ sandbox.window.sessionStorage._m.clear()
 sandbox.__overlay = null
 mod.__applyNow({ placement: 'front', mode: 'once' })   // 走真实入口（current/panelCfg 才会设上）
 tick(70)
-ok(!!layerEl(), '第一次：闸门开了 → 播了')
-ok(sandbox.window.sessionStorage.getItem('dsh-chat-wallpaper:intro-shown') === '1',
-  '★ 播的时候会写下"这轮放过了"的标记')
+ok(!layerEl(), '第一幕：开场视频功能已移除 → 不挂视频层')
+ok(sandbox.window.sessionStorage.getItem('dsh-chat-wallpaper:intro-shown') !== '1',
+  '不再写"这轮放过了"标记（因为根本不播）')
 
 /* 模拟一次刷新：**同一次会话**（sessionStorage 保留）、DOM 清空、重新自举 */
 reset(true)
@@ -265,7 +265,7 @@ ok(!layerEl(), '★★ 刷新后【不再重播】（这就是"视频疯狂自�
 
 /* 手动重播：必须能突破这个标记 */
 mod.__replayIntro()
-ok(!!layerEl(), '★★ 面板的「🔁 重播开场」照样能重播（它显式清掉标记）')
+ok(!layerEl(), '重播开场按钮已移除 → 仍不会挂视频层')
 
 /* 关掉这个策略 → 每次都播 */
 reset()

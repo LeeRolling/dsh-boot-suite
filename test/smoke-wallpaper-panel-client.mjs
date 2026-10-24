@@ -185,10 +185,10 @@ return_flush().then(async () => {
   mod.__teardown()
   ok(!sandbox.document.getElementById('dsh-chat-wallpaper'), '模拟"已经收场了"（层被撤掉）')
 
-  replayBtn.fire('click')
+  if (replayBtn) replayBtn.fire('click')
   ok(!P._cls.has('cw-open'), '★ 点重播后自动收起面板（不挡镜头）')
-  ok(!!sandbox.document.getElementById('dsh-chat-wallpaper'),
-    '★★ 点一下 → 开场【立刻重播】（不用重启 DSH，录视频能拍无数条）')
+  ok(!sandbox.document.getElementById('dsh-chat-wallpaper'),
+    '开场视频已移除 → 重播按钮不再挂视频层')
 
   console.log(`\n${fails === 0 ? '✓ 全部通过' : `✗ ${fails} 项失败`}\n`)
   process.exit(fails === 0 ? 0 : 1)
