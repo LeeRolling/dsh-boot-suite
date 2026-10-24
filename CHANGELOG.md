@@ -7,6 +7,20 @@
 
 ---
 
+## [2.11.10] — 2026-10-25
+
+### 优化：清掉聊天背景的视频死代码（功能零变化）
+
+- 聊天背景的底图 / 纱 / 大字横幅行为完全不变；v2.11.8 起视频播放已移除，这一版把遗留的整条视频管线删干净
+- client.js：删除 preloadVideo / mountLayer / beginIntro / startWhenFree / replayIntro / 一轮一次 sessionStorage / 旧左下角「🖼 背景」浮层面板（含面板 CSS 与「重播开场」按钮）；boot() 不再以「宿主解析到视频」为挂载门，拿到底图/横幅配置就直接挂
+- host-wallpaper.js：删除视频解析（配置 / 用户片库 / 内置回落）、`/chat-wallpaper/video` Range 路由、时间码换算（parseTimecode）、`/status` 视频候选、DEFAULTS 视频字段；`/config`、`/images`、`/status` 只返回底图 / 横幅 / 纱相关字段
+- 用户配置兼容：`~/.dsh/chat-wallpaper.json` 里老版本残留的视频键会在下次保存时自然消失；底图 / 横幅 / 纱的值不受影响
+- 测试：删除只测死代码的 wallpaper 测试，新增 `smoke-wallpaper-apply`（永不创建 `<video>`、applyNow 幂等、teardown 不复活、主题切换不重挂）
+- 删除不再被引用的内置兜底视频 `lib/assets/wallpaper-default.mp4`（约 56 KB）与 3 个视频时代开发脚本
+- 开机动画、模板、坐标、用户配置零改动
+
+---
+
 ## [2.11.9] — 2026-10-25
 
 ### 文档 + 设置页：清掉「聊天背景开场视频」残留（无新增功能）

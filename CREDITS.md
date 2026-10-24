@@ -15,7 +15,7 @@
 
 - 配音与台词：作者（DeepSeek 语音包）
 - 界面音效：合成 + 作者提供素材
-- 默认聊天壁纸：代码生成的抽象渐变（lib/assets/wallpaper-default.mp4）
+- 默认聊天壁纸：无内置素材（用户把自己的图片丢进 `~/.dsh/chat-wallpaper/` 即可）
 
 ## 许可
 

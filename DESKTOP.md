@@ -98,7 +98,7 @@ then fully quit it before running dsh plugin --profile desktop.
 
 | 验证项 | 状态 |
 |---|---|
-| 四套冒烟测试（193 项断言） | ✅ 通过 |
+| 冒烟测试（`npm test`，当前 11 套） | ✅ 通过 |
 | 真实 `dist/index.html` 上的注入产物 | ✅ 通过（隔离环境实测） |
 | 隔离 DSH 实例的真实 HTTP 全链路（index 注入 / 三条路由 / 7 段音频素材 / 配置读写 / 401 信任栅栏） | ✅ 通过 |
 | 没有 `webServer` 的降级路径不抛异常 | ✅ 通过 |
@@ -134,7 +134,7 @@ then fully quit it before running dsh plugin --profile desktop.
 ## 五、测试
 
 ```bash
-npm test     # host + splash + client + desktop 四套，193 项断言
+npm test     # 11 套冒烟测试（动画 + 壁纸 + 合并契约 + 坐标 + 包校验）
 ```
 
 `test/smoke-desktop-boot.mjs` 就是桌面端自举那 41 项断言的所在：

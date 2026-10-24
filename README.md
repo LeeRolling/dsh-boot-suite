@@ -156,13 +156,13 @@ https://github.com/LeeRolling/dsh-boot-suite/releases/latest/download/dsh-boot-s
     lib/
       index.js          宿主半：把两个半侧挂在同一个 cordis 插件上
       host-startup.js   开机动画宿主管：/dsh-startup/* 路由 + index.html 首屏注入
-      host-wallpaper.js 壁纸宿主管：/chat-wallpaper/* 路由 + 底图/横幅配置（视频路由保留但已不播放）
+      host-wallpaper.js 壁纸宿主管：/chat-wallpaper/* 路由 + 底图/横幅配置与静态图片
       client.js         浏览器半：一个模块 id（dsh-boot-suite），内部两个 IIFE
       splash.js / splash.css / assets/    开机动画运行时与素材
     preview/
       index.html        交互式离线预览（带设置面板，直接浏览器打开）
       demo.html         纯净演示页（无面板，截图/录屏用）
-    test/               15 套冒烟测试，零依赖
+    test/               11 套冒烟测试，零依赖
     tools/              急救 / 回滚 / 备份
     docs/               README 用的图
 
@@ -178,7 +178,7 @@ https://github.com/LeeRolling/dsh-boot-suite/releases/latest/download/dsh-boot-s
 
     npm test
 
-15 套冒烟测试、约 430 项断言，零运行时依赖、零测试框架。改 `lib/` 下任何文件都要重跑。
+11 套冒烟测试、约 490 项断言，零运行时依赖、零测试框架。改 `lib/` 下任何文件都要重跑。
 
 ---
 

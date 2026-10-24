@@ -132,9 +132,9 @@ check('没有 Config 导出（普通对象不是 schemastery schema）', mod.Con
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 31 条路由（开机动画 24 + 聊天壁纸 7）', ROUTES.size === 31, [...ROUTES.keys()].join(' | '))
+check('注册了 30 条路由（开机动画 24 + 聊天壁纸 6）', ROUTES.size === 30, [...ROUTES.keys()].join(' | '))
 check('注册了 1 个 tapIndex', TAPS.length === 1)
-check('用了 ctx.effect 管理生命周期（开机动画 1 + 壁纸 7）', effects === 8, String(effects))
+check('用了 ctx.effect 管理生命周期（开机动画 1 + 壁纸 6）', effects === 7, String(effects))
 
 console.log('\n[3] 静态路由')
 let r = await call('exact /dsh-startup/splash.css')

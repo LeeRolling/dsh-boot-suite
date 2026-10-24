@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url'
 // 验证三件事：
 //   1. ModuleLoader 契约：注册 id 正确、factory 返回带 apply/inject 的模块
 //   2. buildCss：两种主题模式下生成的 CSS 结构合法（括号平衡、关键声明在位）
+//      —— v2.11.10 起底图/横幅都住在自己的层（#dsh-cw-bg / #dsh-cw-banner），
+//         视频层和它的规则全部删除；CSS 里出现 'video' 就是回归
 //   3. looksDark：标记判定 + 底色亮度兜底
 import fs from 'node:fs'
 import vm from 'node:vm'
@@ -43,15 +45,16 @@ const mod = captured.factory((name) => { if (name === "react") return { createEl
 ok(typeof mod.apply === 'function', 'exports.apply 是函数')
 ok(Array.isArray(mod.inject), 'exports.inject 是数组', JSON.stringify(mod.inject))
 
-console.log('\n=== ② buildCss（两种主题各自的纱）===')
+console.log('\n=== ② buildCss（底图 + 横幅，两种主题各自的纱）===')
 const base = {
-  objectFit: 'cover', opacity: 1, playbackRate: 1,
+  imageFit: 'cover',
   veilLightA: 'rgba(253,250,254,.80)', veilLightB: 'rgba(250,247,253,.68)',
   sidebarLight: 'rgba(255,255,255,.78)', fallbackLight: '#f7f1f8',
   veilDarkA: 'rgba(8,10,16,.74)', veilDarkB: 'rgba(6,8,14,.62)',
   sidebarDark: 'rgba(22,24,32,.74)', fallbackDark: '#0b0d12',
+  bannerOpacity: 0.15,
 }
-const css = mod.__buildCss(base)
+const css = mod.__buildCss({ ...base, __imageOk: true, banner: '人类与AI的日常' })
 console.log(css.split('\n').map((l) => '    ' + l).join('\n'))
 
 const opens = (css.match(/\{/g) || []).length
@@ -61,16 +64,27 @@ ok(!/,\s*\{/.test(css), '没有 "…, {" 这种悬空选择器')
 ok(css.includes('--dsw-alias-bg-base: transparent'), '外壳透明变量在位')
 ok(css.includes('--dsw-specific-sidebar-fill: rgba(255,255,255,.78)'), '浅色侧栏半透白在位')
 ok(css.includes('--dsw-specific-sidebar-fill: rgba(22,24,32,.74)'), '深色侧栏半透黑在位')
-ok(css.includes('z-index: -1'), '视频层在最底层')
-ok(css.includes('pointer-events: none'), '视频层不拦点击')
+ok(css.includes('#dsh-cw-bg'), '底图选择器 #dsh-cw-bg 在位')
+ok(css.includes('pointer-events: none'), '底图不拦点击')
 ok(css.includes('object-fit: cover'), 'object-fit 生效')
-ok(css.includes('html.dsh-cw-light #dsh-chat-wallpaper > .dsh-cw-veil { background: linear-gradient(rgba(253,250,254,.80), rgba(250,247,253,.68)); }'), '浅色主题压白纱')
-ok(css.includes('html.dsh-cw-dark #dsh-chat-wallpaper > .dsh-cw-veil { background: linear-gradient(rgba(8,10,16,.74), rgba(6,8,14,.62)); }'), '深色主题压深纱')
-ok(css.includes('html.dsh-cw-light #dsh-chat-wallpaper { background: #f7f1f8; }'), '浅色兜底底色')
-ok(css.includes('html.dsh-cw-dark #dsh-chat-wallpaper { background: #0b0d12; }'), '深色兜底底色')
+ok(css.includes('html.dsh-cw-light #dsh-cw-bg > .dsh-cw-veil { background: linear-gradient(rgba(253,250,254,.80), rgba(250,247,253,.68)); }'), '浅色主题压白纱')
+ok(css.includes('html.dsh-cw-dark #dsh-cw-bg > .dsh-cw-veil { background: linear-gradient(rgba(8,10,16,.74), rgba(6,8,14,.62)); }'), '深色主题压深纱')
+ok(css.includes('html.dsh-cw-light #dsh-cw-bg { background: #f7f1f8; }'), '浅色兜底底色')
+ok(css.includes('html.dsh-cw-dark #dsh-cw-bg { background: #0b0d12; }'), '深色兜底底色')
+ok(css.includes('#dsh-cw-banner'), '横幅选择器 #dsh-cw-banner 在位')
+ok(css.includes('white-space: nowrap'), '横幅不换行（一行铺满）')
+ok(css.includes('font-weight: 800'), '横幅加粗（大字要够分量）')
 ok(!css.includes('display: none'), '不再"深色主题直接隐藏"（改成换纱）')
 ok(!css.includes('data-ds-dark-theme'), '不再依赖 DSH 的主题标记名（改用自己写的 class）')
+ok(!/video/i.test(css), "★★ css 里不出现 'video' 字样（视频管线已删）")
+ok(!css.includes('2147482990'), '旧全屏视频层的 z-index 已清掉')
+ok(!css.includes('#dsh-chat-wallpaper'), "不再有旧视频层 #dsh-chat-wallpaper 的规则")
 ok(!css.includes('undefined') && !css.includes('NaN'), '没有 undefined/NaN 泄漏')
+
+/* 只配横幅时：没有底图就不该生成底图规则（层是按需挂的） */
+const cssBanner = mod.__buildCss({ ...base, banner: 'X' })
+ok(cssBanner.includes('#dsh-cw-banner') && !cssBanner.includes('#dsh-cw-bg'),
+  '只配横幅 → 只生成横幅规则')
 
 console.log('\n=== ③ 主题 class 契约 ===')
 ok(mod.__THEME_CLASSES.join(',') === 'dsh-cw-dark,dsh-cw-light', '主题 class 名固定', JSON.stringify(mod.__THEME_CLASSES))
