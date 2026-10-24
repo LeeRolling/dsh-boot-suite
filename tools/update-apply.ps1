@@ -35,7 +35,7 @@ try {
   New-Item -ItemType Directory -Force -Path $pkg | Out-Null
   Log '解压新版本…'
   Expand-Archive -Path $Zip -DestinationPath $pkg -Force
-  /* 防止发布包里的 package.json 带 UTF-8 BOM（严格 JSON 解析会拒绝加载插件） */
+  # 防止发布包里的 package.json 带 UTF-8 BOM（严格 JSON 解析会拒绝加载插件）
   $pkgJson = Join-Path $pkg 'package.json'
   if (Test-Path $pkgJson) {
     $bytes = [System.IO.File]::ReadAllBytes($pkgJson)
