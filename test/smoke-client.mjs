@@ -78,26 +78,42 @@ const CFG = {
   welcomeBox: 'DEEPSEEK HARNESS', footer: 'POWERED BY DEEPSEEK',
   accent: '#ff7500', glitchA: '#ff3b30', glitchB: '#2971b8',
 }
-/* v2.12.1：模板列表（内置 1 + 本地 2）。删除接口会真的从这里移除，方便验证列表刷新 */
+/* v2.12.1 起模板列表；v2.12.4 内置模板删除 = 隐藏进 HIDDEN（可 unhide 恢复），本地模板才是真删除 */
 const BUILTIN_TPL = { id: 'archive-warm', name: '档案暖白', source: 'builtin' }
+const BUILTIN_TPL2 = { id: 'whale-girl-scan', name: '鲸鱼娘扫描睁眼', source: 'builtin' }
 const USER_TPL_A = { id: 'custom-local-a', name: '我的开场动画', source: 'user' }
 const USER_TPL_B = { id: 'custom-local-b', name: '淡入过渡', source: 'user' }
-const TEMPLATES = [BUILTIN_TPL, USER_TPL_A, USER_TPL_B]
+const ALL_TEMPLATES = [BUILTIN_TPL, BUILTIN_TPL2, USER_TPL_A, USER_TPL_B]
+const HIDDEN = []          // 被隐藏的内置模板 id（/templates 的 hidden 数组）
+const DELETED_USERS = []   // 被真删除的本地模板 id
+const liveTemplates = () => ALL_TEMPLATES.filter((t) => !HIDDEN.includes(t.id) && !DELETED_USERS.includes(t.id))
 let versionInResponse = '9.9.9'
 const requests = []
 const fetchStub = (url, init) => {
   const u = String(url)
   requests.push({ url: u, init })
   const isPost = init && init.method === 'POST'
+  const readJsonBody = () => { try { return JSON.parse(init.body || '{}') } catch { return {} } }
+  if (u.includes('/dsh-startup/templates/unhide')) {
+    const body = readJsonBody()
+    const id = String(body.id || '')
+    if (id) { const at = HIDDEN.indexOf(id); if (at >= 0) HIDDEN.splice(at, 1) }
+    else HIDDEN.length = 0
+    return Promise.resolve({ json: () => Promise.resolve({ ok: true, hidden: HIDDEN.slice() }) })
+  }
   if (u.includes('/dsh-startup/templates/delete')) {
-    let id = ''
-    try { id = String(JSON.parse(init.body || '{}').id || '') } catch { /* 非法 body 当空 id */ }
-    const at = TEMPLATES.findIndex((t) => t && t.id === id && t.source === 'user')
-    if (at >= 0) TEMPLATES.splice(at, 1)
-    return Promise.resolve({ json: () => Promise.resolve({ ok: at >= 0, id }) })
+    const id = String(readJsonBody().id || '')
+    const tpl = ALL_TEMPLATES.find((t) => t && t.id === id)
+    if (!tpl) return Promise.resolve({ json: () => Promise.resolve({ ok: false, id, error: 'not found' }) })
+    if (tpl.source === 'user') {
+      DELETED_USERS.push(id)
+      return Promise.resolve({ json: () => Promise.resolve({ ok: true, id, removed: true, hidden: false }) })
+    }
+    if (!HIDDEN.includes(id)) HIDDEN.push(id)
+    return Promise.resolve({ json: () => Promise.resolve({ ok: true, id, removed: false, hidden: true }) })
   }
   if (u.includes('/dsh-startup/templates')) {
-    return Promise.resolve({ json: () => Promise.resolve({ ok: true, templates: TEMPLATES.slice() }) })
+    return Promise.resolve({ json: () => Promise.resolve({ ok: true, templates: liveTemplates(), hidden: HIDDEN.slice() }) })
   }
   const body = isPost ? JSON.parse(init.body) : null
   let config = CFG
@@ -280,9 +296,9 @@ check('★ 保存 patch 里带上了转场时长与方向', patch2.transitionMs 
 check('保存 patch 全量 draft：既有字段（identity）没丢', patch2.identity === '琉璃', String(patch2.identity))
 tree = renderPanel()
 
-console.log('\n[5c] 设置页布局 + 「删除该动画」始终显示/置灰（v2.12.3）')
+console.log('\n[5c] 删除该动画：本地删文件 / 内置隐藏可恢复（v2.12.4）')
 {
-  /* 初始：宿主 /templates 返回 1 个内置 + 2 个本地（见 fetchStub 的 TEMPLATES） */
+  /* 初始：宿主 /templates 返回 2 个内置 + 2 个本地（见 fetchStub 的 ALL_TEMPLATES） */
   const texts3 = () => walk(tree).filter((n) => typeof n.props.children === 'string').map((n) => n.props.children)
   const isSelectComp = (c) => c && typeof c.type === 'function' && Array.isArray(c.props && c.props.options)
   /* 第一幕/第二幕两行：__ss_row 里「下拉 + 删除该动画」；编辑器那行只有按钮、没有下拉 */
@@ -296,13 +312,20 @@ console.log('\n[5c] 设置页布局 + 「删除该动画」始终显示/置灰�
   const deleteAnimBtns = () => walk(tree).filter((n) => n.type === 'button' && n.props.children === '删除该动画')
   const groupTitles = () => walk(tree).filter((n) => n.type === 'div' && n.props && n.props.className === '__ss_groupTitle').map((n) => n.props.children)
   const postList = (prefix) => requests.filter((r) => r.init && r.init.method === 'POST' && String(r.url).includes(prefix))
+  const restoreBtn = () => find(tree, (n) => n.type === 'button' && /^恢复已隐藏的内置模板（\d+）$/.test(String(n.props.children || '')))
+  const hasOption = (sel, id) => !!sel && Array.isArray(sel.props.children) &&
+    sel.props.children.some((o) => o && o.type === 'option' && o.props.value === id)
   /* 第一幕/第二幕两个模板下拉：都含内置 archive-warm，且都有一项「内置/不播放」说明 */
   const templateSelects = () => walk(tree).filter((n) =>
     n.type === 'select' && Array.isArray(n.props.children) &&
     n.props.children.some((o) => o && o.type === 'option' && o.props.value === 'archive-warm') &&
     n.props.children.some((o) => o && o.type === 'option' && /内置|不播放/.test(String(o.props.children))))
+  /* archive-warm 被隐藏后上面的定位会失效：改用「有内置/不播放说明」来找两个下拉 */
+  const templateSelectsAny = () => walk(tree).filter((n) =>
+    n.type === 'select' && Array.isArray(n.props.children) &&
+    n.props.children.some((o) => o && o.type === 'option' && /内置|不播放/.test(String(o.props.children))))
 
-  /* ── 组顺序：自定义动画 → 模板 → 转场（保留 v2.12.2 断言） ── */
+  /* ── 组顺序：自定义动画 → 模板 → 转场（保留） ── */
   const titles = groupTitles()
   const iImport = titles.indexOf('自定义动画')
   const iTpl = titles.indexOf('模板')
@@ -311,18 +334,12 @@ console.log('\n[5c] 设置页布局 + 「删除该动画」始终显示/置灰�
   check('★ 组顺序：自定义动画 → 模板 → 转场（自定义动画在模板之前）',
     iImport >= 0 && iTpl >= 0 && iTrans >= 0 && iImport < iTpl && iTpl < iTrans,
     JSON.stringify({ 自定义动画: iImport, 模板: iTpl, 转场: iTrans }))
-
-  /* ── v2.12.2 删掉的「本地动画（N）」列表保持不存在 ── */
   check('「本地动画（N）」列表仍然不存在', !texts3().some((t) => /本地动画（/.test(String(t))),
     texts3().filter((t) => /本地动画/.test(String(t))).join('/'))
-  check('模板组底部新增「只对本地动画生效 / 内置会置灰」说明',
-    texts3().some((t) => String(t).includes('只对本地动画生效')) &&
-    texts3().some((t) => String(t).includes('内置模板会置灰')),
-    texts3().filter((t) => /删除该动画/.test(String(t))).join(' / '))
 
-  /* ── 按钮始终显示：两行各 1 个 ── */
+  /* ── 两行始终各 1 个按钮 + 布局不变（保留 v2.12.3 断言） ── */
   let rows = tplRows()
-  check('★ 无论选了没选本地，第一幕/第二幕两行各有 1 个「删除该动画」（共 2 个）',
+  check('★ 两行各有 1 个「删除该动画」（共 2 个，始终显示）',
     rows.length === 2 && deleteAnimBtns().length === 2,
     '行 ' + rows.length + ' / 按钮 ' + deleteAnimBtns().length)
   check('★ 按钮固定在行内最右侧：两行 nowrap + space-between + gap 24px，按钮 marginLeft auto / minWidth 112px',
@@ -331,17 +348,17 @@ console.log('\n[5c] 设置页布局 + 「删除该动画」始终显示/置灰�
     rows.every((r) => rowBtn(r).props.style &&
       rowBtn(r).props.style.marginLeft === 'auto' && rowBtn(r).props.style.minWidth === '112px'),
     JSON.stringify(rows.map((r) => rowBtn(r).props.style)))
-  check('两行按钮的最小宽度/靠右方式完全一致（水平对齐）',
-    rows.every((r) => rowBtn(r).props.style && rowBtn(r).props.style.minWidth === '112px' &&
-      rowBtn(r).props.style.marginLeft === 'auto'))
+  check('底部说明改成「本地删文件 / 内置只是隐藏可恢复」',
+    texts3().some((t) => String(t).includes('本地动画会删除文件')) &&
+    texts3().some((t) => String(t).includes('内置模板只是隐藏')),
+    texts3().filter((t) => /删除该动画/.test(String(t))).join(' / '))
 
-  /* ── 初始：内置/不播放 → 两个都置灰，点了不发请求 ── */
-  check('★ 初始（第一幕空 / 第二幕不播放）→ 两个按钮都置灰（disabled = true）',
+  /* ── 未选模板 → 两个都置灰、title「没有选择模板」、点了不发请求 ── */
+  check('★ 未选模板（第一幕空 / 第二幕不播放）→ 两个按钮都置灰',
     rows.every((r) => rowBtn(r).props.disabled === true),
     JSON.stringify(rows.map((r) => ({ v: rowValue(r), disabled: rowBtn(r).props.disabled }))))
-  check('置灰按钮的 title = 内置模板不能删除',
-    rows.every((r) => rowBtn(r).props.title === '内置模板不能删除'),
-    rows.map((r) => rowBtn(r).props.title).join(' / '))
+  check('未选模板时 title = 没有选择模板',
+    rows.every((r) => rowBtn(r).props.title === '没有选择模板'), rows.map((r) => rowBtn(r).props.title).join(' / '))
   const reqBeforeDisabled = requests.length
   const confirmBeforeDisabled = confirmCalls.length
   const disabledClick = rowBtn(rows[0]).props.onClick
@@ -351,94 +368,111 @@ console.log('\n[5c] 设置页布局 + 「删除该动画」始终显示/置灰�
     requests.length === reqBeforeDisabled && confirmCalls.length === confirmBeforeDisabled,
     'requests +' + (requests.length - reqBeforeDisabled) + ' / confirm +' + (confirmCalls.length - confirmBeforeDisabled))
 
-  /* ── 第一幕选内置 → 仍两个置灰 ── */
+  /* ── 选内置模板 → 按钮也启用（v2.12.4 不再只对本地生效） ── */
   let tplSel = templateSelects()
   check('找到第一幕 / 第二幕两个模板下拉', tplSel.length === 2, '实际 ' + tplSel.length)
   tplSel[0].props.onChange({ target: { value: 'archive-warm' } })
   tree = renderPanel()
   rows = tplRows()
-  check('第一幕选内置模板 archive-warm → 两个按钮仍然都置灰',
-    rows.every((r) => rowBtn(r).props.disabled === true), rows.map((r) => rowBtn(r).props.disabled).join(','))
-
-  /* ── 第一幕选本地 → 它 enabled，第二幕仍 disabled ── */
-  tplSel = templateSelects()
-  tplSel[0].props.onChange({ target: { value: 'custom-local-a' } })
-  tree = renderPanel()
-  rows = tplRows()
-  check('★ 第一幕选本地 → 第一幕按钮 enabled（title=删除这个本地动画），第二幕仍置灰',
-    rowValue(rows[0]) === 'custom-local-a' && rowBtn(rows[0]).props.disabled === false &&
-    rowBtn(rows[0]).props.title === '删除这个本地动画' &&
+  check('★ 第一幕选内置 archive-warm → 第一幕按钮 enabled（title=隐藏内置模板（可恢复）），第二幕未选仍置灰',
+    rowValue(rows[0]) === 'archive-warm' && rowBtn(rows[0]).props.disabled === false &&
+    rowBtn(rows[0]).props.title === '隐藏内置模板（可恢复）' &&
     rowValue(rows[1]) === '' && rowBtn(rows[1]).props.disabled === true,
-    JSON.stringify(rows.map((r) => ({ v: rowValue(r), disabled: rowBtn(r).props.disabled }))))
-
-  /* ── 两幕都选本地 → 两个都 enabled ── */
+    JSON.stringify(rows.map((r) => ({ v: rowValue(r), disabled: rowBtn(r).props.disabled, title: rowBtn(r).props.title }))))
   tplSel = templateSelects()
-  tplSel[1].props.onChange({ target: { value: 'custom-local-b' } })
+  tplSel[1].props.onChange({ target: { value: 'whale-girl-scan' } })
   tree = renderPanel()
   rows = tplRows()
-  check('★ 两幕都选本地 → 两个按钮都 enabled',
-    rowBtn(rows[0]).props.disabled === false && rowBtn(rows[1]).props.disabled === false,
+  check('★ 第二幕也选内置 whale-girl-scan → 两个按钮都 enabled',
+    rowBtn(rows[0]).props.disabled === false && rowBtn(rows[1]).props.disabled === false &&
+    rowBtn(rows[1]).props.title === '隐藏内置模板（可恢复）',
     rows.map((r) => rowBtn(r).props.disabled).join(','))
-  check('两个按钮仍然恰好 2 个（按钮没被重建/复制）', deleteAnimBtns().length === 2 && rows.length === 2)
 
-  /* ── 删第一幕引用的本地模板：confirm → POST delete → 刷新列表 → POST config patch.template='' ── */
+  /* ── 点内置模板的删除 = 隐藏（文件不删） ── */
   const confirmBefore = confirmCalls.length
-  const beforeDel = requests.length
+  const beforeHide = requests.length
   rowBtn(rows[0]).props.onClick()
-  check('点 enabled 的「删除该动画」会先弹 confirm（带模板名）',
-    confirmCalls.length === confirmBefore + 1 && String(confirmCalls[confirmCalls.length - 1]).includes('我的开场动画'),
+  check('点内置模板的删除：confirm 文案是「隐藏内置模板…（可恢复）」',
+    confirmCalls.length === confirmBefore + 1 &&
+    String(confirmCalls[confirmCalls.length - 1]).includes('隐藏内置模板') &&
+    String(confirmCalls[confirmCalls.length - 1]).includes('档案暖白') &&
+    String(confirmCalls[confirmCalls.length - 1]).includes('不会删除安装文件') &&
+    String(confirmCalls[confirmCalls.length - 1]).includes('恢复已隐藏的内置模板'),
     String(confirmCalls[confirmCalls.length - 1]))
   await flush(); await flush(); await flush(); await flush()
-  const del1 = postList('/dsh-startup/templates/delete').pop()
-  check('★ POST /dsh-startup/templates/delete {id:"custom-local-a"}',
-    !!del1 && JSON.parse(del1.init.body).id === 'custom-local-a', del1 && del1.init.body)
-  const refreshAfterDel = requests.slice(beforeDel).some((r) => String(r.url).includes('/dsh-startup/templates'))
-  check('删除成功后刷新了模板列表（GET /dsh-startup/templates）', refreshAfterDel)
+  const hidePost = postList('/dsh-startup/templates/delete').pop()
+  check('★ POST /dsh-startup/templates/delete {id:"archive-warm"}',
+    !!hidePost && JSON.parse(hidePost.init.body).id === 'archive-warm', hidePost && hidePost.init.body)
+  check('隐藏成功后刷新了模板列表（GET /dsh-startup/templates）',
+    requests.slice(beforeHide).some((r) => String(r.url).includes('/dsh-startup/templates') && (!r.init || !r.init.method)))
   const cfg1 = postList('/dsh-startup/config').pop()
   const patch1 = cfg1 ? JSON.parse(cfg1.init.body).patch : {}
   check('★ 被引用时自动 POST config 把 template 切回 ""', patch1.template === '', JSON.stringify(patch1))
-  check('删除引起的 config patch 只动 template（不夹带其它字段）', Object.keys(patch1).join(',') === 'template', JSON.stringify(patch1))
+  check('隐藏引起的 config patch 只动 template（不夹带其它字段）', Object.keys(patch1).join(',') === 'template', JSON.stringify(patch1))
   tree = renderPanel()
   rows = tplRows()
   check('回填生效：第一幕 value 变空、该按钮回到置灰',
     rowValue(rows[0]) === '' && rowBtn(rows[0]).props.disabled === true,
     JSON.stringify({ v: rowValue(rows[0]), disabled: rowBtn(rows[0]).props.disabled }))
-  check('删除后两个按钮仍在（始终显示）', rows.length === 2 && deleteAnimBtns().length === 2)
-  check('被删的模板从下拉选项里消失',
-    !templateSelects()[0].props.children.some((o) => o && o.type === 'option' && o.props.value === 'custom-local-a'))
-  check('被删的模板从 /templates 返回里消失（宿主列表已刷新）',
-    !TEMPLATES.some((t) => t.id === 'custom-local-a'), TEMPLATES.map((t) => t.id).join(','))
+  check('提示文案以「已隐藏内置模板」开头', JSON.stringify(tree).includes('已隐藏内置模板'))
+  check('被隐藏的内置模板从下拉选项里消失', !hasOption(templateSelectsAny()[0], 'archive-warm'))
+  check('另一个内置模板 whale-girl-scan 仍在选项里（只隐藏被点的那个）',
+    hasOption(templateSelectsAny()[1], 'whale-girl-scan'))
+  check('★ hidden 状态来自 /templates 响应：HIDDEN === ["archive-warm"]', HIDDEN.join(',') === 'archive-warm', HIDDEN.join(','))
+  const restoreNow = restoreBtn()
+  check('★ 隐藏后出现「恢复已隐藏的内置模板（1）」按钮',
+    !!restoreNow && String(restoreNow.props.children) === '恢复已隐藏的内置模板（1）',
+    restoreNow && String(restoreNow.props.children))
 
-  /* ── 再选第二幕本地并删除 → patch.act2='' ── */
+  /* ── 点恢复：POST /templates/unhide（全部）→ 刷新 → 按钮消失、模板回来 ── */
+  const beforeRestore = requests.length
+  restoreNow.props.onClick()
+  await flush(); await flush(); await flush(); await flush()
+  const unhidePost = postList('/dsh-startup/templates/unhide').pop()
+  check('★ POST /dsh-startup/templates/unhide，body 为 {}（全部恢复）',
+    !!unhidePost && JSON.stringify(JSON.parse(unhidePost.init.body)) === '{}', unhidePost && unhidePost.init.body)
+  check('恢复成功后刷新了模板列表（GET /dsh-startup/templates）',
+    requests.slice(beforeRestore).some((r) => String(r.url).includes('/dsh-startup/templates') && (!r.init || !r.init.method)))
+  tree = renderPanel()
+  check('恢复提示：已恢复全部被隐藏的内置模板。', JSON.stringify(tree).includes('已恢复全部被隐藏的内置模板'))
+  check('★ 恢复后「恢复已隐藏的内置模板」按钮消失', !restoreBtn())
+  check('恢复后 archive-warm 重新出现在下拉选项里', hasOption(templateSelects()[0], 'archive-warm'))
+  check('HIDDEN 已清空', HIDDEN.length === 0, HIDDEN.join(','))
+
+  /* ── 本地模板删除路径保持不变（删文件、不可恢复、不进 hidden） ── */
   tplSel = templateSelects()
-  tplSel[1].props.onChange({ target: { value: 'custom-local-b' } })
+  tplSel[0].props.onChange({ target: { value: 'custom-local-a' } })
   tree = renderPanel()
   rows = tplRows()
-  check('重新把第二幕选成本地 → 第二幕按钮 enabled、第一幕仍置灰',
-    rowBtn(rows[1]).props.disabled === false && rowBtn(rows[0]).props.disabled === true,
-    rows.map((r) => rowBtn(r).props.disabled).join(','))
-  const beforeDel2 = requests.length
-  rowBtn(rows[1]).props.onClick()
-  check('第二次删除的 confirm 带第二个模板名',
-    confirmCalls.length === confirmBefore + 2 && String(confirmCalls[confirmCalls.length - 1]).includes('淡入过渡'),
+  check('第一幕选本地模板 → 按钮 enabled（title=删除这个本地动画）',
+    rowBtn(rows[0]).props.disabled === false && rowBtn(rows[0]).props.title === '删除这个本地动画',
+    String(rowBtn(rows[0]).props.title))
+  const confirmBeforeLocal = confirmCalls.length
+  const beforeDelLocal = requests.length
+  rowBtn(rows[0]).props.onClick()
+  check('本地模板的 confirm 文案是「删除本地模板…（不可恢复）」',
+    confirmCalls.length === confirmBeforeLocal + 1 &&
+    String(confirmCalls[confirmCalls.length - 1]).includes('删除本地模板') &&
+    String(confirmCalls[confirmCalls.length - 1]).includes('无法恢复') &&
+    String(confirmCalls[confirmCalls.length - 1]).includes('我的开场动画'),
     String(confirmCalls[confirmCalls.length - 1]))
   await flush(); await flush(); await flush(); await flush()
-  const del2 = requests.slice(beforeDel2).filter((r) => r.init && r.init.method === 'POST' && String(r.url).includes('/templates/delete')).pop()
-  check('★ 删除第二幕引用的模板 → POST delete {id:"custom-local-b"}',
-    !!del2 && JSON.parse(del2.init.body).id === 'custom-local-b', del2 && del2.init.body)
-  const cfg2 = requests.slice(beforeDel2).filter((r) => r.init && r.init.method === 'POST' && r.url === '/dsh-startup/config').pop()
-  const patch2 = cfg2 ? JSON.parse(cfg2.init.body).patch : {}
-  check('★ 被引用时自动 POST config 把 act2 切回 ""', patch2.act2 === '', JSON.stringify(patch2))
-  check('这次 config patch 只动 act2（不夹带其它字段）', Object.keys(patch2).join(',') === 'act2', JSON.stringify(patch2))
+  const delLocal = postList('/dsh-startup/templates/delete').pop()
+  check('★ POST /dsh-startup/templates/delete {id:"custom-local-a"}',
+    !!delLocal && JSON.parse(delLocal.init.body).id === 'custom-local-a', delLocal && delLocal.init.body)
+  const cfgLocal = requests.slice(beforeDelLocal).filter((r) => r.init && r.init.method === 'POST' && r.url === '/dsh-startup/config').pop()
+  const patchLocal = cfgLocal ? JSON.parse(cfgLocal.init.body).patch : {}
+  check('本地删除被引用时也 POST config 把 template 切回 ""（且只动 template）',
+    patchLocal.template === '' && Object.keys(patchLocal).join(',') === 'template', JSON.stringify(patchLocal))
   tree = renderPanel()
   rows = tplRows()
-  check('收尾：第二幕 value 变空，两个按钮都回到置灰',
-    rowValue(rows[1]) === '' && rowBtn(rows[0]).props.disabled === true && rowBtn(rows[1]).props.disabled === true,
-    JSON.stringify(rows.map((r) => ({ v: rowValue(r), disabled: rowBtn(r).props.disabled }))))
-  check('★ 收尾仍有 2 个「删除该动画」按钮（始终显示，不会消失）',
-    deleteAnimBtns().length === 2 && rows.length === 2, '按钮 ' + deleteAnimBtns().length)
-  check('内置模板仍可选择（两个下拉的选项里仍有 archive-warm）', templateSelects().length === 2)
-  check('删除流程共弹了 2 次 confirm', confirmCalls.length === confirmBefore + 2, String(confirmCalls.length))
+  check('本地删除后提示「已删除本地模板」', JSON.stringify(tree).includes('已删除本地模板'))
+  check('本地模板从下拉选项里消失（真删了）', !hasOption(templateSelects()[0], 'custom-local-a'))
+  check('本地删除不会产生「恢复已隐藏」按钮（它不可恢复）', !restoreBtn() && HIDDEN.length === 0)
+  check('回填后第一幕按钮回到置灰', rowValue(rows[0]) === '' && rowBtn(rows[0]).props.disabled === true)
+  check('收尾仍有 2 个「删除该动画」按钮', deleteAnimBtns().length === 2 && rows.length === 2)
+  check('内置 archive-warm 仍可选择', templateSelects().length === 2 && hasOption(templateSelects()[1], 'archive-warm'))
+  check('删除/隐藏流程共弹了 2 次 confirm', confirmCalls.length === confirmBefore + 2, String(confirmCalls.length))
 }
 
 console.log('\n[6] 恢复默认 / 立即预览')

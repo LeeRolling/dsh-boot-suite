@@ -301,17 +301,26 @@ try {
   fs.mkdirSync(USER_ROOT(), { recursive: true })
   check('清理后目录已恢复（后续测试不受影响）', fs.statSync(USER_ROOT()).isDirectory())
 
-  /* ── [5b] /templates/delete：只能删 USER_TPL_ROOT 里的，内置模板动不了 ── */
-  console.log('\n[5b] POST /dsh-startup/templates/delete：只能删用户目录里的模板')
+  /* ── [5b] /templates/delete + /templates/unhide：本地删文件、内置隐藏可恢复 ── */
+  console.log('\n[5b] /templates/delete：本地模板删文件；内置模板隐藏进 hiddenTemplates（可 unhide 恢复）')
   r = await importAnim('待删除动画.mp4', Buffer.from('fake-delete-target'), { duration: 1000 })
   check('前置：导入一个用于删除的用户模板', r.res.statusCode === 200 && r.json && r.json.ok === true,
     String(r.res.statusCode) + ' ' + (r.json && r.json.error))
   const delId = r.json && r.json.id
   const delDir = path.join(USER_ROOT(), String(delId))
   const BUILTIN_ID = 'archive-warm'
+  const SECOND_BUILTIN = 'whale-girl-scan'
   const builtinFile = path.join(PKG_ROOT, 'templates', BUILTIN_ID, 'template.json')
+  const secondBuiltinFile = path.join(PKG_ROOT, 'templates', SECOND_BUILTIN, 'template.json')
   const builtinRaw = fs.existsSync(builtinFile) ? fs.readFileSync(builtinFile, 'utf8') : null
+  const secondBuiltinRaw = fs.existsSync(secondBuiltinFile) ? fs.readFileSync(secondBuiltinFile, 'utf8') : null
   check('前置：真的存在内置模板 ' + BUILTIN_ID, !!builtinRaw)
+  check('前置：真的存在第二个内置模板 ' + SECOND_BUILTIN, !!secondBuiltinRaw)
+  const readDiskCfg = () => {
+    try { return JSON.parse(fs.readFileSync(CONFIG_FILE(), 'utf8')) } catch { return null }
+  }
+  const listedIds = (j) => ((j && Array.isArray(j.templates)) ? j.templates : []).map((t) => t && t.id)
+  const hiddenOf = (j) => (j && Array.isArray(j.hidden) ? j.hidden : [])
 
   let del = await call('templates/delete')
   check('GET /templates/delete → 405', del.res.statusCode === 405 && del.json && del.json.ok === false,
@@ -326,28 +335,101 @@ try {
   check('body 不是合法 JSON → 400（按非法 id 处理）', del.res.statusCode === 400, String(del.res.statusCode))
 
   del = await postJson('templates/delete', { id: 'custom-does-not-exist' })
-  check('不存在的用户模板 → 404', del.res.statusCode === 404 && del.json && del.json.ok === false,
+  check('不存在的模板 → 404', del.res.statusCode === 404 && del.json && del.json.ok === false,
     String(del.res.statusCode) + ' ' + (del.json && del.json.error))
+
+  /* ── 内置模板：删除 = 隐藏（写 hiddenTemplates，不删安装文件） ── */
+  let cfgPost = await postJson('config', { patch: { template: BUILTIN_ID } })
+  check('前置：把第一幕设为内置 ' + BUILTIN_ID, cfgPost.res.statusCode === 200 && cfgPost.json.config.template === BUILTIN_ID,
+    JSON.stringify(cfgPost.json && cfgPost.json.config && cfgPost.json.config.template))
+  let pv = await call('preview-template', { url: '/dsh-startup/preview-template?id=' + BUILTIN_ID })
+  check('隐藏前 /preview-template 能读到内置模板', pv.res.statusCode === 200 && pv.json && pv.json.template && pv.json.template.id === BUILTIN_ID,
+    String(pv.res.statusCode))
 
   del = await postJson('templates/delete', { id: BUILTIN_ID })
-  check('★ 删除内置模板 ' + BUILTIN_ID + ' → 404（该路由只删用户目录）',
-    del.res.statusCode === 404 && del.json && del.json.ok === false,
-    String(del.res.statusCode) + ' ' + (del.json && del.json.error))
-  check('★ 内置模板文件原封不动（没有被误删）',
+  check('★ 删除内置模板 → 200 {hidden:true, removed:false}',
+    del.res.statusCode === 200 && del.json && del.json.ok === true &&
+    del.json.hidden === true && del.json.removed === false,
+    JSON.stringify(del.json))
+  check('★ 内置模板安装文件原封不动（只是隐藏，没有删）',
     fs.existsSync(builtinFile) && fs.readFileSync(builtinFile, 'utf8') === builtinRaw)
+  let diskCfg = readDiskCfg()
+  check('config 文件的 hiddenTemplates 含 ' + BUILTIN_ID,
+    !!diskCfg && Array.isArray(diskCfg.hiddenTemplates) && diskCfg.hiddenTemplates.includes(BUILTIN_ID),
+    diskCfg && JSON.stringify(diskCfg.hiddenTemplates))
+  check('★ 被引用的 template 被宿主自动清空（避免下次开机找不到）',
+    !!diskCfg && (diskCfg.template || '') === '', diskCfg && JSON.stringify(diskCfg.template))
   let tplNow = await call('templates')
-  check('删内置失败后 /templates 里内置模板仍在（source=builtin）',
-    (tplNow.json && Array.isArray(tplNow.json.templates) ? tplNow.json.templates : [])
-      .some((t) => t && t.id === BUILTIN_ID && t.source === 'builtin'))
+  check('★ /templates 不再列出被隐藏的内置模板',
+    !listedIds(tplNow.json).includes(BUILTIN_ID), listedIds(tplNow.json).slice(0, 5).join(','))
+  check('★ /templates 的 hidden 数组含 ' + BUILTIN_ID,
+    hiddenOf(tplNow.json).includes(BUILTIN_ID), JSON.stringify(hiddenOf(tplNow.json)))
+  pv = await call('preview-template', { url: '/dsh-startup/preview-template?id=' + BUILTIN_ID })
+  check('隐藏后 /preview-template → 404（readTemplate 对 hidden 返回 null）', pv.res.statusCode === 404, String(pv.res.statusCode))
 
+  /* ── unhide {id}：恢复单个 ── */
+  let unh = await postJson('templates/unhide', { id: BUILTIN_ID })
+  check('★ POST /templates/unhide {id} → 200 且 hidden 里没有它',
+    unh.res.statusCode === 200 && unh.json && unh.json.ok === true &&
+    Array.isArray(unh.json.hidden) && !unh.json.hidden.includes(BUILTIN_ID),
+    JSON.stringify(unh.json))
+  tplNow = await call('templates')
+  check('恢复后 /templates 重新列出 ' + BUILTIN_ID, listedIds(tplNow.json).includes(BUILTIN_ID))
+  check('恢复后 hidden 数组为空', hiddenOf(tplNow.json).length === 0, JSON.stringify(hiddenOf(tplNow.json)))
+  pv = await call('preview-template', { url: '/dsh-startup/preview-template?id=' + BUILTIN_ID })
+  check('恢复后 /preview-template 又能读到（200）', pv.res.statusCode === 200, String(pv.res.statusCode))
+  check('恢复后内置模板安装文件字节仍未变',
+    fs.existsSync(builtinFile) && fs.readFileSync(builtinFile, 'utf8') === builtinRaw)
+
+  /* ── 隐藏两个 → unhide {} 全部恢复 ── */
+  await postJson('templates/delete', { id: BUILTIN_ID })
+  await postJson('templates/delete', { id: SECOND_BUILTIN })
+  diskCfg = readDiskCfg()
+  check('连隐藏两个后 hiddenTemplates 有 2 项',
+    !!diskCfg && Array.isArray(diskCfg.hiddenTemplates) && diskCfg.hiddenTemplates.length === 2,
+    JSON.stringify(diskCfg && diskCfg.hiddenTemplates))
+  tplNow = await call('templates')
+  check('两个内置模板都从 /templates 列表消失',
+    !listedIds(tplNow.json).includes(BUILTIN_ID) && !listedIds(tplNow.json).includes(SECOND_BUILTIN),
+    listedIds(tplNow.json).slice(0, 5).join(','))
+  check('/templates.hidden 同时含两个', hiddenOf(tplNow.json).length === 2, JSON.stringify(hiddenOf(tplNow.json)))
+  let unhAll = await postJson('templates/unhide', {})
+  check('★ POST /templates/unhide {} → hidden=[] 全部恢复',
+    unhAll.res.statusCode === 200 && unhAll.json && unhAll.json.ok === true &&
+    Array.isArray(unhAll.json.hidden) && unhAll.json.hidden.length === 0, JSON.stringify(unhAll.json))
+  tplNow = await call('templates')
+  check('恢复后两个内置模板重新列出',
+    listedIds(tplNow.json).includes(BUILTIN_ID) && listedIds(tplNow.json).includes(SECOND_BUILTIN))
+  check('恢复后 hidden 为空', hiddenOf(tplNow.json).length === 0, JSON.stringify(hiddenOf(tplNow.json)))
+  check('两个内置模板安装文件字节都未变',
+    fs.readFileSync(builtinFile, 'utf8') === builtinRaw &&
+    fs.readFileSync(secondBuiltinFile, 'utf8') === secondBuiltinRaw)
+
+  /* ── unhide {all:true} 等价于 {} ── */
+  await postJson('templates/delete', { id: BUILTIN_ID })
+  unhAll = await postJson('templates/unhide', { all: true })
+  check('POST /templates/unhide {all:true} 也能全部恢复',
+    unhAll.res.statusCode === 200 && Array.isArray(unhAll.json.hidden) && unhAll.json.hidden.length === 0,
+    JSON.stringify(unhAll.json))
+
+  /* ── unhide 的方法/参数边界 ── */
+  let badUnh = await call('templates/unhide')
+  check('GET /templates/unhide → 405', badUnh.res.statusCode === 405 && badUnh.json && badUnh.json.ok === false,
+    String(badUnh.res.statusCode))
+  badUnh = await postJson('templates/unhide', { id: 'BAD ID!' })
+  check('unhide 非法 id → 400', badUnh.res.statusCode === 400 && badUnh.json && badUnh.json.ok === false,
+    String(badUnh.res.statusCode) + ' ' + (badUnh.json && badUnh.json.error))
+
+  /* ── 本地模板删除路径不变：removed:true，且不进 hidden ── */
   del = await postJson('templates/delete', { id: delId })
-  check('★ 删除用户模板 → 200 + ok', del.res.statusCode === 200 && del.json && del.json.ok === true,
-    String(del.res.statusCode) + ' ' + (del.json && del.json.error))
+  check('★ 删除用户模板 → 200 {removed:true, hidden:false}',
+    del.res.statusCode === 200 && del.json && del.json.ok === true &&
+    del.json.removed === true && del.json.hidden === false, JSON.stringify(del.json))
   check('★ 用户模板目录（含 assets）已被整个删掉', !fs.existsSync(delDir))
   tplNow = await call('templates')
-  check('★ /templates 不再列出被删的模板',
-    !(tplNow.json && Array.isArray(tplNow.json.templates) ? tplNow.json.templates : []).some((t) => t && t.id === delId),
-    delId)
+  check('★ /templates 不再列出被删的本地模板',
+    !listedIds(tplNow.json).includes(delId), delId)
+  check('本地模板删除不会进 hidden', !hiddenOf(tplNow.json).includes(delId), JSON.stringify(hiddenOf(tplNow.json)))
   del = await postJson('templates/delete', { id: delId })
   check('再删一次（已经不存在）→ 404', del.res.statusCode === 404, String(del.res.statusCode))
 
