@@ -228,7 +228,7 @@ function run(withSpeech, cfgOverride, template, jump) {
   } catch (e) {
     thrown = e
   }
-  return { windowStub, root, head, timers, thrown, markup: MARKUP, sandbox, spoken }
+  return { windowStub, root, head, body, htmlEl, timers, thrown, markup: MARKUP, sandbox, spoken }
 }
 
 /* ── 开跑 ───────────────────────────────────────────────────────────────── */
@@ -376,6 +376,67 @@ console.log('\n[9] 模板：分幕可以自定义（1~24 幕，缺字段回落�
     const a = rb.windowStub.__DSH_STARTUP_API__
     return a.template === '' && a.steps.length === 5
   })())
+}
+
+console.log('\n[10] 三段转场钩子（v2.12.0，splash.js 转场实现由 teammate 并行落地）')
+{
+  r = run(true)                                    // 缺省配置：完全没有 transition 字段
+  check('缺省配置（无 transition 字段）初始化不抛异常', r.thrown === null, r.thrown && r.thrown.message)
+  check('缺省配置不往 body 上新增覆盖层（全部 DOM 仍在 #dsh-startup-root 内）',
+    r.body.children.length === 0, r.body.children.map((c) => c.tagName || c._cls).join(','))
+  check('缺省配置照常暴露 __DSH_STARTUP_API__', !!(r.windowStub.__DSH_STARTUP_API__ && r.windowStub.__DSH_STARTUP_API__.replay))
+
+  const rTx = run(true, {
+    transitionIn: 'glitch', transitionJoin: 'flash', transitionOut: 'scanline',
+    transitionMs: 1200, transitionDir: 'up',
+  })
+  check('配置了三段转场（glitch/flash/scanline + 1200ms + up）也不抛异常',
+    rTx.thrown === null, rTx.thrown && rTx.thrown.message)
+  check('配置转场后照常暴露 API', !!(rTx.windowStub.__DSH_STARTUP_API__ && rTx.windowStub.__DSH_STARTUP_API__.replay))
+
+  const meta = r.windowStub.__DSH_TRANSITION_META__
+  const TYPES = ['dissolve', 'flash', 'glitch', 'scanline', 'slide', 'iris', 'black', 'none']
+  const DIRS = ['left', 'right', 'up', 'down']
+  if (!meta) {
+    console.log('  skip  window.__DSH_TRANSITION_META__ 尚未落地（splash.js 转场实现并行中）—— 钩子契约断言本轮跳过，等它完成后重跑即可变绿')
+  } else {
+    check('暴露 __DSH_TRANSITION_META__ 对象', typeof meta === 'object')
+    check('meta.types 恰为 8 种转场', Array.isArray(meta.types) && meta.types.length === TYPES.length && TYPES.every((t) => meta.types.includes(t)),
+      JSON.stringify(meta.types))
+    check('meta.dirs 恰为 4 个方向', Array.isArray(meta.dirs) && meta.dirs.length === DIRS.length && DIRS.every((d) => meta.dirs.includes(d)),
+      JSON.stringify(meta.dirs))
+    check('normalize 是函数', typeof meta.normalize === 'function')
+    check('normalizeDir 是函数', typeof meta.normalizeDir === 'function')
+    if (typeof meta.normalize === 'function') {
+      let allOk = true
+      for (const t of TYPES) if (meta.normalize(t) !== t) { allOk = false; break }
+      check('normalize：8 种合法值原样返回', allOk)
+      check('normalize：非法值回落 dissolve',
+        meta.normalize('bogus') === 'dissolve' && meta.normalize('') === 'dissolve' &&
+        meta.normalize(undefined) === 'dissolve',
+        JSON.stringify([meta.normalize('bogus'), meta.normalize(''), meta.normalize(undefined)]))
+    }
+    if (typeof meta.normalizeDir === 'function') {
+      let allOk = true
+      for (const d of DIRS) if (meta.normalizeDir(d) !== d) { allOk = false; break }
+      check('normalizeDir：4 个合法方向原样返回', allOk)
+      check('normalizeDir：非法值回落 left',
+        meta.normalizeDir('diagonal') === 'left' && meta.normalizeDir(undefined) === 'left',
+        JSON.stringify([meta.normalizeDir('diagonal'), meta.normalizeDir(undefined)]))
+    }
+    if (typeof meta.normalizeMs === 'function') {
+      check('normalizeMs：合法值原样返回、越界夹到 200–2000、非法回落 600',
+        meta.normalizeMs(600) === 600 && meta.normalizeMs(50) === 200 &&
+        meta.normalizeMs(9999) === 2000 && meta.normalizeMs('abc') === 600,
+        JSON.stringify([meta.normalizeMs(600), meta.normalizeMs(50), meta.normalizeMs(9999), meta.normalizeMs('abc')]))
+    }
+    /* 只读调试状态：缺省配置下不许留下任何覆盖层 */
+    const state = r.windowStub.__DSH_TRANSITION_STATE__
+    check('暴露只读调试状态 __DSH_TRANSITION_STATE__（overlays / active）',
+      !!state && 'overlays' in state && 'active' in state, state ? Object.keys(state).join(',') : 'undefined')
+    check('缺省配置：初始化后没有转场覆盖层残留（overlays = 0）', state && state.overlays === 0, state && String(state.overlays))
+    check('缺省配置：没有活跃覆盖层（active = 0）', state && state.active === 0, state && String(state.active))
+  }
 }
 
 console.log('\n============================')

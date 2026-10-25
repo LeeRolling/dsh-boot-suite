@@ -46,11 +46,16 @@ check('壁纸半侧的测试钩子还在（__applyNow / __buildCss / __teardown�
   client.includes('exports.__applyNow = applyNow') &&
   client.includes('exports.__buildCss = buildCss') &&
   client.includes('exports.__teardown = teardown'))
-check('视频死管线已从 client 删掉（无 mountLayer / preloadVideo / startWhenFree）',
+check('聊天壁纸的视频死管线已删掉（无 mountLayer / preloadVideo / startWhenFree / video 路由）',
   !client.includes('__mountLayer') && !client.includes('__preloadVideo') &&
-  !client.includes('__startWhenFree') && !client.includes('createElement(\'video\')'),
-  ['__mountLayer', '__preloadVideo', '__startWhenFree', 'createElement(video)'].filter((s) => client.includes(s)).join(', '))
-check('client 源码里已经没有任何 video 字样（连注释都没了）', !/video/i.test(client))
+  !client.includes('__startWhenFree') && !client.includes('/chat-wallpaper/video'),
+  ['__mountLayer', '__preloadVideo', '__startWhenFree', '/chat-wallpaper/video'].filter((s) => client.includes(s)).join(', '))
+/* v2.12.0 起 client 合法地创建一次 <video>：设置页「导入动画」时探测用户视频的时长。
+   这条断言把它钉在"唯一且只用于导入探测"上，防止旧聊天壁纸视频管线借壳回来。 */
+const videoCreateCount = (client.match(/createElement\('video'\)/g) || []).length
+check('client 只在「导入动画探时长」里创建 <video>（不是聊天壁纸视频层）',
+  videoCreateCount === 1 && !client.includes('/chat-wallpaper/video'),
+  'createElement(video) × ' + videoCreateCount)
 /* 不带 __ 前缀的普通 token 扫描：防止有人换个名字把视频/浮层面板塞回来 */
 const deadTokens = ['mountLayer', 'preloadVideo', 'startWhenFree', 'mountPanel', 'replayIntro', '__PANEL_ID', '/chat-wallpaper/video']
 const foundTokens = deadTokens.filter((t) => client.includes(t))
