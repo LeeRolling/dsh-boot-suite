@@ -21,15 +21,15 @@ On cold start, DSH plays a six-act sequence, then hands over to the chat with yo
     black screen / DeepSeek mark → overexposed wash → warm "technical dossier" plate
       → five-step interactive authorization → glitch reveal → chat wallpaper
 
-**This is not a video file — it is a code animation.** `lib/splash.js` (1468 lines) + `lib/splash.css` (1093 lines)
-draw everything with DOM, CSS animation and WebAudio. The visual part ships as ~94 KB of text.
+**This is not a video file — it is a code animation.** `lib/splash.js` (3288 lines) + `lib/splash.css` (1410 lines), about 196 KB of source.
+Everything is drawn live with DOM, CSS animation and WebAudio — no image sequences or video assets.
 
 | | Boot animation | Chat wallpaper |
 |---|---|---|
 | Entry | Settings → "启动动画" | Settings → "聊天背景" |
-| Content | six acts, typewriter subtitles, targeting ring, chromatic glitch | intro video / static image / big text banner |
-| Media | 5 real-voice lines + welcome line + 2 UI sfx (mp3) | your own video and images |
-| Tunable | 33 options: identity, id, access level, colors, speed, voice, copy | placement, loop range, veil opacity, banner text |
+| Content | six acts, typewriter subtitles, targeting ring, chromatic glitch | static image / big text banner |
+| Media | 5 real-voice lines + welcome line + 2 UI sfx (mp3) | your own images |
+| Tunable | 33 options: identity, id, access level, colors, speed, voice, copy | veil opacity, banner text |
 
 Each half is **independent**: a broken animation never breaks the wallpaper and vice versa; the UI always comes up.
 
@@ -57,7 +57,7 @@ Kill every `DeepSeek Harness` process, run the script, relaunch. Diagnostics lan
 
     npm test
 
-13 self-contained smoke suites, ~450 assertions, no runtime dependencies.
+11 self-contained smoke suites, ~490 assertions, no runtime dependencies.
 
 ## License
 

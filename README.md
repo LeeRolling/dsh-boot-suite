@@ -23,15 +23,15 @@ DeepSeek Harness（DSH）冷启动时会先播六幕动画，播完进聊天，�
     黑幕 DeepSeek 标识 → 过曝洗白 → 暖白「技术档案」底板
       → 五步交互式访问授权 → 色散故障揭幕 → 聊天壁纸
 
-**不是视频文件，是代码动画**：`lib/splash.js`（1468 行）+ `lib/splash.css`（1093 行）
-用 DOM + CSS 动画 + WebAudio 现场绘制，画面部分只有 ~94 KB。
+**不是视频文件，是代码动画**：`lib/splash.js`（3288 行）+ `lib/splash.css`（1410 行），源码合计约 196 KB。
+用 DOM + CSS 动画 + WebAudio 现场绘制，没有图片序列帧或视频素材。
 
 | | 开机动画 | 聊天壁纸 |
 |---|---|---|
 | 入口 | DSH 设置页 →「启动动画」 | DSH 设置页 →「聊天背景」 |
-| 内容 | 六幕序列、逐字打出的英文副标题、环形准星、色散故障 | 开场视频 / 静态底图 / 大字横幅 |
-| 素材 | 5 句真声台词 + 终幕欢迎语 + 2 个界面音效（mp3） | 你自己的视频和图片 |
-| 可调 | 33 项：身份名称 / 编号 / 权限等级 / 配色 / 速度 / 音色 / 语速 / 每处文案 | 视频放置方式、循环区间、纱的浓度、横幅文字 |
+| 内容 | 六幕序列、逐字打出的英文副标题、环形准星、色散故障 | 静态底图 / 大字横幅 |
+| 素材 | 5 句真声台词 + 终幕欢迎语 + 2 个界面音效（mp3） | 你自己的图片 |
+| 可调 | 33 项：身份名称 / 编号 / 权限等级 / 配色 / 速度 / 音色 / 语速 / 每处文案 | 纱的浓度、横幅文字、丢图即换 |
 
 两个半侧**各自独立**：动画坏了不影响壁纸，壁纸坏了不影响动画，界面照常进。
 
@@ -101,12 +101,10 @@ https://github.com/LeeRolling/dsh-boot-suite/releases/latest/download/dsh-boot-s
 
 ## 聊天壁纸
 
-- **开场视频**：进聊天后全屏播一段，播完淡出；也可以放最底层当常驻背景循环
-- **聊天底图**：丢进 `~/.dsh/chat-wallpaper/` 就自动换（按修改时间取最新）
-- **大字横幅**：铺满窗口的一行字，矢量文字，字号按窗口自动算
-- **循环区间**：第一次从头播完，之后只在 `[loopStart, loopEnd]` 里循环，支持剪辑软件时间码（`00:00:05:23`）
-- **等开机动画收场再播**，并且从 0 开始 —— 片头不会被覆盖
-- **失败即退场**：视频放不出来就把 CSS 全部撤回，页面回原样
+- **静态底图**：丢进 `~/.dsh/chat-wallpaper/` 就自动换（按修改时间取最新）
+- **大字横幅**：铺满窗口的一行字，矢量文字，字号按窗口自动算，浓度可调
+- **纱的浓度**：盖在底图上的一层纱，深色 / 浅色主题各一套，字更清楚
+- **只留在聊天里**：不播任何视频，不和启动动画第二幕抢画面（v2.11.8 起开场视频已移除）
 
 配置：`~/.dsh/chat-wallpaper.json`（设置页改）
 
@@ -158,13 +156,13 @@ https://github.com/LeeRolling/dsh-boot-suite/releases/latest/download/dsh-boot-s
     lib/
       index.js          宿主半：把两个半侧挂在同一个 cordis 插件上
       host-startup.js   开机动画宿主管：/dsh-startup/* 路由 + index.html 首屏注入
-      host-wallpaper.js 壁纸宿主管：/chat-wallpaper/* 路由 + Range 视频流
+      host-wallpaper.js 壁纸宿主管：/chat-wallpaper/* 路由 + 底图/横幅配置与静态图片
       client.js         浏览器半：一个模块 id（dsh-boot-suite），内部两个 IIFE
       splash.js / splash.css / assets/    开机动画运行时与素材
     preview/
       index.html        交互式离线预览（带设置面板，直接浏览器打开）
       demo.html         纯净演示页（无面板，截图/录屏用）
-    test/               13 套冒烟测试，零依赖
+    test/               11 套冒烟测试，零依赖
     tools/              急救 / 回滚 / 备份
     docs/               README 用的图
 
@@ -180,7 +178,7 @@ https://github.com/LeeRolling/dsh-boot-suite/releases/latest/download/dsh-boot-s
 
     npm test
 
-13 套冒烟测试、约 450 项断言，零运行时依赖、零测试框架。改 `lib/` 下任何文件都要重跑。
+11 套冒烟测试、约 490 项断言，零运行时依赖、零测试框架。改 `lib/` 下任何文件都要重跑。
 
 ---
 
@@ -202,10 +200,10 @@ MIT（只覆盖作者原创代码与文案）。
 | # | 动画 | 原作者 | 地址 |
 |---|---|---|---|
 | 1 | **最早的启动动画**（第一幕参考，带空格/回车交互的那支） | **沈宏宏**（@6shenhonghong9） | https://github.com/6shenhonghong9/dsh-startup-screen |
-| 2 | **龙娘启动动画**（线描动画研究参考） | @mytjxs | https://github.com/mytjxs/codex-startup-animation |
+| 2 | **鲸鱼娘「DeepSeek娘扫描睁眼」**（可选模板 `whale-girl-scan`，素材随包） | NativeDog1/dsh-boot-animation 内置片库（BSD-3-Clause；原作者上游未标注，待确认） | https://github.com/NativeDog1/dsh-boot-animation |
 | 3 | **550C 启动动画**（学习复刻对象，对应 `550c-homage`） | @yannicksong0106 | https://github.com/yannicksong0106/dsh-550c-boot |
 
-我们只做**形式参考与工程复刻**，不复用原作者素材；
+前两项只做**形式参考与工程复刻**；第 2 项「鲸鱼娘扫描睁眼」素材按上游 **BSD-3-Clause** 许可随可选模板提供。
 如果你喜欢这些动画，请去原仓库给作者点 star。
 
 以上作品版权归原作者所有。本项目只做**形式参考与工程复刻**，不复用其素材；

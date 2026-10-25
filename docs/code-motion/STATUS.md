@@ -41,3 +41,31 @@
 - 不在提示词里告诉 Claude"这是验证规范"（避免应试）
 - 最终提示词：validation/给Claude的验证提示词-用户修订版.md
 - 明天：发 Claude → 存 txt → 拆分/渲染/对比
+
+
+## SIGNAL 验证结果（2026-10-25）
+
+- Claude 版已渲染：`09-技术验证-remotion/out/signal-claude.mp4`（600 帧，2.79 MB）
+- 对比：加权 **V1 2.9 / Claude 4.7**（满分 5）
+- 客观指标：V1 近黑帧 32%、平均亮度 9.4；Claude 近黑帧 0%、平均亮度 12.9
+- 结论：**规范 v0.1 可执行**（Claude 独立完成 7 文件、元素全覆盖、通过渲染），但**缺质量下限**；V1 是“结构合格、画面不可看”的反例
+- 已产出：
+  - `validation/对比结论.md`
+  - `validation/claude-signal/`（源码 + 分镜表 + 两张联系表 + 并排对比）
+  - `01-代码模板规范-v0.2-增补.md`（A–F 六组增补）
+- 下一步：
+  1. 把 v0.2 增补合入规范正文（validator 规则）
+  2. 做“许愿式”流水线：AI 交模板 → 自动校验（结构+质量指标）→ 渲染 → 安装
+  3. 字体工具链：打包 Inter / JetBrains Mono（或系统安全替代）
+  4. 下一轮换命题再验证（避免只对一个题过拟合）
+
+
+## Validator v0.2（2026-10-25，步骤 1–3 完成）
+
+- 代码：`docs/code-motion/validator/`（validate.mjs / metrics.py）
+- 能力：静态检查（结构/规格/禁用项/色彩字体/能力/交付）+ 画面指标（平均亮度/近黑帧/覆盖率）+ 评分门槛
+- 首轮结果：
+  - Claude SIGNAL 提交：**PASS**（规格、交付、画面全过）
+  - 大肥鱼 V1：**FAIL**（近黑帧 31.7%、交付 0/5）
+  - 报告：`09-技术验证-remotion/out/validator-{claude,v1}-report.md`
+- 第 4 步已就绪：命题 `validation/ORIGAMI-命题.md`，Claude 提示词 `validation/给Claude的验证提示词-ORIGAMI.md`

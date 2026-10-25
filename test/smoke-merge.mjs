@@ -1,10 +1,17 @@
 // 合并契约测试：一个包、一条 bundle 行、一个 client 模块 id，两半都在
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8')
+
+/* 隔离：lib/index.js 的宿主半侧在模块加载时读 DSH_HOME，apply() 还会往那里写
+   诊断日志 —— 用临时目录，绝不碰真实的 ~/.dsh。 */
+const TMP_HOME = path.join(os.tmpdir(), 'dsh-merge-smoke-' + Date.now())
+fs.mkdirSync(TMP_HOME, { recursive: true })
+process.env.DSH_HOME = TMP_HOME
 
 let pass = 0, fail = 0
 const check = (label, ok, extra) => {
@@ -35,8 +42,20 @@ check('地址栏常量没有被误改（/dsh-startup 与 /chat-wallpaper 都还�
   client.includes("var API = '/dsh-startup/config'") && client.includes("var API = '/chat-wallpaper'"))
 check('开机动画半侧的设置页契约还在（exports.apply / inject slots）',
   client.includes('exports.apply = apply') && client.includes('module.exports.inject = __bootHalf.inject'))
-check('壁纸半侧的测试钩子还在（__mountLayer / __PANEL_ID）',
-  client.includes('exports.__mountLayer = mountLayer') && client.includes('exports.__PANEL_ID = PANEL_ID'))
+check('壁纸半侧的测试钩子还在（__applyNow / __buildCss / __teardown）',
+  client.includes('exports.__applyNow = applyNow') &&
+  client.includes('exports.__buildCss = buildCss') &&
+  client.includes('exports.__teardown = teardown'))
+check('视频死管线已从 client 删掉（无 mountLayer / preloadVideo / startWhenFree）',
+  !client.includes('__mountLayer') && !client.includes('__preloadVideo') &&
+  !client.includes('__startWhenFree') && !client.includes('createElement(\'video\')'),
+  ['__mountLayer', '__preloadVideo', '__startWhenFree', 'createElement(video)'].filter((s) => client.includes(s)).join(', '))
+check('client 源码里已经没有任何 video 字样（连注释都没了）', !/video/i.test(client))
+/* 不带 __ 前缀的普通 token 扫描：防止有人换个名字把视频/浮层面板塞回来 */
+const deadTokens = ['mountLayer', 'preloadVideo', 'startWhenFree', 'mountPanel', 'replayIntro', '__PANEL_ID', '/chat-wallpaper/video']
+const foundTokens = deadTokens.filter((t) => client.includes(t))
+check('普通 token 扫描：mountLayer/preloadVideo/startWhenFree/mountPanel/replayIntro/__PANEL_ID//chat-wallpaper/video 一个都不剩',
+  foundTokens.length === 0, foundTokens.join(', '))
 check('壁纸半侧确实被受管调用（module.exports.apply 里调 __wallHalf.apply）',
   client.includes('__wallHalf.apply(ctx)'))
 check('版本号兜底常量与 package.json 一致', client.includes("FALLBACK_VERSION = '" + pkg.version + "'"))
@@ -48,17 +67,21 @@ check('开机动画仍读 dsh-startup.json', hostStartup.includes("dsh-startup.j
 check('聊天壁纸仍读 chat-wallpaper.json', hostWall.includes("chat-wallpaper.json"))
 const index = read('lib/index.js')
 check('index.js 同时 import 两个宿主半', index.includes("./host-startup.js") && index.includes("./host-wallpaper.js"))
-check('导出里带两半的命名透传（parseTimecode）', index.includes('parseTimecode'))
+check('导出里只剩三个纯函数（__alphaOf / __listImages / __imageDir）',
+  index.includes('__alphaOf') && index.includes('__listImages') && index.includes('__imageDir'))
+check('视频解析钩子已从导出删掉（parseTimecode / __resolveForTest）',
+  !index.includes('parseTimecode') && !index.includes('__resolveForTest'))
 
 console.log('\n[5] 两半的 DOM / 全局命名没有互相污染')
 check('开机动画根节点 id 未被改', client.includes("'dsh-startup-root'"))
-check('壁纸根节点 id 未被改', client.includes("ROOT_ID = 'dsh-chat-wallpaper'"))
+check('壁纸层 id 契约未变（底图 #dsh-cw-bg / 横幅 #dsh-cw-banner）',
+  client.includes("BG_ID = 'dsh-cw-bg'") && client.includes("BANNER_ID = 'dsh-cw-banner'"))
 check('两套样式 tag 键仍各自独立',
   client.includes("'dsh-startup-screen/main.css'") && client.includes("'dsh-chat-wallpaper/main.css'"))
 check('开机动画全局标记未被改', client.includes('__DSH_STARTUP_BOOT__') && client.includes('__DSH_STARTUP__'))
-check('壁纸会话标记未被改', client.includes("'dsh-chat-wallpaper:intro-shown'"))
+check('壁纸"一轮会话只放一次"的标记已删（视频不播了，不需要它）', !client.includes('intro-shown'))
 
-console.log('\n[6] 运行时真的两半都起得来（假 ctx）')
+console.log('\n[6] 运行时两半都起得来（假 ctx）')
 const mod = await import(pathToFileURL(path.join(ROOT, 'lib', 'index.js')).href)
 const routes = new Map()
 let taps = 0
@@ -76,7 +99,15 @@ const ctx = {
 }
 mod.apply(ctx)
 check('开机动画路由都在', ['/dsh-startup/splash.css', '/dsh-startup/splash.js', '/dsh-startup/config'].every((p) => routes.has('exact ' + p)))
-check('壁纸路由都在', ['/chat-wallpaper/config', '/chat-wallpaper/video', '/chat-wallpaper/image'].every((p) => routes.has('exact ' + p)))
+const wallpaperPaths = [
+  '/chat-wallpaper/config', '/chat-wallpaper/image', '/chat-wallpaper/images',
+  '/chat-wallpaper/set', '/chat-wallpaper/open-dir', '/chat-wallpaper/status',
+]
+check('壁纸路由都在（config/image/images/set/open-dir/status）',
+  wallpaperPaths.every((p) => routes.has('exact ' + p)))
+const wallRoutes = [...routes.keys()].filter((k) => k.includes('/chat-wallpaper/'))
+check('★ 视频路由 /chat-wallpaper/video 已删除', !routes.has('exact /chat-wallpaper/video'))
+check('壁纸路由数量 = 6（没有遗留路由）', wallRoutes.length === 6, wallRoutes.join(' | '))
 check('tapIndex 只注册 1 次', taps === 1, String(taps))
 /* 2.1.1 的坑：把 <script> 包进 html 行，桌面端页面侧解释器按文本插入，脚本永不执行，
    开机动画整段消失。运行时脚本必须是 script-src 这种一等公民行。 */
@@ -87,4 +118,5 @@ check('无 webServer 时 apply 不炸', (() => {
 })())
 
 console.log('\n' + (fail === 0 ? '合并契约：全部通过（' + pass + ' 项）' : fail + ' 项失败 / ' + pass + ' 项通过'))
+try { fs.rmSync(TMP_HOME, { recursive: true, force: true }) } catch { /* 清理失败不影响结果 */ }
 process.exit(fail === 0 ? 0 : 1)

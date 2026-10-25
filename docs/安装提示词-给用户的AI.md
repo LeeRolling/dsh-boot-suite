@@ -26,7 +26,7 @@
      dependencies 和 dsh.profile.bundles 里应有 dsh-boot-suite；
    - 确认 %USERPROFILE%\.dsh\profiles\desktop\node_modules\dsh-boot-suite 存在；
    - 若存在 %USERPROFILE%\.dsh\profiles\web，也同样检查一遍。
-6. 告诉我接下来：重新打开 DSH → 设置页找「启动动画」，选模板；聊天里点左下角或设置里的「聊天背景」调壁纸。
+6. 告诉我接下来：重新打开 DSH → 设置页找「启动动画」，选模板；设置页「聊天背景」里调底图 / 大字横幅。
 7. 如果安装失败：让我运行安装目录里的「诊断.cmd」，把桌面生成的 dsh诊断-*.txt 内容总结给你；
    不要让我反复重试超过 2 次。
 

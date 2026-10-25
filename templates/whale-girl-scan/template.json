@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "id": "whale-girl-scan",
+  "name": "鲸鱼娘扫描睁眼",
+  "author": "素材：NativeDog1/dsh-boot-animation（BSD-3-Clause，原作者待上游确认）；模板维护：LeeRolling",
+  "homepage": "https://github.com/LeeRolling/dsh-boot-suite",
+  "license": "BSD-3-Clause",
+  "version": "1.0.3",
+  "description": "鲸鱼娘「DeepSeek娘扫描睁眼」原片（2560×1440，7 秒），全屏播放 + 淡入淡出；底部保留素材署名。素材来源：NativeDog1/dsh-boot-animation 内置片库（BSD-3-Clause，原作者上游未标注）。",
+  "tags": [
+    "anime",
+    "whale",
+    "video",
+    "cinematic"
+  ],
+  "duration": 7200,
+  "theme": {
+    "accent": "#4d6bfe",
+    "glitchA": "#ff3b30",
+    "glitchB": "#2971b8"
+  },
+  "segments": [
+    {
+      "name": "扫描 · 睁眼",
+      "from": 0,
+      "to": 7200
+    }
+  ],
+  "layers": [
+    {
+      "id": "bg",
+      "type": "panel",
+      "pos": [
+        640,
+        360
+      ],
+      "panelW": 1280,
+      "panelH": 720,
+      "fill": "#000000",
+      "radius": 0,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "whale",
+      "type": "video",
+      "pos": [
+        640,
+        360
+      ],
+      "videoW": 1280,
+      "videoH": 720,
+      "src": "whale-girl-scan.mp4",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 1
+        },
+        {
+          "t": 7200,
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "credit",
+      "type": "text",
+      "text": "WHALE GIRL · NATIVEDOG1/DSH-BOOT-ANIMATION · BSD-3-CLAUSE",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "center",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(139,232,255,.55)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetY": 318
+        },
+        {
+          "t": 600,
+          "opacity": 1,
+          "offsetY": 318
+        },
+        {
+          "t": 7200,
+          "opacity": 1,
+          "offsetY": 318
+        }
+      ]
+    }
+  ],
+  "effects": []
+}
