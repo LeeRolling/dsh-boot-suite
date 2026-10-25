@@ -1,7 +1,7 @@
 # AGENTS.md · 工作规范（每个会话开始先读这份）
 
 > 这份文件是给"下一个我"看的：上下文被压缩、或者换了会话，先读这里，别重新摸索。
-> 最后更新：2026-10-25 · 版本 2.11.9
+> 最后更新：2026-10-26 · 版本 2.12.1
 
 ## 一、项目坐标
 
@@ -27,6 +27,7 @@
 7. **用户目录优先**：`~/.dsh/startup-templates` 覆盖内置同名模板，别写反。
 8. **.cmd 必须纯 ASCII**：UTF-8 无 BOM 的 .cmd 会被当 GBK 执行成乱码。
 9. **PowerShell 5.1 读 UTF-8** 用 `[System.IO.File]::ReadAllText`，别用 `Get-Content`。
+10. **装/更新插件后禁止自动启动 DSH**：助手只负责安装，最后让用户手动打开；不要连续快速重启。若 DSH 报 `desktop welcome: Web authentication failed`，先备份 webstate/profile 再按官方恢复流程处理（2026-10-26 事故，详见交接文档第 2/7 节）。
 
 ## 三、每轮收尾清单（做完功能必跑）
 
@@ -77,6 +78,7 @@ npx --yes impeccable@latest detect --json --no-config tools/editor.html preview/
 | 标题栏透明化 | DSH preload 量 `body>span` 探针颜色再 IPC 重画 | 解析阶段就插样式（`BOOTSTRAP_JS`），不是客户端挂载时 |
 | 双订阅 | `ctx.inject` 与 `ctx.on` 同时订阅 → 两个启动根 → 黑屏 | 互斥订阅 + `contributeRows` 幂等 |
 | 早退不揭幕 | 单幕播放播完接终幕，看起来"闪到最后一屏" | 有 `count` 时播完停住 |
+| 装完自动启动 DSH | `DeepSeek Harness is unavailable` / `desktop welcome: Web authentication failed`，连点多次也打不开 | 安装助手只安装、不启动；失败时先彻底退出所有 DSH 进程、备份 webstate，再手动打开一次，禁止循环重启 |
 
 ## 八、文档索引（压缩后按需读）
 
