@@ -23,8 +23,8 @@ DeepSeek Harness（DSH）冷启动时会先播六幕动画，播完进聊天，�
     黑幕 DeepSeek 标识 → 过曝洗白 → 暖白「技术档案」底板
       → 五步交互式访问授权 → 色散故障揭幕 → 聊天壁纸
 
-**不是视频文件，是代码动画**：`lib/splash.js`（1468 行）+ `lib/splash.css`（1093 行）
-用 DOM + CSS 动画 + WebAudio 现场绘制，画面部分只有 ~94 KB。
+**不是视频文件，是代码动画**：`lib/splash.js`（3288 行）+ `lib/splash.css`（1410 行），源码合计约 196 KB。
+用 DOM + CSS 动画 + WebAudio 现场绘制，没有图片序列帧或视频素材。
 
 | | 开机动画 | 聊天壁纸 |
 |---|---|---|

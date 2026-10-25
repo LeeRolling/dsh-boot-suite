@@ -6,7 +6,8 @@ import { execFileSync } from 'node:child_process';
 const root = process.cwd();
 const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-release-'));
 const out = path.join(root, '..', '03-发布包', 'dsh-boot-suite-win.zip');
-const skip = new Set(['.git', 'node_modules', '08-备份']);
+/* code-motion：另一条工作线（动效研究/验证）的文档与媒体，不属于插件本体，发布包不打包 */
+const skip = new Set(['.git', 'node_modules', '08-备份', 'code-motion']);
 function copy(src, dst) {
   fs.mkdirSync(dst, { recursive: true });
   for (const e of fs.readdirSync(src, { withFileTypes: true })) {

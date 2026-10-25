@@ -21,8 +21,8 @@ On cold start, DSH plays a six-act sequence, then hands over to the chat with yo
     black screen / DeepSeek mark → overexposed wash → warm "technical dossier" plate
       → five-step interactive authorization → glitch reveal → chat wallpaper
 
-**This is not a video file — it is a code animation.** `lib/splash.js` (1468 lines) + `lib/splash.css` (1093 lines)
-draw everything with DOM, CSS animation and WebAudio. The visual part ships as ~94 KB of text.
+**This is not a video file — it is a code animation.** `lib/splash.js` (3288 lines) + `lib/splash.css` (1410 lines), about 196 KB of source.
+Everything is drawn live with DOM, CSS animation and WebAudio — no image sequences or video assets.
 
 | | Boot animation | Chat wallpaper |
 |---|---|---|
