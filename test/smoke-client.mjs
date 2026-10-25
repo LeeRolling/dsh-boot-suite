@@ -280,21 +280,20 @@ check('★ 保存 patch 里带上了转场时长与方向', patch2.transitionMs 
 check('保存 patch 全量 draft：既有字段（identity）没丢', patch2.identity === '琉璃', String(patch2.identity))
 tree = renderPanel()
 
-console.log('\n[5c] 设置页布局 + 「删除该动画」（v2.12.2）')
+console.log('\n[5c] 设置页布局 + 「删除该动画」始终显示/置灰（v2.12.3）')
 {
   /* 初始：宿主 /templates 返回 1 个内置 + 2 个本地（见 fetchStub 的 TEMPLATES） */
   const texts3 = () => walk(tree).filter((n) => typeof n.props.children === 'string').map((n) => n.props.children)
-  /* v2.12.2：删除文案改成「删除该动画」，只出现在第一幕/第二幕下拉旁（本地模板被选中时） */
-  const deleteAnimBtns = () => walk(tree).filter((n) => n.type === 'button' && n.props.children === '删除该动画')
-  const deleteRows = () => walk(tree).filter((n) =>
+  const isSelectComp = (c) => c && typeof c.type === 'function' && Array.isArray(c.props && c.props.options)
+  /* 第一幕/第二幕两行：__ss_row 里「下拉 + 删除该动画」；编辑器那行只有按钮、没有下拉 */
+  const tplRows = () => walk(tree).filter((n) =>
     n.type === 'div' && n.props && Array.isArray(n.props.children) &&
-    n.props.children.some((c) => c && (c.type === 'select' || (typeof c.type === 'function' && Array.isArray(c.props && c.props.options)))) &&
+    n.props.children.some(isSelectComp) &&
     n.props.children.some((c) => c && c.type === 'button' && c.props.children === '删除该动画'))
-  const rowDeleteBtn = (row) => row.props.children.find((c) => c && c.type === 'button' && c.props.children === '删除该动画')
-  const rowSelectValue = (row) => {
-    const s = row.props.children.find((c) => c && typeof c.type === 'function' && Array.isArray(c.props && c.props.options))
-    return s && s.props.value
-  }
+  const rowSelect = (row) => row.props.children.find(isSelectComp)
+  const rowValue = (row) => rowSelect(row) && rowSelect(row).props.value
+  const rowBtn = (row) => row.props.children.find((c) => c && c.type === 'button' && c.props.children === '删除该动画')
+  const deleteAnimBtns = () => walk(tree).filter((n) => n.type === 'button' && n.props.children === '删除该动画')
   const groupTitles = () => walk(tree).filter((n) => n.type === 'div' && n.props && n.props.className === '__ss_groupTitle').map((n) => n.props.children)
   const postList = (prefix) => requests.filter((r) => r.init && r.init.method === 'POST' && String(r.url).includes(prefix))
   /* 第一幕/第二幕两个模板下拉：都含内置 archive-warm，且都有一项「内置/不播放」说明 */
@@ -303,7 +302,7 @@ console.log('\n[5c] 设置页布局 + 「删除该动画」（v2.12.2）')
     n.props.children.some((o) => o && o.type === 'option' && o.props.value === 'archive-warm') &&
     n.props.children.some((o) => o && o.type === 'option' && /内置|不播放/.test(String(o.props.children))))
 
-  /* ── 组顺序：自定义动画 → 模板 → 转场 ── */
+  /* ── 组顺序：自定义动画 → 模板 → 转场（保留 v2.12.2 断言） ── */
   const titles = groupTitles()
   const iImport = titles.indexOf('自定义动画')
   const iTpl = titles.indexOf('模板')
@@ -313,42 +312,80 @@ console.log('\n[5c] 设置页布局 + 「删除该动画」（v2.12.2）')
     iImport >= 0 && iTpl >= 0 && iTrans >= 0 && iImport < iTpl && iTpl < iTrans,
     JSON.stringify({ 自定义动画: iImport, 模板: iTpl, 转场: iTrans }))
 
-  /* ── 「本地动画（N）」列表整块已删除 ── */
-  check('★ 「本地动画（N）」列表整块已删除', !texts3().some((t) => /本地动画（/.test(String(t))),
+  /* ── v2.12.2 删掉的「本地动画（N）」列表保持不存在 ── */
+  check('「本地动画（N）」列表仍然不存在', !texts3().some((t) => /本地动画（/.test(String(t))),
     texts3().filter((t) => /本地动画/.test(String(t))).join('/'))
-  check('列表的空态引导文案也一起删了（不再有「还没有本地动画」）',
-    !texts3().some((t) => String(t).includes('还没有本地动画')))
+  check('模板组底部新增「只对本地动画生效 / 内置会置灰」说明',
+    texts3().some((t) => String(t).includes('只对本地动画生效')) &&
+    texts3().some((t) => String(t).includes('内置模板会置灰')),
+    texts3().filter((t) => /删除该动画/.test(String(t))).join(' / '))
 
-  /* ── 没选本地模板时：没有「删除该动画」 ── */
+  /* ── 按钮始终显示：两行各 1 个 ── */
+  let rows = tplRows()
+  check('★ 无论选了没选本地，第一幕/第二幕两行各有 1 个「删除该动画」（共 2 个）',
+    rows.length === 2 && deleteAnimBtns().length === 2,
+    '行 ' + rows.length + ' / 按钮 ' + deleteAnimBtns().length)
+  check('★ 按钮固定在行内最右侧：两行 nowrap + space-between + gap 24px，按钮 marginLeft auto / minWidth 112px',
+    rows.every((r) => r.props.style && r.props.style.flexWrap === 'nowrap' &&
+      r.props.style.justifyContent === 'space-between' && r.props.style.gap === '24px') &&
+    rows.every((r) => rowBtn(r).props.style &&
+      rowBtn(r).props.style.marginLeft === 'auto' && rowBtn(r).props.style.minWidth === '112px'),
+    JSON.stringify(rows.map((r) => rowBtn(r).props.style)))
+  check('两行按钮的最小宽度/靠右方式完全一致（水平对齐）',
+    rows.every((r) => rowBtn(r).props.style && rowBtn(r).props.style.minWidth === '112px' &&
+      rowBtn(r).props.style.marginLeft === 'auto'))
+
+  /* ── 初始：内置/不播放 → 两个都置灰，点了不发请求 ── */
+  check('★ 初始（第一幕空 / 第二幕不播放）→ 两个按钮都置灰（disabled = true）',
+    rows.every((r) => rowBtn(r).props.disabled === true),
+    JSON.stringify(rows.map((r) => ({ v: rowValue(r), disabled: rowBtn(r).props.disabled }))))
+  check('置灰按钮的 title = 内置模板不能删除',
+    rows.every((r) => rowBtn(r).props.title === '内置模板不能删除'),
+    rows.map((r) => rowBtn(r).props.title).join(' / '))
+  const reqBeforeDisabled = requests.length
+  const confirmBeforeDisabled = confirmCalls.length
+  const disabledClick = rowBtn(rows[0]).props.onClick
+  if (typeof disabledClick === 'function') disabledClick()
+  await flush(); await flush()
+  check('点置灰按钮：不发任何请求、也不弹 confirm',
+    requests.length === reqBeforeDisabled && confirmCalls.length === confirmBeforeDisabled,
+    'requests +' + (requests.length - reqBeforeDisabled) + ' / confirm +' + (confirmCalls.length - confirmBeforeDisabled))
+
+  /* ── 第一幕选内置 → 仍两个置灰 ── */
   let tplSel = templateSelects()
   check('找到第一幕 / 第二幕两个模板下拉', tplSel.length === 2, '实际 ' + tplSel.length)
-  check('未选本地模板（第一幕为空 / 第二幕不播放）→ 没有「删除该动画」按钮',
-    deleteAnimBtns().length === 0, '实际 ' + deleteAnimBtns().length)
   tplSel[0].props.onChange({ target: { value: 'archive-warm' } })
   tree = renderPanel()
-  check('第一幕选内置模板 archive-warm → 仍然没有「删除该动画」按钮',
-    deleteAnimBtns().length === 0, '实际 ' + deleteAnimBtns().length)
+  rows = tplRows()
+  check('第一幕选内置模板 archive-warm → 两个按钮仍然都置灰',
+    rows.every((r) => rowBtn(r).props.disabled === true), rows.map((r) => rowBtn(r).props.disabled).join(','))
 
-  /* ── 选本地模板 → 对应下拉旁出现按钮 ── */
+  /* ── 第一幕选本地 → 它 enabled，第二幕仍 disabled ── */
   tplSel = templateSelects()
   tplSel[0].props.onChange({ target: { value: 'custom-local-a' } })
   tree = renderPanel()
-  check('★ 第一幕选本地模板 → 下拉旁出现 1 个「删除该动画」',
-    deleteAnimBtns().length === 1 && deleteRows().length === 1 && rowSelectValue(deleteRows()[0]) === 'custom-local-a',
-    '按钮 ' + deleteAnimBtns().length + ' / 行 ' + deleteRows().length)
+  rows = tplRows()
+  check('★ 第一幕选本地 → 第一幕按钮 enabled（title=删除这个本地动画），第二幕仍置灰',
+    rowValue(rows[0]) === 'custom-local-a' && rowBtn(rows[0]).props.disabled === false &&
+    rowBtn(rows[0]).props.title === '删除这个本地动画' &&
+    rowValue(rows[1]) === '' && rowBtn(rows[1]).props.disabled === true,
+    JSON.stringify(rows.map((r) => ({ v: rowValue(r), disabled: rowBtn(r).props.disabled }))))
+
+  /* ── 两幕都选本地 → 两个都 enabled ── */
   tplSel = templateSelects()
   tplSel[1].props.onChange({ target: { value: 'custom-local-b' } })
   tree = renderPanel()
-  check('★ 第二幕也选本地模板 → 共 2 个「删除该动画」，各自挂在对应下拉旁',
-    deleteAnimBtns().length === 2 && deleteRows().length === 2 &&
-    rowSelectValue(deleteRows()[0]) === 'custom-local-a' && rowSelectValue(deleteRows()[1]) === 'custom-local-b',
-    deleteRows().map((r) => rowSelectValue(r)).join(','))
+  rows = tplRows()
+  check('★ 两幕都选本地 → 两个按钮都 enabled',
+    rowBtn(rows[0]).props.disabled === false && rowBtn(rows[1]).props.disabled === false,
+    rows.map((r) => rowBtn(r).props.disabled).join(','))
+  check('两个按钮仍然恰好 2 个（按钮没被重建/复制）', deleteAnimBtns().length === 2 && rows.length === 2)
 
   /* ── 删第一幕引用的本地模板：confirm → POST delete → 刷新列表 → POST config patch.template='' ── */
   const confirmBefore = confirmCalls.length
   const beforeDel = requests.length
-  rowDeleteBtn(deleteRows()[0]).props.onClick()
-  check('点「删除该动画」会先弹 confirm（带模板名）',
+  rowBtn(rows[0]).props.onClick()
+  check('点 enabled 的「删除该动画」会先弹 confirm（带模板名）',
     confirmCalls.length === confirmBefore + 1 && String(confirmCalls[confirmCalls.length - 1]).includes('我的开场动画'),
     String(confirmCalls[confirmCalls.length - 1]))
   await flush(); await flush(); await flush(); await flush()
@@ -362,24 +399,26 @@ console.log('\n[5c] 设置页布局 + 「删除该动画」（v2.12.2）')
   check('★ 被引用时自动 POST config 把 template 切回 ""', patch1.template === '', JSON.stringify(patch1))
   check('删除引起的 config patch 只动 template（不夹带其它字段）', Object.keys(patch1).join(',') === 'template', JSON.stringify(patch1))
   tree = renderPanel()
-  check('回填生效：第一幕下拉变回「内置」（value 为空）',
-    templateSelects()[0].props.value === '', String(templateSelects()[0].props.value))
+  rows = tplRows()
+  check('回填生效：第一幕 value 变空、该按钮回到置灰',
+    rowValue(rows[0]) === '' && rowBtn(rows[0]).props.disabled === true,
+    JSON.stringify({ v: rowValue(rows[0]), disabled: rowBtn(rows[0]).props.disabled }))
+  check('删除后两个按钮仍在（始终显示）', rows.length === 2 && deleteAnimBtns().length === 2)
   check('被删的模板从下拉选项里消失',
     !templateSelects()[0].props.children.some((o) => o && o.type === 'option' && o.props.value === 'custom-local-a'))
   check('被删的模板从 /templates 返回里消失（宿主列表已刷新）',
     !TEMPLATES.some((t) => t.id === 'custom-local-a'), TEMPLATES.map((t) => t.id).join(','))
-  check('第一幕不再引用本地模板 → 它的「删除该动画」按钮也消失了',
-    deleteRows().every((r) => rowSelectValue(r) !== 'custom-local-a'), '实际 ' + deleteAnimBtns().length)
 
-  /* ── 再选第二幕本地模板并删除 → patch.act2='' ── */
+  /* ── 再选第二幕本地并删除 → patch.act2='' ── */
   tplSel = templateSelects()
   tplSel[1].props.onChange({ target: { value: 'custom-local-b' } })
   tree = renderPanel()
-  check('重新把第二幕选成本地模板 → 又出现 1 个「删除该动画」',
-    deleteAnimBtns().length === 1 && rowSelectValue(deleteRows()[0]) === 'custom-local-b',
-    '按钮 ' + deleteAnimBtns().length)
+  rows = tplRows()
+  check('重新把第二幕选成本地 → 第二幕按钮 enabled、第一幕仍置灰',
+    rowBtn(rows[1]).props.disabled === false && rowBtn(rows[0]).props.disabled === true,
+    rows.map((r) => rowBtn(r).props.disabled).join(','))
   const beforeDel2 = requests.length
-  rowDeleteBtn(deleteRows()[0]).props.onClick()
+  rowBtn(rows[1]).props.onClick()
   check('第二次删除的 confirm 带第二个模板名',
     confirmCalls.length === confirmBefore + 2 && String(confirmCalls[confirmCalls.length - 1]).includes('淡入过渡'),
     String(confirmCalls[confirmCalls.length - 1]))
@@ -392,10 +431,12 @@ console.log('\n[5c] 设置页布局 + 「删除该动画」（v2.12.2）')
   check('★ 被引用时自动 POST config 把 act2 切回 ""', patch2.act2 === '', JSON.stringify(patch2))
   check('这次 config patch 只动 act2（不夹带其它字段）', Object.keys(patch2).join(',') === 'act2', JSON.stringify(patch2))
   tree = renderPanel()
-  check('回填生效：第二幕下拉变回「不播放」（value 为空）',
-    templateSelects()[1].props.value === '', String(templateSelects()[1].props.value))
-  check('★ 本地模板清空后，页面上没有任何「删除该动画」按钮',
-    deleteAnimBtns().length === 0, '实际 ' + deleteAnimBtns().length)
+  rows = tplRows()
+  check('收尾：第二幕 value 变空，两个按钮都回到置灰',
+    rowValue(rows[1]) === '' && rowBtn(rows[0]).props.disabled === true && rowBtn(rows[1]).props.disabled === true,
+    JSON.stringify(rows.map((r) => ({ v: rowValue(r), disabled: rowBtn(r).props.disabled }))))
+  check('★ 收尾仍有 2 个「删除该动画」按钮（始终显示，不会消失）',
+    deleteAnimBtns().length === 2 && rows.length === 2, '按钮 ' + deleteAnimBtns().length)
   check('内置模板仍可选择（两个下拉的选项里仍有 archive-warm）', templateSelects().length === 2)
   check('删除流程共弹了 2 次 confirm', confirmCalls.length === confirmBefore + 2, String(confirmCalls.length))
 }
