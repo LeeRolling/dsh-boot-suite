@@ -1408,3 +1408,222 @@
   cursor: ew-resize; }
 .tlaudio-h.l { left: 0; border-radius: 2px 0 0 2px; }
 .tlaudio-h.r { right: 0; border-radius: 0 2px 2px 0; }
+
+/* ══ v2.12.0 三段自定义转场（.dsu-trans-*）══════════════════════════════════
+   作用点：① 第一幕入场 ② 第一幕→第二幕 ③ 第二幕→桌面。
+   覆盖层由 splash.js 挂到 body 上（z-index 2147483700，高于 #dsh-startup-root
+   的 2147483000 与 act2 覆盖层的 2147483600），pointer-events:none，永不挡交互。
+   每种类型演两段（每段时长 = transitionMs/2，由 JS 写入 --dsu-trans-dur）：
+     data-phase="cover"   盖住：0 → 满覆盖（换场就发生在盖满这一刻）
+     data-phase="reveal"  揭开：满覆盖 → 透明（播完由 JS 移除节点）
+   --dsu-trans-bg / --dsu-trans-accent 也由 JS 按主题写入。
+   只新增 .dsu-trans-* 前缀，不复用也不污染既有类。 */
+.dsu-trans-overlay {
+  position: fixed;
+  left: 0; top: 0;
+  width: 100vw; height: 100vh;
+  z-index: 2147483700;
+  pointer-events: none;
+  overflow: hidden;
+  contain: strict;
+  --dsu-trans-bg: #f7f1f8;
+  --dsu-trans-accent: #ff7500;
+  --dsu-trans-dur: 300ms;
+}
+.dsu-trans-overlay[data-theme="dark"] { --dsu-trans-bg: #0b0d12; }
+
+.dsu-trans-fill {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: var(--dsu-trans-bg);
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  will-change: transform, opacity, clip-path;
+  animation-duration: var(--dsu-trans-dur);
+  animation-fill-mode: both;
+}
+.dsu-trans-overlay[data-phase="cover"] .dsu-trans-fill { animation-timing-function: ease-in; }
+.dsu-trans-overlay[data-phase="reveal"] .dsu-trans-fill { animation-timing-function: ease-out; }
+
+/* ── black：纯黑淡入 → 淡出 ─────────────────────────────────────────────── */
+.dsu-trans-black .dsu-trans-fill { background: #000; }
+.dsu-trans-black[data-phase="cover"] .dsu-trans-fill { animation-name: dsu-trans-fade-in; }
+.dsu-trans-black[data-phase="reveal"] .dsu-trans-fill { animation-name: dsu-trans-fade-out; }
+
+/* ── flash：白屏快进快出，峰值正好落在换场点 ────────────────────────────── */
+.dsu-trans-flash .dsu-trans-fill { background: #fff; }
+.dsu-trans-flash[data-phase="cover"] .dsu-trans-fill {
+  animation-name: dsu-trans-flash-in;
+  animation-timing-function: cubic-bezier(.1, .85, .2, 1);
+}
+.dsu-trans-flash[data-phase="reveal"] .dsu-trans-fill {
+  animation-name: dsu-trans-flash-out;
+  animation-timing-function: cubic-bezier(.3, 0, .7, 1);
+}
+
+/* ── glitch：暗底 + RGB 切片抖动，换场在故障峰值 ────────────────────────── */
+.dsu-trans-glitch .dsu-trans-fill { background: #05070d; }
+.dsu-trans-glitch[data-phase="cover"] .dsu-trans-fill {
+  animation-name: dsu-trans-glitch-in;
+  animation-timing-function: steps(1, end);
+}
+.dsu-trans-glitch[data-phase="reveal"] .dsu-trans-fill {
+  animation-name: dsu-trans-glitch-out;
+  animation-timing-function: steps(1, end);
+}
+.dsu-trans-glitch .dsu-trans-fill::before,
+.dsu-trans-glitch .dsu-trans-fill::after {
+  content: "";
+  position: absolute;
+  left: -4%; width: 108%; height: 9%;
+  mix-blend-mode: screen;
+  opacity: .8;
+}
+.dsu-trans-glitch .dsu-trans-fill::before {
+  top: 22%; background: #ff3b30;
+  animation: dsu-trans-glitch-bar 420ms steps(2, end) infinite;
+}
+.dsu-trans-glitch .dsu-trans-fill::after {
+  top: 61%; background: #2971b8;
+  animation: dsu-trans-glitch-bar2 350ms steps(2, end) infinite;
+}
+.dsu-trans-rgb {
+  position: absolute; left: 0;
+  width: 100%; height: 6px;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+.dsu-trans-rgb-a { top: 34%; background: rgba(255, 59, 48, .8); animation: dsu-trans-glitch-slice 280ms steps(2, end) infinite; }
+.dsu-trans-rgb-b { top: 74%; background: rgba(41, 113, 184, .8); animation: dsu-trans-glitch-slice 230ms steps(2, end) infinite reverse; }
+
+/* ── scanline / slide：整块按方向扫过（方向语义：left=从左往右，right=从右往左，
+      up=从下往上，down=从上往下；覆盖满时换场，揭开沿同方向继续出画）───────── */
+.dsu-trans-scanline .dsu-trans-fill {
+  background-color: var(--dsu-trans-bg);
+  background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, .1) 0 2px, transparent 2px 9px);
+}
+.dsu-trans-slide .dsu-trans-fill { background: var(--dsu-trans-bg); }
+.dsu-trans-scanline .dsu-trans-fill::after,
+.dsu-trans-slide .dsu-trans-fill::after {
+  content: "";
+  position: absolute;
+  background: var(--dsu-trans-accent);
+  box-shadow: 0 0 22px var(--dsu-trans-accent);
+  opacity: .92;
+}
+.dsu-trans-scanline[data-dir="left"] .dsu-trans-fill::after { top: 0; bottom: 0; right: 0; width: 3px; }
+.dsu-trans-scanline[data-dir="right"] .dsu-trans-fill::after { top: 0; bottom: 0; left: 0; width: 3px; }
+.dsu-trans-scanline[data-dir="up"] .dsu-trans-fill::after { left: 0; right: 0; top: 0; height: 3px; }
+.dsu-trans-scanline[data-dir="down"] .dsu-trans-fill::after { left: 0; right: 0; bottom: 0; height: 3px; }
+.dsu-trans-slide[data-dir="left"] .dsu-trans-fill::after { top: 0; bottom: 0; right: 0; width: 8px; }
+.dsu-trans-slide[data-dir="right"] .dsu-trans-fill::after { top: 0; bottom: 0; left: 0; width: 8px; }
+.dsu-trans-slide[data-dir="up"] .dsu-trans-fill::after { left: 0; right: 0; top: 0; height: 8px; }
+.dsu-trans-slide[data-dir="down"] .dsu-trans-fill::after { left: 0; right: 0; bottom: 0; height: 8px; }
+
+.dsu-trans-scanline[data-phase="cover"][data-dir="left"] .dsu-trans-fill,
+.dsu-trans-slide[data-phase="cover"][data-dir="left"] .dsu-trans-fill { animation-name: dsu-trans-in-left; }
+.dsu-trans-scanline[data-phase="cover"][data-dir="right"] .dsu-trans-fill,
+.dsu-trans-slide[data-phase="cover"][data-dir="right"] .dsu-trans-fill { animation-name: dsu-trans-in-right; }
+.dsu-trans-scanline[data-phase="cover"][data-dir="up"] .dsu-trans-fill,
+.dsu-trans-slide[data-phase="cover"][data-dir="up"] .dsu-trans-fill { animation-name: dsu-trans-in-up; }
+.dsu-trans-scanline[data-phase="cover"][data-dir="down"] .dsu-trans-fill,
+.dsu-trans-slide[data-phase="cover"][data-dir="down"] .dsu-trans-fill { animation-name: dsu-trans-in-down; }
+
+.dsu-trans-scanline[data-phase="reveal"][data-dir="left"] .dsu-trans-fill,
+.dsu-trans-slide[data-phase="reveal"][data-dir="left"] .dsu-trans-fill { animation-name: dsu-trans-out-left; }
+.dsu-trans-scanline[data-phase="reveal"][data-dir="right"] .dsu-trans-fill,
+.dsu-trans-slide[data-phase="reveal"][data-dir="right"] .dsu-trans-fill { animation-name: dsu-trans-out-right; }
+.dsu-trans-scanline[data-phase="reveal"][data-dir="up"] .dsu-trans-fill,
+.dsu-trans-slide[data-phase="reveal"][data-dir="up"] .dsu-trans-fill { animation-name: dsu-trans-out-up; }
+.dsu-trans-scanline[data-phase="reveal"][data-dir="down"] .dsu-trans-fill,
+.dsu-trans-slide[data-phase="reveal"][data-dir="down"] .dsu-trans-fill { animation-name: dsu-trans-out-down; }
+
+/* ── iris：圆形遮罩从中心扩满 → 再收缩露出 ─────────────────────────────── */
+.dsu-trans-iris .dsu-trans-fill {
+  background: var(--dsu-trans-bg);
+  clip-path: circle(0% at 50% 45%);
+}
+.dsu-trans-iris[data-phase="cover"] .dsu-trans-fill {
+  animation-name: dsu-trans-iris-in;
+  animation-timing-function: cubic-bezier(.3, .7, .3, 1);
+}
+.dsu-trans-iris[data-phase="reveal"] .dsu-trans-fill {
+  animation-name: dsu-trans-iris-out;
+  animation-timing-function: cubic-bezier(.7, .1, .3, 1);
+}
+
+/* ── 关键帧 ─────────────────────────────────────────────────────────────── */
+@keyframes dsu-trans-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dsu-trans-fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* flash 的 cover 必须**单调不透明**：先极快拉满白屏（12% ≈ 36ms），然后一直保持纯白到换场点。
+   v2.12.0 曾用「45% 满 → 62% 跌到 86% → 100% 满」的脉冲曲线，中途会透出底下的第二幕画面，
+   被用户看成「闪白时还能看到第二幕淡出」；v2.12.1 去掉这个回落，换场时第二幕被完全盖住。 */
+@keyframes dsu-trans-flash-in {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  100% { opacity: 1; }
+}
+@keyframes dsu-trans-flash-out {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes dsu-trans-glitch-in {
+  0% { opacity: 0; transform: translate3d(0, 0, 0); }
+  10% { opacity: 1; transform: translate3d(-2.2%, 0, 0); }
+  24% { opacity: .72; transform: translate3d(1.6%, 0, 0); }
+  38% { opacity: 1; transform: translate3d(-1%, 0, 0); }
+  52% { opacity: .86; transform: translate3d(2.4%, 0, 0); }
+  66% { opacity: 1; transform: translate3d(0, 0, 0); }
+  78% { opacity: .94; transform: translate3d(-1.4%, 0, 0); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes dsu-trans-glitch-out {
+  0% { opacity: 1; transform: none; }
+  16% { opacity: .8; transform: translate3d(2%, 0, 0); }
+  30% { opacity: 1; transform: translate3d(-1.8%, 0, 0); }
+  46% { opacity: .55; transform: translate3d(1.2%, 0, 0); }
+  62% { opacity: .9; transform: translate3d(-2.6%, 0, 0); }
+  80% { opacity: .3; transform: translate3d(0, 0, 0); }
+  100% { opacity: 0; transform: none; }
+}
+@keyframes dsu-trans-glitch-bar {
+  0% { transform: translate3d(-18%, 0, 0); opacity: .85; }
+  50% { transform: translate3d(12%, 0, 0); opacity: .4; }
+  100% { transform: translate3d(-6%, 0, 0); opacity: .75; }
+}
+@keyframes dsu-trans-glitch-bar2 {
+  0% { transform: translate3d(14%, 0, 0); opacity: .7; }
+  50% { transform: translate3d(-16%, 0, 0); opacity: .95; }
+  100% { transform: translate3d(8%, 0, 0); opacity: .5; }
+}
+@keyframes dsu-trans-glitch-slice {
+  0% { transform: translate3d(-6%, 0, 0); }
+  50% { transform: translate3d(7%, 0, 0); }
+  100% { transform: translate3d(-3%, 0, 0); }
+}
+
+@keyframes dsu-trans-in-left { from { transform: translate3d(-100%, 0, 0); } to { transform: none; } }
+@keyframes dsu-trans-in-right { from { transform: translate3d(100%, 0, 0); } to { transform: none; } }
+@keyframes dsu-trans-in-up { from { transform: translate3d(0, 100%, 0); } to { transform: none; } }
+@keyframes dsu-trans-in-down { from { transform: translate3d(0, -100%, 0); } to { transform: none; } }
+@keyframes dsu-trans-out-left { from { transform: none; } to { transform: translate3d(100%, 0, 0); } }
+@keyframes dsu-trans-out-right { from { transform: none; } to { transform: translate3d(-100%, 0, 0); } }
+@keyframes dsu-trans-out-up { from { transform: none; } to { transform: translate3d(0, -100%, 0); } }
+@keyframes dsu-trans-out-down { from { transform: none; } to { transform: translate3d(0, 100%, 0); } }
+
+@keyframes dsu-trans-iris-in {
+  from { clip-path: circle(0% at 50% 45%); }
+  to { clip-path: circle(142% at 50% 45%); }
+}
+@keyframes dsu-trans-iris-out {
+  from { clip-path: circle(142% at 50% 45%); }
+  to { clip-path: circle(0% at 50% 45%); }
+}
+
+/* 无障碍：JS 在 reduced-motion 下已经直接走硬切；这里再兜一层，绝不播动画 */
+@media (prefers-reduced-motion: reduce) {
+  .dsu-trans-overlay { display: none !important; }
+}

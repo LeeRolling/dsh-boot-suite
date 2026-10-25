@@ -1,7 +1,7 @@
 {
   "name": "dsh-boot-suite",
-  "version": "2.11.11",
-  "description": "DeepSeek Harness 开机套件：冷启动六幕开机动画 + 聊天壁纸。开机动画走设置页「启动动画」（黑幕 DeepSeek 标识 → 过曝洗白 → 暖白档案底板 → 五步交互式授权 → 色散故障揭幕，中文主字 + 英文等宽副标题，真声台词 + 界面音效，33 项设置）；聊天壁纸走设置页「聊天背景」（静态底图 + 大字横幅，支持丢图即换与纱的浓度调节）。两个半侧各自独立：动画坏了不影响壁纸，壁纸坏了不影响动画。",
+  "version": "2.12.4",
+  "description": "DeepSeek Harness 开机套件：冷启动开机动画 + 聊天壁纸。开机动画走设置页「启动动画」（两幕可选，默认档案暖白 → 鲸鱼娘扫描睁眼；支持导入自定义动画、三段自定义转场、本地动画删除、真声台词 + 界面音效）；聊天壁纸走设置页「聊天背景」（静态底图 + 大字横幅，支持丢图即换与纱的浓度调节）。两个半侧各自独立：动画坏了不影响壁纸，壁纸坏了不影响动画。",
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -40,7 +40,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node test/smoke-host.mjs && node test/smoke-splash.mjs && node test/smoke-client.mjs && node test/smoke-desktop-boot.mjs && node test/smoke-wallpaper-host.mjs && node test/smoke-wallpaper-client.mjs && node test/smoke-wallpaper-apply.mjs && node test/smoke-wallpaper-panel.mjs && node test/smoke-merge.mjs && node test/smoke-coords.mjs && node test/smoke-package.mjs",
+    "test": "node test/smoke-host.mjs && node test/smoke-splash.mjs && node test/smoke-splash-tl.mjs && node test/smoke-client.mjs && node test/smoke-desktop-boot.mjs && node test/smoke-import.mjs && node test/smoke-wallpaper-host.mjs && node test/smoke-wallpaper-client.mjs && node test/smoke-wallpaper-apply.mjs && node test/smoke-wallpaper-panel.mjs && node test/smoke-merge.mjs && node test/smoke-coords.mjs && node test/smoke-package.mjs",
     "motion:check": "node tools/motion-check.mjs --template=deep-sonar --speed=2",
     "ui:detect": "npx --yes impeccable@latest detect --no-config tools/editor.html preview/index.html",
     "release": "node tools/build-release.mjs"
