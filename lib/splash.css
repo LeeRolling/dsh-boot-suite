@@ -1557,15 +1557,16 @@
 @keyframes dsu-trans-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes dsu-trans-fade-out { from { opacity: 1; } to { opacity: 0; } }
 
+/* flash 的 cover 必须**单调不透明**：先极快拉满白屏（12% ≈ 36ms），然后一直保持纯白到换场点。
+   v2.12.0 曾用「45% 满 → 62% 跌到 86% → 100% 满」的脉冲曲线，中途会透出底下的第二幕画面，
+   被用户看成「闪白时还能看到第二幕淡出」；v2.12.1 去掉这个回落，换场时第二幕被完全盖住。 */
 @keyframes dsu-trans-flash-in {
   0% { opacity: 0; }
-  45% { opacity: 1; }
-  62% { opacity: .86; }
+  12% { opacity: 1; }
   100% { opacity: 1; }
 }
 @keyframes dsu-trans-flash-out {
   0% { opacity: 1; }
-  14% { opacity: .92; }
   100% { opacity: 0; }
 }
 

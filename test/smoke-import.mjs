@@ -17,6 +17,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
+import { fileURLToPath } from 'node:url'
 
 const HOME = path.join(os.tmpdir(), 'dsh-v212-import-' + Date.now() + '-' + Math.random().toString(36).slice(2))
 fs.mkdirSync(HOME, { recursive: true })
@@ -83,6 +84,7 @@ function fakeRes() {
 
 const parse = (res) => { try { return JSON.parse(res.body) } catch { return null } }
 const routeKey = (p) => 'exact /dsh-startup/' + p
+const PKG_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const qs = (params) => {
   const u = new URLSearchParams()
   for (const [k, v] of Object.entries(params)) u.set(k, String(v))
@@ -121,6 +123,15 @@ async function importTooBig() {
   req.emit('data', { length: 33 * 1024 * 1024 })   // 合计 66MB > 64MB → destroy + null
   await pending
   return { res, json: parse(res) }
+}
+
+/** 发一个 JSON POST（用于 /templates/delete、/config 这类小请求） */
+function postJson(p, body) {
+  return call(p, {
+    method: 'POST',
+    url: '/dsh-startup/' + p,
+    chunks: [Buffer.from(JSON.stringify(body))],
+  })
 }
 
 const USER_ROOT = () => path.join(HOME, 'startup-templates')
@@ -289,6 +300,56 @@ try {
   fs.rmSync(USER_ROOT(), { force: true })
   fs.mkdirSync(USER_ROOT(), { recursive: true })
   check('清理后目录已恢复（后续测试不受影响）', fs.statSync(USER_ROOT()).isDirectory())
+
+  /* ── [5b] /templates/delete：只能删 USER_TPL_ROOT 里的，内置模板动不了 ── */
+  console.log('\n[5b] POST /dsh-startup/templates/delete：只能删用户目录里的模板')
+  r = await importAnim('待删除动画.mp4', Buffer.from('fake-delete-target'), { duration: 1000 })
+  check('前置：导入一个用于删除的用户模板', r.res.statusCode === 200 && r.json && r.json.ok === true,
+    String(r.res.statusCode) + ' ' + (r.json && r.json.error))
+  const delId = r.json && r.json.id
+  const delDir = path.join(USER_ROOT(), String(delId))
+  const BUILTIN_ID = 'archive-warm'
+  const builtinFile = path.join(PKG_ROOT, 'templates', BUILTIN_ID, 'template.json')
+  const builtinRaw = fs.existsSync(builtinFile) ? fs.readFileSync(builtinFile, 'utf8') : null
+  check('前置：真的存在内置模板 ' + BUILTIN_ID, !!builtinRaw)
+
+  let del = await call('templates/delete')
+  check('GET /templates/delete → 405', del.res.statusCode === 405 && del.json && del.json.ok === false,
+    String(del.res.statusCode))
+  for (const badId of ['', 'BAD ID!', '../evil', 'x'.repeat(41), 'a/b']) {
+    del = await postJson('templates/delete', { id: badId })
+    check('非法 id ' + JSON.stringify(badId.length > 12 ? badId.slice(0, 12) + '…' : badId) + ' → 400',
+      del.res.statusCode === 400 && del.json && del.json.ok === false,
+      String(del.res.statusCode) + ' ' + (del.json && del.json.error))
+  }
+  del = await call('templates/delete', { method: 'POST', url: '/dsh-startup/templates/delete', chunks: [Buffer.from('not-json')] })
+  check('body 不是合法 JSON → 400（按非法 id 处理）', del.res.statusCode === 400, String(del.res.statusCode))
+
+  del = await postJson('templates/delete', { id: 'custom-does-not-exist' })
+  check('不存在的用户模板 → 404', del.res.statusCode === 404 && del.json && del.json.ok === false,
+    String(del.res.statusCode) + ' ' + (del.json && del.json.error))
+
+  del = await postJson('templates/delete', { id: BUILTIN_ID })
+  check('★ 删除内置模板 ' + BUILTIN_ID + ' → 404（该路由只删用户目录）',
+    del.res.statusCode === 404 && del.json && del.json.ok === false,
+    String(del.res.statusCode) + ' ' + (del.json && del.json.error))
+  check('★ 内置模板文件原封不动（没有被误删）',
+    fs.existsSync(builtinFile) && fs.readFileSync(builtinFile, 'utf8') === builtinRaw)
+  let tplNow = await call('templates')
+  check('删内置失败后 /templates 里内置模板仍在（source=builtin）',
+    (tplNow.json && Array.isArray(tplNow.json.templates) ? tplNow.json.templates : [])
+      .some((t) => t && t.id === BUILTIN_ID && t.source === 'builtin'))
+
+  del = await postJson('templates/delete', { id: delId })
+  check('★ 删除用户模板 → 200 + ok', del.res.statusCode === 200 && del.json && del.json.ok === true,
+    String(del.res.statusCode) + ' ' + (del.json && del.json.error))
+  check('★ 用户模板目录（含 assets）已被整个删掉', !fs.existsSync(delDir))
+  tplNow = await call('templates')
+  check('★ /templates 不再列出被删的模板',
+    !(tplNow.json && Array.isArray(tplNow.json.templates) ? tplNow.json.templates : []).some((t) => t && t.id === delId),
+    delId)
+  del = await postJson('templates/delete', { id: delId })
+  check('再删一次（已经不存在）→ 404', del.res.statusCode === 404, String(del.res.statusCode))
 
   /* ── [6] 旧配置兼容：没有 transition 字段 → 默认 dissolve/600/left ──── */
   console.log('\n[6] 旧配置（v2.11 及以前，无 transition 字段）→ 默认 dissolve / 600 / left')

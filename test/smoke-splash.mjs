@@ -24,6 +24,7 @@ function check(label, ok, extra) {
   if (ok) { pass++; console.log('  ok   ' + label) }
   else { fail++; console.log('  FAIL ' + label + (extra !== undefined ? '  → ' + extra : '')) }
 }
+const flush = () => new Promise((r) => setTimeout(r, 0))
 
 /* ── 最小 DOM 桩 ─────────────────────────────────────────────────────────── */
 function makeEl(tag) {
@@ -66,7 +67,7 @@ function makeEl(tag) {
     set(v) { el._html = v == null ? '' : String(v); MARKUP = el._html },
   })
   el.classList = {
-    add(...cs) { cs.forEach((c) => { if (!el._cls.split(' ').includes(c)) el._cls = (el._cls + ' ' + c).trim() }) },
+    add(...cs) { cs.forEach((c) => { el._classAdds.push(c); if (!el._cls.split(' ').includes(c)) el._cls = (el._cls + ' ' + c).trim() }) },
     remove(...cs) { cs.forEach((c) => { el._cls = el._cls.split(' ').filter((x) => x && x !== c).join(' ') }) },
     toggle(c, on) {
       const has = el._cls.split(' ').includes(c)
@@ -76,6 +77,8 @@ function makeEl(tag) {
     },
     contains(c) { return el._cls.split(' ').includes(c) },
   }
+  /* 记录 classList.add 历史：v2.12.1 回归断言「正常路径不再加 dsu-out-content」用 */
+  el._classAdds = []
   return el
 }
 
@@ -120,7 +123,8 @@ function makeSpeech() {
   }
 }
 
-function run(withSpeech, cfgOverride, template, jump) {
+function run(withSpeech, cfgOverride, template, jump, opts) {
+  const o = opts || {}
   MARKUP = ''
   MISSED.clear()
   lookupCache.clear()
@@ -143,6 +147,11 @@ function run(withSpeech, cfgOverride, template, jump) {
     addEventListener() {},
     removeEventListener() {},
   }
+
+  /* v2.12.1 时间线测试要手动推进 rAF：opts.rafQueue=true 时把回调排队，
+     由测试按假时间一帧一帧泵，才能观察「片尾那一帧之前/之后」发生了什么。 */
+  const rafQueue = []
+  const rafMode = !!o.rafQueue
 
   const timers = []
   const windowStub = {
@@ -173,7 +182,7 @@ function run(withSpeech, cfgOverride, template, jump) {
     addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
     sessionStorage: { getItem: () => null, setItem() {} },
     localStorage: { getItem: () => null, setItem() {} },
-    requestAnimationFrame: (fn) => { fn(); return 1 },
+    requestAnimationFrame: rafMode ? (fn) => { rafQueue.push(fn); return rafQueue.length } : (fn) => { fn(); return 1 },
     cancelAnimationFrame() {},
     /* 小延时同步执行 —— voiceLead 是 240ms，不这样做 line() 永远开不了口；
        大延时（动画时间线）照旧入队，测试保持同步可控 */
@@ -228,7 +237,7 @@ function run(withSpeech, cfgOverride, template, jump) {
   } catch (e) {
     thrown = e
   }
-  return { windowStub, root, head, body, htmlEl, timers, thrown, markup: MARKUP, sandbox, spoken }
+  return { windowStub, root, head, body, htmlEl, timers, thrown, markup: MARKUP, sandbox, spoken, rafQueue }
 }
 
 /* ── 开跑 ───────────────────────────────────────────────────────────────── */
@@ -437,6 +446,70 @@ console.log('\n[10] 三段转场钩子（v2.12.0，splash.js 转场实现由 tea
     check('缺省配置：初始化后没有转场覆盖层残留（overlays = 0）', state && state.overlays === 0, state && String(state.overlays))
     check('缺省配置：没有活跃覆盖层（active = 0）', state && state.active === 0, state && String(state.active))
   }
+}
+
+console.log('\n[11] v2.12.1：时间线结束不再内嵌淡出（两幕独立，换场只归转场引擎）')
+{
+  const src = fs.readFileSync(BUNDLE, 'utf8')
+  const cssSrc = fs.readFileSync(fileURLToPath(new URL('../lib/splash.css', import.meta.url)), 'utf8')
+
+  /** 按大括号配对从源码里抠出一个具名函数的完整函数体 */
+  function braceBlock(source, from) {
+    const brace = source.indexOf('{', from)
+    if (brace < 0) return ''
+    let depth = 0
+    for (let i = brace; i < source.length; i++) {
+      const ch = source[i]
+      if (ch === '{') depth++
+      else if (ch === '}') { depth--; if (depth === 0) return source.slice(brace, i + 1) }
+    }
+    return ''
+  }
+  const tlAt = src.indexOf('function runTimeline(')
+  const timelineBody = tlAt >= 0 ? braceBlock(src, tlAt) : ''
+  /* 只看代码、不看注释 —— 修复注释里会提到 dsu-out-content/220（说明"已删"），不能误判 */
+  const stripComments = (s) => String(s || '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '')
+  const timelineCode = stripComments(timelineBody)
+  check('lib/splash.js 里能找到 runTimeline 函数', !!timelineBody)
+
+  /* 静态①：runTimeline 里彻底没有内嵌淡出（v2.12.0 的 dsu-out-content 已删） */
+  check('★★ runTimeline 函数体里不再有 dsu-out-content（时间线结束不再内嵌淡出）',
+    !!timelineCode && !timelineCode.includes('dsu-out-content'),
+    timelineCode ? (timelineCode.match(/.*dsu-out-content.*/) || [''])[0].trim() : 'no body')
+
+  /* 静态②：片尾分支直接 resolve，不再 later(...220) 尾巴 */
+  let endBlock = ''
+  if (timelineBody) {
+    const at = timelineBody.indexOf('elapsed >= duration')
+    if (at >= 0) endBlock = braceBlock(timelineBody, at)
+  }
+  const endCode = stripComments(endBlock)
+  check('★ 片尾分支直接 resolve()，不再等 220ms 尾巴',
+    !!endCode && /resolve\(\)/.test(endCode) && !/220/.test(endCode) && !/later\(/.test(endCode),
+    endCode.replace(/\s+/g, ' ').slice(0, 160))
+
+  /* 静态③：flash 的 cover 关键帧必须单调不透明（v2.12.0 中间跌到 86% → 会透出第二幕画面） */
+  function keyframeBlock(source, name) {
+    const at = source.indexOf('@keyframes ' + name)
+    return at < 0 ? '' : braceBlock(source, at)
+  }
+  function opacitySteps(block) {
+    return [...block.matchAll(/(\d+(?:\.\d+)?)%\s*\{\s*opacity:\s*([\d.]+)/g)]
+      .map((m) => ({ at: Number(m[1]), v: Number(m[2]) })).sort((a, b) => a.at - b.at)
+  }
+  const inSteps = opacitySteps(keyframeBlock(cssSrc, 'dsu-trans-flash-in'))
+  const outSteps = opacitySteps(keyframeBlock(cssSrc, 'dsu-trans-flash-out'))
+  const monotonic = (steps, up) => steps.length >= 2 && steps.every((s, i) => i === 0 || (up ? s.v >= steps[i - 1].v : s.v <= steps[i - 1].v))
+  const firstFullAt = inSteps.find((s) => s.v >= 0.999)
+  check('★★ 闪白 cover 关键帧单调不透明（中途不再回落透出第二幕）',
+    monotonic(inSteps, true) && !!inSteps.length && inSteps[0].v === 0 && !!firstFullAt && firstFullAt.at <= 20,
+    JSON.stringify(inSteps))
+  check('★ 闪白 reveal 关键帧单调变透明（揭开过程也不抖动）',
+    monotonic(outSteps, false) && !!outSteps.length && outSteps[outSteps.length - 1].v === 0,
+    JSON.stringify(outSteps))
+
+  /* 运行时「换场紧贴片尾」的受控 rAF 测试在 test/smoke-splash-tl.mjs —— 那个文件需要 await 推微任务，
+     而本文件是纯同步的（混入 await 会让其它用例里未完成动画链的延迟异常提前跑出来）。 */
 }
 
 console.log('\n============================')

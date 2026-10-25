@@ -58,10 +58,13 @@ const documentStub = {
 }
 
 let loaded = null
+const confirmCalls = []
+let confirmReturn = true
 const windowStub = {
   __ModuleLoader__: { load: (entry) => { loaded = entry } },
   addEventListener() {},
   location: { reload() { windowStub.__reloaded = true } },
+  confirm(msg) { confirmCalls.push(String(msg)); return confirmReturn },
 }
 
 /* ── fetch stub ──────────────────────────────────────────────────────────── */
@@ -75,11 +78,27 @@ const CFG = {
   welcomeBox: 'DEEPSEEK HARNESS', footer: 'POWERED BY DEEPSEEK',
   accent: '#ff7500', glitchA: '#ff3b30', glitchB: '#2971b8',
 }
+/* v2.12.1：模板列表（内置 1 + 本地 2）。删除接口会真的从这里移除，方便验证列表刷新 */
+const BUILTIN_TPL = { id: 'archive-warm', name: '档案暖白', source: 'builtin' }
+const USER_TPL_A = { id: 'custom-local-a', name: '我的开场动画', source: 'user' }
+const USER_TPL_B = { id: 'custom-local-b', name: '淡入过渡', source: 'user' }
+const TEMPLATES = [BUILTIN_TPL, USER_TPL_A, USER_TPL_B]
 let versionInResponse = '9.9.9'
 const requests = []
 const fetchStub = (url, init) => {
-  requests.push({ url, init })
+  const u = String(url)
+  requests.push({ url: u, init })
   const isPost = init && init.method === 'POST'
+  if (u.includes('/dsh-startup/templates/delete')) {
+    let id = ''
+    try { id = String(JSON.parse(init.body || '{}').id || '') } catch { /* 非法 body 当空 id */ }
+    const at = TEMPLATES.findIndex((t) => t && t.id === id && t.source === 'user')
+    if (at >= 0) TEMPLATES.splice(at, 1)
+    return Promise.resolve({ json: () => Promise.resolve({ ok: at >= 0, id }) })
+  }
+  if (u.includes('/dsh-startup/templates')) {
+    return Promise.resolve({ json: () => Promise.resolve({ ok: true, templates: TEMPLATES.slice() }) })
+  }
   const body = isPost ? JSON.parse(init.body) : null
   let config = CFG
   if (body && body.action === 'reset') config = Object.assign({}, CFG)
@@ -260,6 +279,97 @@ check('★ 保存 patch 里带上了转场时长与方向', patch2.transitionMs 
   JSON.stringify({ ms: patch2.transitionMs, dir: patch2.transitionDir }))
 check('保存 patch 全量 draft：既有字段（identity）没丢', patch2.identity === '琉璃', String(patch2.identity))
 tree = renderPanel()
+
+console.log('\n[5c] 本地动画列表 + 删除（v2.12.1）')
+{
+  /* 初始：宿主 /templates 返回 1 个内置 + 2 个本地（见 fetchStub 的 TEMPLATES） */
+  const deleteBtns = () => walk(tree).filter((n) => n.type === 'button' && n.props.children === '删除')
+  const texts3 = () => walk(tree).filter((n) => typeof n.props.children === 'string').map((n) => n.props.children)
+  const quickDeleteRows = () => walk(tree).filter((n) =>
+    n.type === 'div' && n.props && Array.isArray(n.props.children) &&
+    n.props.children.some((c) => c && (c.type === 'select' || (typeof c.type === 'function' && Array.isArray(c.props && c.props.options)))) &&
+    n.props.children.some((c) => c && c.type === 'button' && c.props.children === '删除'))
+  const listRow = (name) => walk(tree).find((n) =>
+    n.type === 'div' && n.props && Array.isArray(n.props.children) &&
+    n.props.children.some((c) => c && c.type === 'span' && c.props.children === name) &&
+    n.props.children.some((c) => c && c.type === 'button' && c.props.children === '删除'))
+  const postList = (prefix) => requests.filter((r) => r.init && r.init.method === 'POST' && String(r.url).includes(prefix))
+  /* 第一幕/第二幕两个模板下拉：都含内置 archive-warm，且都有一项「内置/不播放」说明 */
+  const templateSelects = () => walk(tree).filter((n) =>
+    n.type === 'select' && Array.isArray(n.props.children) &&
+    n.props.children.some((o) => o && o.type === 'option' && o.props.value === 'archive-warm') &&
+    n.props.children.some((o) => o && o.type === 'option' && /内置|不播放/.test(String(o.props.children))))
+
+  check('渲染出「本地动画（2）」（只列 source=user 的模板）', texts3().includes('本地动画（2）'), texts3().slice(-12).join('/'))
+  check('两个本地模板各有「删除」按钮', deleteBtns().length === 2, '实际 ' + deleteBtns().length)
+  check('内置模板不出现在本地动画列表（没有它的删除行）', !listRow('档案暖白'))
+  check('当前第一/第二幕都没选本地模板 → 没有下拉旁的快捷删除', quickDeleteRows().length === 0)
+
+  /* 第一幕选内置模板：仍不该出现快捷删除（只有本地模板才有） */
+  let tplSel = templateSelects()
+  check('找到第一幕 / 第二幕两个模板下拉', tplSel.length === 2, '实际 ' + tplSel.length)
+  tplSel[0].props.onChange({ target: { value: 'archive-warm' } })
+  tree = renderPanel()
+  check('第一幕选了内置模板 → 下拉旁没有「删除」', quickDeleteRows().length === 0, '实际 ' + quickDeleteRows().length)
+
+  /* 第一幕/第二幕都选本地模板 → 各出一个快捷删除 */
+  tplSel = templateSelects()
+  tplSel[0].props.onChange({ target: { value: 'custom-local-a' } })
+  tplSel[1].props.onChange({ target: { value: 'custom-local-b' } })
+  tree = renderPanel()
+  check('★ 第一/第二幕选本地模板 → 下拉旁各有一个「删除」（共 4 个删除按钮）',
+    quickDeleteRows().length === 2 && deleteBtns().length === 4,
+    '快捷 ' + quickDeleteRows().length + ' / 全部 ' + deleteBtns().length)
+
+  /* 删第一幕引用的本地模板：confirm → POST delete → refresh /templates → POST config patch.template='' */
+  const quickDeleteBtn = (row) => row.props.children.find((c) => c && c.type === 'button' && c.props.children === '删除')
+  const confirmBefore = confirmCalls.length
+  const beforeDel = requests.length
+  quickDeleteBtn(quickDeleteRows()[0]).props.onClick()
+  check('点删除会先弹 confirm（带模板名）',
+    confirmCalls.length === confirmBefore + 1 && String(confirmCalls[confirmCalls.length - 1]).includes('我的开场动画'),
+    String(confirmCalls[confirmCalls.length - 1]))
+  await flush(); await flush(); await flush(); await flush()
+  const del1 = postList('/dsh-startup/templates/delete').pop()
+  check('★ POST /dsh-startup/templates/delete {id:"custom-local-a"}',
+    !!del1 && JSON.parse(del1.init.body).id === 'custom-local-a', del1 && del1.init.body)
+  const refreshAfterDel = requests.slice(beforeDel).some((r) => String(r.url).includes('/dsh-startup/templates'))
+  check('删除成功后刷新了模板列表（GET /dsh-startup/templates）', refreshAfterDel)
+  const cfg1 = postList('/dsh-startup/config').pop()
+  const patch1 = cfg1 ? JSON.parse(cfg1.init.body).patch : {}
+  check('★ 被引用时自动 POST config 把 template 切回 ""', patch1.template === '', JSON.stringify(patch1))
+  check('没引用第二幕 → 这次 patch 不动 act2', !('act2' in patch1), JSON.stringify(patch1))
+  tree = renderPanel()
+  check('删除后列表变成「本地动画（1）」', texts3().includes('本地动画（1）'), texts3().slice(-10).join('/'))
+  check('被删的模板从列表里消失', !listRow('我的开场动画'))
+  check('被删的模板从 /templates 返回里消失（宿主列表已刷新）',
+    !TEMPLATES.some((t) => t.id === 'custom-local-a'), TEMPLATES.map((t) => t.id).join(','))
+
+  /* 第二幕还引用着另一个本地模板：重新选上它，再走一次删除 → patch 应是 act2='' */
+  check('重新选一次第二幕 = custom-local-b（它还在模板列表里）', (function () {
+    const t = templateSelects()
+    t[1].props.onChange({ target: { value: 'custom-local-b' } })
+    return true
+  })())
+  tree = renderPanel()
+  check('重新选中后第二幕下拉旁出现快捷「删除」', quickDeleteRows().length === 1, '实际 ' + quickDeleteRows().length)
+  const beforeDel2 = requests.length
+  quickDeleteBtn(quickDeleteRows()[0]).props.onClick()
+  await flush(); await flush(); await flush(); await flush()
+  const del2 = requests.slice(beforeDel2).filter((r) => r.init && r.init.method === 'POST' && String(r.url).includes('/templates/delete')).pop()
+  check('★ 删除第二幕引用的模板 → POST delete {id:"custom-local-b"}',
+    !!del2 && JSON.parse(del2.init.body).id === 'custom-local-b', del2 && del2.init.body)
+  const cfg2 = requests.slice(beforeDel2).filter((r) => r.init && r.init.method === 'POST' && r.url === '/dsh-startup/config').pop()
+  const patch2 = cfg2 ? JSON.parse(cfg2.init.body).patch : {}
+  check('★ 被引用时自动 POST config 把 act2 切回 ""', patch2.act2 === '', JSON.stringify(patch2))
+  tree = renderPanel()
+  check('本地动画清空 → 「本地动画（0）」', texts3().includes('本地动画（0）'), texts3().slice(-10).join('/'))
+  check('★ 只剩内置模板时页面上没有任何「删除」按钮', deleteBtns().length === 0, '实际 ' + deleteBtns().length)
+  check('空列表给出引导文案（去「自定义动画」导入）',
+    texts3().some((t) => String(t).includes('还没有本地动画')), texts3().slice(-6).join('/'))
+  check('内置模板仍可选择（两个下拉的选项里仍有 archive-warm）', templateSelects().length === 2)
+  check('删除流程共弹了 2 次 confirm', confirmCalls.length === confirmBefore + 2, String(confirmCalls.length))
+}
 
 console.log('\n[6] 恢复默认 / 立即预览')
 const resetBtn = find(tree, (n) => n.type === 'button' && n.props.children === '恢复默认')
