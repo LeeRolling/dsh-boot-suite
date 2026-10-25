@@ -46,20 +46,27 @@ check('壁纸半侧的测试钩子还在（__applyNow / __buildCss / __teardown�
   client.includes('exports.__applyNow = applyNow') &&
   client.includes('exports.__buildCss = buildCss') &&
   client.includes('exports.__teardown = teardown'))
-check('聊天壁纸的视频死管线已删掉（无 mountLayer / preloadVideo / startWhenFree / video 路由）',
+check('聊天壁纸旧视频死管线仍不存在（无 mountLayer / preloadVideo / startWhenFree / beginIntro / PANEL_ID）',
   !client.includes('__mountLayer') && !client.includes('__preloadVideo') &&
-  !client.includes('__startWhenFree') && !client.includes('/chat-wallpaper/video'),
-  ['__mountLayer', '__preloadVideo', '__startWhenFree', '/chat-wallpaper/video'].filter((s) => client.includes(s)).join(', '))
-/* v2.12.0 起 client 合法地创建一次 <video>：设置页「导入动画」时探测用户视频的时长。
-   这条断言把它钉在"唯一且只用于导入探测"上，防止旧聊天壁纸视频管线借壳回来。 */
+  !client.includes('__startWhenFree') && !client.includes('__beginIntro') &&
+  !client.includes('__PANEL_ID'),
+  ['__mountLayer', '__preloadVideo', '__startWhenFree', '__beginIntro', '__PANEL_ID'].filter((s) => client.includes(s)).join(', '))
+/* v2.13.0 起 client 有 2 处合法创建 <video>：
+   ① 启动页「导入动画」时探测用户视频时长（v2.12.0）；
+   ② 聊天背景「循环视频」层（#dsh-cw-video，muted/loop，v2.13.0）。
+   两条都钉死用途，防止旧聊天壁纸视频管线借壳回来。 */
 const videoCreateCount = (client.match(/createElement\('video'\)/g) || []).length
-check('client 只在「导入动画探时长」里创建 <video>（不是聊天壁纸视频层）',
-  videoCreateCount === 1 && !client.includes('/chat-wallpaper/video'),
-  'createElement(video) × ' + videoCreateCount)
-/* 不带 __ 前缀的普通 token 扫描：防止有人换个名字把视频/浮层面板塞回来 */
-const deadTokens = ['mountLayer', 'preloadVideo', 'startWhenFree', 'mountPanel', 'replayIntro', '__PANEL_ID', '/chat-wallpaper/video']
+check('client 的 <video> 创建点恰 2 个（启动页导入探测 + 壁纸循环视频）',
+  videoCreateCount === 2, 'createElement(video) × ' + videoCreateCount)
+check('壁纸循环视频层：mountBg 里创建 #dsh-cw-video（muted/loop/autoplay/playsInline）',
+  client.includes("VIDEO_ID = 'dsh-cw-video'") && client.includes('video.id = VIDEO_ID') &&
+  client.includes('video.muted = true') && client.includes('video.loop = true') &&
+  client.includes('video.autoplay = true') && client.includes('video.playsInline = true'))
+/* 不带 __ 前缀的普通 token 扫描：防止有人换个名字把旧死代码塞回来。
+   （/chat-wallpaper/video 不再是死 token —— v2.13.0 它被循环视频重新启用） */
+const deadTokens = ['mountLayer', 'preloadVideo', 'startWhenFree', 'mountPanel', 'replayIntro', '__PANEL_ID']
 const foundTokens = deadTokens.filter((t) => client.includes(t))
-check('普通 token 扫描：mountLayer/preloadVideo/startWhenFree/mountPanel/replayIntro/__PANEL_ID//chat-wallpaper/video 一个都不剩',
+check('普通 token 扫描：mountLayer/preloadVideo/startWhenFree/mountPanel/replayIntro/__PANEL_ID 一个都不剩',
   foundTokens.length === 0, foundTokens.join(', '))
 check('壁纸半侧确实被受管调用（module.exports.apply 里调 __wallHalf.apply）',
   client.includes('__wallHalf.apply(ctx)'))
@@ -107,12 +114,17 @@ check('开机动画路由都在', ['/dsh-startup/splash.css', '/dsh-startup/spla
 const wallpaperPaths = [
   '/chat-wallpaper/config', '/chat-wallpaper/image', '/chat-wallpaper/images',
   '/chat-wallpaper/set', '/chat-wallpaper/open-dir', '/chat-wallpaper/status',
+  /* v2.13.0 循环视频 */
+  '/chat-wallpaper/videos', '/chat-wallpaper/video', '/chat-wallpaper/video-preview',
+  '/chat-wallpaper/videos/delete', '/chat-wallpaper/videos/roots',
 ]
-check('壁纸路由都在（config/image/images/set/open-dir/status）',
+check('壁纸路由都在（旧 6 条 + 循环视频 5 条）',
   wallpaperPaths.every((p) => routes.has('exact ' + p)))
 const wallRoutes = [...routes.keys()].filter((k) => k.includes('/chat-wallpaper/'))
-check('★ 视频路由 /chat-wallpaper/video 已删除', !routes.has('exact /chat-wallpaper/video'))
-check('壁纸路由数量 = 6（没有遗留路由）', wallRoutes.length === 6, wallRoutes.join(' | '))
+check('★ v2.13.0 循环视频路由存在（/videos、/video、/video-preview、/videos/delete、/videos/roots）',
+  ['/chat-wallpaper/videos', '/chat-wallpaper/video', '/chat-wallpaper/video-preview',
+    '/chat-wallpaper/videos/delete', '/chat-wallpaper/videos/roots'].every((p) => routes.has('exact ' + p)))
+check('壁纸路由数量 = 11', wallRoutes.length === 11, wallRoutes.join(' | '))
 check('tapIndex 只注册 1 次', taps === 1, String(taps))
 /* 2.1.1 的坑：把 <script> 包进 html 行，桌面端页面侧解释器按文本插入，脚本永不执行，
    开机动画整段消失。运行时脚本必须是 script-src 这种一等公民行。 */
