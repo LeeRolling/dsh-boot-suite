@@ -187,7 +187,7 @@ https://github.com/LeeRolling/dsh-boot-suite/releases/latest/download/dsh-boot-s
 
     npm test
 
-13 套冒烟测试、约 990 项断言，零运行时依赖、零测试框架。改 `lib/` 下任何文件都要重跑。
+13 套冒烟测试、约 998 项断言，零运行时依赖、零测试框架。改 `lib/` 下任何文件都要重跑。
 
 ---
 

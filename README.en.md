@@ -59,7 +59,7 @@ Kill every `DeepSeek Harness` process, run the script, relaunch. Diagnostics lan
 
     npm test
 
-13 self-contained smoke suites, ~990 assertions, no runtime dependencies.
+13 self-contained smoke suites, ~998 assertions, no runtime dependencies.
 
 ## License
 
