@@ -172,9 +172,9 @@ try {
     'waitForBoot', 'fadeOutMs', 'objectFit', 'opacity', 'playbackRate', 'fps']
   const leaked = DEAD_KEYS.filter((k) => r.json && r.json.config && k in r.json.config)
   check('★ config 里没有任何旧视频时代字段（video/mode/placement/loop*/...）', leaked.length === 0, leaked.join(','))
-  check('/config 的 imageOk=false（临时目录里还没图）', r.json && r.json.imageOk === false, String(r.json && r.json.imageOk))
-  check('/config 的 image 为 null', r.json && r.json.image === null, String(r.json && r.json.image))
-  check('/config 的 imageSource = none', r.json && r.json.imageSource === 'none', String(r.json && r.json.imageSource))
+  check('/config 的 imageOk=true（v2.13.1 起新装默认就有内置底图）', r.json && r.json.imageOk === true, String(r.json && r.json.imageOk))
+  check('/config 的 image 指向内置默认图', r.json && typeof r.json.image === 'string' && r.json.image.endsWith('lib/assets/default-background.jpg'), r.json && r.json.image)
+  check('/config 的 imageSource = builtin', r.json && r.json.imageSource === 'builtin', String(r.json && r.json.imageSource))
   const v0 = (r.json && r.json.video) || {}
   check('★ /config.video 默认值：enabled=false / mode=single / shuffleMinutes=0 / selectedId 空 / count=0 / current=null',
     v0.enabled === false && v0.mode === 'single' && v0.shuffleMinutes === 0 &&
@@ -193,6 +193,14 @@ try {
     sortKeys(r.json))
   check('/images 的 dropDir 指向临时 DSH_HOME',
     r.json && r.json.dropDir.includes(HOME.replace(/\\/g, '/')), r.json && r.json.dropDir)
+  check('★ /images 默认列出「默认背景（内置）」，且 marked builtin/selected',
+    r.json && Array.isArray(r.json.images) && r.json.images.length === 1 &&
+    r.json.images[0].builtin === true && r.json.images[0].selected === true &&
+    r.json.images[0].url.includes('__default__'),
+    JSON.stringify(r.json && r.json.images))
+  check('/images.imageSource = builtin、imageConfig 为空',
+    r.json && r.json.imageSource === 'builtin' && r.json.imageConfig === '',
+    JSON.stringify({ source: r.json && r.json.imageSource, cfg: r.json && r.json.imageConfig }))
 
   /* ── [5] /set ───────────────────────────────────────────────────────── */
   console.log('\n[5] POST /set：白名单外（placement/mode/video/loopStart）一律忽略，banner 生效')
@@ -231,37 +239,113 @@ try {
     'bytes' in r.json.image && 'dropDir' in r.json.image && Array.isArray(r.json.image.candidates),
     r.json && sortKeys(r.json.image))
 
-  /* ── [7] /image：没图 404，有图 200 ─────────────────────────────────── */
-  console.log('\n[7] GET /image：没图 → 404；丢一张图进目录 → 200 + MIME/长度')
-  r = await callJson('exact /chat-wallpaper/image')
-  check('★ 没有图 → 404', r.res.statusCode === 404, String(r.res.statusCode))
+  /* ── [7] /image：新装默认内置图；丢图用自己的；哨兵切回内置/不用图 ─── */
+  console.log('\n[7] GET /image：新装默认内置图 → 丢图用自己的 → __default__ / __none__ 哨兵')
+  const builtinFile = new URL('../lib/assets/default-background.jpg', import.meta.url)
+  const builtinBytes = fs.statSync(builtinFile).size
+  let stream = await callStream('exact /chat-wallpaper/image')
+  check('★ 新装没丢图时 /image → 200（内置默认背景）', stream.statusCode === 200, String(stream.statusCode))
+  check('/image 默认返回 image/jpeg', stream.headers && String(stream.headers['Content-Type']).includes('image/jpeg'),
+    stream.headers && stream.headers['Content-Type'])
+  check('/image 默认返回内置图的完整字节',
+    stream.headers && Number(stream.headers['Content-Length']) === builtinBytes &&
+    Buffer.concat(stream._chunks).length === builtinBytes,
+    (stream.headers && stream.headers['Content-Length']) + ' / ' + builtinBytes)
 
   const dropDir = path.join(HOME, 'chat-wallpaper')
   fs.mkdirSync(dropDir, { recursive: true })
   const px = Buffer.alloc(5001, 0x89)          // > 4KB 才会被当成候选图
   fs.writeFileSync(path.join(dropDir, 'smoke-bg.png'), px)
 
-  let stream = await callStream('exact /chat-wallpaper/image')
-  check('/image 有图 → 200', stream.statusCode === 200, String(stream.statusCode))
-  check('/image 返回 image/png', stream.headers && String(stream.headers['Content-Type']).includes('image/png'),
+  stream = await callStream('exact /chat-wallpaper/image')
+  check('丢图后 /image → 200（用户自己的图优先）', stream.statusCode === 200, String(stream.statusCode))
+  check('丢图后 /image 返回 image/png', stream.headers && String(stream.headers['Content-Type']).includes('image/png'),
     stream.headers && stream.headers['Content-Type'])
-  check('/image 字节数正确且内容发出来了',
+  check('丢图后 /image 字节数正确且内容发出来了',
     stream.headers && Number(stream.headers['Content-Length']) === px.length &&
     Buffer.concat(stream._chunks).length === px.length,
     (stream.headers && stream.headers['Content-Length']) + ' / ' + Buffer.concat(stream._chunks).length)
   stream = await callStream('exact /chat-wallpaper/image', '/chat-wallpaper/image?name=smoke-bg.png')
   check('/image?name= 指定丢图目录里的图 → 200', stream.statusCode === 200, String(stream.statusCode))
+  stream = await callStream('exact /chat-wallpaper/image', '/chat-wallpaper/image?name=__default__')
+  check('★ /image?name=__default__ → 200 + image/jpeg（切回内置图）',
+    stream.statusCode === 200 && String(stream.headers['Content-Type']).includes('image/jpeg'),
+    stream.statusCode + ' / ' + (stream.headers && stream.headers['Content-Type']))
   stream = await callStream('exact /chat-wallpaper/image', '/chat-wallpaper/image?name=../../package.json')
   check('/image?name= 目录穿越被拒 → 404', stream.statusCode === 404, String(stream.statusCode))
 
+  /* 回归：name 指向目录（. / .. / 已存在子目录）不能把宿主 createReadStream 打崩（EISDIR） */
+  fs.mkdirSync(path.join(dropDir, 'smoke-dir'), { recursive: true })
+  for (const bad of ['.', '..', 'smoke-dir', 'loops']) {
+    stream = await callStream('exact /chat-wallpaper/image', '/chat-wallpaper/image?name=' + encodeURIComponent(bad))
+    check('★ /image?name=' + bad + '（目录）→ 404 且不崩',
+      stream.statusCode === 404, String(stream.statusCode))
+  }
+  stream = await callStream('exact /chat-wallpaper/image')
+  check('★ 目录名请求后 /image 仍正常 → 200（宿主没被打崩）', stream.statusCode === 200, String(stream.statusCode))
+
+  /* 回归：用户目录里恰有 default-background.jpg 时，指定该名字应返回用户的图，而不是内置图 */
+  const sameName = path.join(dropDir, 'default-background.jpg')
+  fs.writeFileSync(sameName, px)
+  stream = await callStream('exact /chat-wallpaper/image', '/chat-wallpaper/image?name=default-background.jpg')
+  check('★ 用户图与内置图同名时 /image?name= 返回用户图（5001 B）',
+    stream.statusCode === 200 && Number(stream.headers['Content-Length']) === px.length,
+    stream.statusCode + ' / ' + (stream.headers && stream.headers['Content-Length']))
+  fs.rmSync(sameName, { force: true })
+
+  /* 回归：/set 不接受丢图目录之外的任意绝对路径（本地任意文件读取原语） */
+  r = await postJson('exact /chat-wallpaper/set', { image: 'C:/Windows/win.ini' })
+  check('★ POST /set 任意绝对路径被拒绝（不在 applied.image 里）',
+    r.json && r.json.applied && r.json.applied.image === undefined,
+    JSON.stringify(r.json && r.json.applied))
+  r = await callJson('exact /chat-wallpaper/config')
+  check('拒绝后 imageSource 仍是 your-library（没有被改配置）',
+    r.json && r.json.imageSource === 'your-library', r.json && r.json.imageSource)
+
   r = await callJson('exact /chat-wallpaper/images')
-  check('丢图后 /images 列出这张图', r.json && r.json.images.length === 1 && r.json.images[0].name === 'smoke-bg.png',
+  check('★ 丢图后 /images 列出 2 张：内置默认图在前、用户的在后',
+    r.json && Array.isArray(r.json.images) && r.json.images.length === 2 &&
+    r.json.images[0].builtin === true && r.json.images[1].name === 'smoke-bg.png',
     JSON.stringify(r.json && r.json.images))
-  check('丢图后 /images.current 指向它',
-    r.json && typeof r.json.current === 'string' && r.json.current.endsWith('smoke-bg.png'), r.json && r.json.current)
+  check('丢图后 /images.current 指向它、imageSource = your-library',
+    r.json && typeof r.json.current === 'string' && r.json.current.endsWith('smoke-bg.png') &&
+    r.json.imageSource === 'your-library',
+    JSON.stringify({ current: r.json && r.json.current, source: r.json && r.json.imageSource }))
   r = await callJson('exact /chat-wallpaper/config')
   check('丢图后 /config imageOk = true', r.json && r.json.imageOk === true, String(r.json && r.json.imageOk))
   check('丢图后 /config imageSource = your-library', r.json && r.json.imageSource === 'your-library', r.json && r.json.imageSource)
+
+  /* 哨兵：__none__ = 明确不用背景图；__default__ = 切回内置图 */
+  r = await postJson('exact /chat-wallpaper/set', { image: '__none__' })
+  check('★ POST /set image=__none__ 被接受', r.json && r.json.applied && r.json.applied.image === '__none__',
+    JSON.stringify(r.json && r.json.applied))
+  r = await callJson('exact /chat-wallpaper/config')
+  check('★ __none__ 后 /config imageOk=false / image=null / source=none',
+    r.json && r.json.imageOk === false && r.json.image === null && r.json.imageSource === 'none',
+    JSON.stringify({ ok: r.json && r.json.imageOk, img: r.json && r.json.image, src: r.json && r.json.imageSource }))
+  stream = await callStream('exact /chat-wallpaper/image')
+  check('__none__ 后 /image → 404（确实不显示背景）', stream.statusCode === 404, String(stream.statusCode))
+
+  r = await postJson('exact /chat-wallpaper/set', { image: '__default__' })
+  check('★ POST /set image=__default__ 被接受', r.json && r.json.applied && r.json.applied.image === '__default__',
+    JSON.stringify(r.json && r.json.applied))
+  r = await callJson('exact /chat-wallpaper/config')
+  check('★ __default__ 后 /config imageOk=true / source=builtin / image 指向内置图',
+    r.json && r.json.imageOk === true && r.json.imageSource === 'builtin' &&
+    typeof r.json.image === 'string' && r.json.image.replace(/\\/g, '/').endsWith('lib/assets/default-background.jpg'),
+    JSON.stringify({ ok: r.json && r.json.imageOk, src: r.json && r.json.imageSource, img: r.json && r.json.image }))
+  stream = await callStream('exact /chat-wallpaper/image')
+  check('__default__ 后 /image → 200 + 内置图完整字节',
+    stream.statusCode === 200 && Number(stream.headers['Content-Length']) === builtinBytes,
+    stream.statusCode + ' / ' + (stream.headers && stream.headers['Content-Length']))
+
+  r = await postJson('exact /chat-wallpaper/set', { image: '' })
+  check('恢复 image=""（自动挑最新图）', r.json && r.json.applied && r.json.applied.image === '',
+    JSON.stringify(r.json && r.json.applied))
+  r = await callJson('exact /chat-wallpaper/config')
+  check('恢复后 imageSource = your-library（目录里有 smoke-bg.png）',
+    r.json && r.json.imageSource === 'your-library' && r.json.imageOk === true,
+    JSON.stringify({ src: r.json && r.json.imageSource, ok: r.json && r.json.imageOk }))
 
   /* ── [8] /videos 默认返回 ───────────────────────────────────────────── */
   console.log('\n[8] GET /videos：默认返回（还没建视频目录）')

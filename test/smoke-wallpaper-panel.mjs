@@ -186,7 +186,12 @@ const fetchStub = (url, init) => {
   if (u.includes('/chat-wallpaper/images')) {
     return reply({
       ok: true, dropDir: 'C:/tmp/.dsh/chat-wallpaper', dropDirExists: true, current: null,
-      imageConfig: '', banner: '', bannerOpacity: 0.12, images: [], veil: { light: 0.8, dark: 0.5 },
+      imageSource: 'builtin', imageConfig: '', banner: '', bannerOpacity: 0.12,
+      images: [
+        { name: '默认背景（内置）', url: '/chat-wallpaper/image?name=__default__', sizeKB: 250, mtime: '', builtin: true, selected: true },
+        { name: 'user.png', url: '/chat-wallpaper/image?name=user.png', sizeKB: 12, mtime: '2026-10-26 01:00:00', builtin: false, selected: false },
+      ],
+      veil: { light: 0.8, dark: 0.5 },
     })
   }
   if (u.includes('/chat-wallpaper/set')) {
@@ -291,6 +296,26 @@ ok(!!findNode(tree, (n) => n.type === 'button' && n.props.children === '使用')
 ok(!!findNode(tree, (n) => n.type === 'button' && n.props.children === '删除'), '有「删除」按钮')
 ok(JSON.stringify(tree).includes('🎬'), '没有预览图的视频用 🎬 占位')
 ok(textsOf(tree).includes('默认目录'), '默认 loops 目录显示「默认目录」（不可移除）')
+
+/* v2.13.1：内置默认背景图 + 不用背景图哨兵 */
+ok(hasText(tree, '默认背景（内置）'), '★ 背景图组渲染出「默认背景（内置）」缩略图')
+const builtinBtn = findNode(tree, (n) => n.type === 'button' && JSON.stringify(n.props).includes('__default__'))
+ok(!!builtinBtn, '★ 内置背景缩略图按钮存在')
+let beforeImg = requests.length
+builtinBtn.props.onClick()
+await flushP(); await flushP(); await flushP(); await flushP()
+const builtinSet = requests.slice(beforeImg).find((r) => r.url.includes('/chat-wallpaper/set'))
+ok(!!builtinSet && JSON.parse(builtinSet.init.body).image === '__default__',
+  '★ 点内置背景 → POST /set {image:"__default__"}', builtinSet && builtinSet.init.body)
+tree = renderPanel()
+const noImgBtn = findNode(tree, (n) => n.type === 'button' && n.props.children === '不用背景图')
+ok(!!noImgBtn, '有「不用背景图」按钮')
+beforeImg = requests.length
+noImgBtn.props.onClick()
+await flushP(); await flushP(); await flushP(); await flushP()
+const noneSet = requests.slice(beforeImg).find((r) => r.url.includes('/chat-wallpaper/set'))
+ok(!!noneSet && JSON.parse(noneSet.init.body).image === '__none__',
+  '★ 点「不用背景图」→ POST /set {image:"__none__"}（不再空字符串）', noneSet && noneSet.init.body)
 
 /* 使用：POST /set {videoId, bgMode:'video'} + 重新 load */
 let before = requests.length

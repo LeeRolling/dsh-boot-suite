@@ -27,10 +27,12 @@ Everything is drawn live with DOM, CSS animation and WebAudio — no image seque
 | | Boot animation | Chat wallpaper |
 |---|---|---|
 | Entry | Settings → "启动动画" | Settings → "聊天背景" |
-| Content | six acts, typewriter subtitles, targeting ring, chromatic glitch | static image / big text banner |
-| Media | 5 real-voice lines + welcome line + 2 UI sfx (mp3) | your own images |
-| Tunable | 33 options: identity, id, access level, colors, speed, voice, copy | veil opacity, banner text |
+| Content | six acts, typewriter subtitles, targeting ring, chromatic glitch | default built-in background, static image, loop video, big text banner |
+| Media | 5 real-voice lines + welcome line + 2 UI sfx (mp3) | built-in default background + your own images/videos |
+| Tunable | 33 options: identity, id, access level, colors, speed, voice, copy | default/custom background, loop video, veil opacity, banner text |
 
+The chat wallpaper **ships with a default background** (v2.13.1, the whale-girl still from act 2), so a fresh install
+already has a wallpaper; Settings → "聊天背景" → "背景图" can switch back to it at any time, or turn the image off.
 Each half is **independent**: a broken animation never breaks the wallpaper and vice versa; the UI always comes up.
 
 ## Install
@@ -57,7 +59,7 @@ Kill every `DeepSeek Harness` process, run the script, relaunch. Diagnostics lan
 
     npm test
 
-11 self-contained smoke suites, ~490 assertions, no runtime dependencies.
+13 self-contained smoke suites, ~998 assertions, no runtime dependencies.
 
 ## License
 
