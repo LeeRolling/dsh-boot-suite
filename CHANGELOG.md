@@ -17,7 +17,9 @@
 - 「不用背景图」改为显式关闭（宿主哨兵值 `__none__`），不再用空字符串（空字符串现在表示「自动挑目录里最新一张，没有就用内置图」）
 - 宿主 `/chat-wallpaper/images` 增加 `imageSource`（builtin / your-library / none），`/chat-wallpaper/image?name=__default__` 可直接取内置图
 - 升级兼容：只改默认值与回退逻辑，不覆盖已有 `chat-wallpaper.json`；原有背景图 / 循环视频设置原样保留
-- 测试：smoke-wallpaper-host 扩到 119 项（内置图、哨兵切换、目录穿越），设置面板加「默认背景 / 不用背景图」用例；13 套约 990 项全过
+- 修复：`GET /chat-wallpaper/image?name=` 传入目录名（`.` / `..` / 已存在子目录）会让宿主 `createReadStream` 抛未捕获 EISDIR、进程直接退出的问题；现在目录一律 404，并监听读流错误
+- 修复：`POST /chat-wallpaper/set` 不再接受丢图目录之外的任意绝对路径（避免变成本地任意文件读取原语），只允许目录内的图片文件
+- 测试：smoke-wallpaper-host 扩到 127 项（内置图、哨兵切换、目录穿越、目录名防崩、同名用户图优先）；13 套共 998 条通过标记全过
 
 ---
 

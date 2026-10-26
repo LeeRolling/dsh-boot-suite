@@ -274,6 +274,34 @@ try {
   stream = await callStream('exact /chat-wallpaper/image', '/chat-wallpaper/image?name=../../package.json')
   check('/image?name= 目录穿越被拒 → 404', stream.statusCode === 404, String(stream.statusCode))
 
+  /* 回归：name 指向目录（. / .. / 已存在子目录）不能把宿主 createReadStream 打崩（EISDIR） */
+  fs.mkdirSync(path.join(dropDir, 'smoke-dir'), { recursive: true })
+  for (const bad of ['.', '..', 'smoke-dir', 'loops']) {
+    stream = await callStream('exact /chat-wallpaper/image', '/chat-wallpaper/image?name=' + encodeURIComponent(bad))
+    check('★ /image?name=' + bad + '（目录）→ 404 且不崩',
+      stream.statusCode === 404, String(stream.statusCode))
+  }
+  stream = await callStream('exact /chat-wallpaper/image')
+  check('★ 目录名请求后 /image 仍正常 → 200（宿主没被打崩）', stream.statusCode === 200, String(stream.statusCode))
+
+  /* 回归：用户目录里恰有 default-background.jpg 时，指定该名字应返回用户的图，而不是内置图 */
+  const sameName = path.join(dropDir, 'default-background.jpg')
+  fs.writeFileSync(sameName, px)
+  stream = await callStream('exact /chat-wallpaper/image', '/chat-wallpaper/image?name=default-background.jpg')
+  check('★ 用户图与内置图同名时 /image?name= 返回用户图（5001 B）',
+    stream.statusCode === 200 && Number(stream.headers['Content-Length']) === px.length,
+    stream.statusCode + ' / ' + (stream.headers && stream.headers['Content-Length']))
+  fs.rmSync(sameName, { force: true })
+
+  /* 回归：/set 不接受丢图目录之外的任意绝对路径（本地任意文件读取原语） */
+  r = await postJson('exact /chat-wallpaper/set', { image: 'C:/Windows/win.ini' })
+  check('★ POST /set 任意绝对路径被拒绝（不在 applied.image 里）',
+    r.json && r.json.applied && r.json.applied.image === undefined,
+    JSON.stringify(r.json && r.json.applied))
+  r = await callJson('exact /chat-wallpaper/config')
+  check('拒绝后 imageSource 仍是 your-library（没有被改配置）',
+    r.json && r.json.imageSource === 'your-library', r.json && r.json.imageSource)
+
   r = await callJson('exact /chat-wallpaper/images')
   check('★ 丢图后 /images 列出 2 张：内置默认图在前、用户的在后',
     r.json && Array.isArray(r.json.images) && r.json.images.length === 2 &&
