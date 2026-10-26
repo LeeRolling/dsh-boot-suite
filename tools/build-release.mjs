@@ -29,7 +29,7 @@ function validatePackageJson(file, label) {
 }
 copy(root, stage);
 const pkg = validatePackageJson(path.join(stage, 'package.json'), '源目录');
-for (const f of ['lib/index.js', 'lib/splash.js', 'lib/client.js', 'templates', '安装.cmd', 'tools/install.ps1', 'tools/update-apply.ps1']) {
+for (const f of ['lib/index.js', 'lib/splash.js', 'lib/client.js', 'lib/assets/default-background.jpg', 'templates', '安装.cmd', 'tools/install.ps1', 'tools/update-apply.ps1']) {
   if (!fs.existsSync(path.join(stage, f))) throw new Error('发布包缺少 ' + f);
 }
 fs.mkdirSync(path.dirname(out), { recursive: true });
