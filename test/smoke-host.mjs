@@ -416,6 +416,17 @@ console.log('\n[6f] 检查更新：当前版本 vs GitHub latest')
   } finally { globalThis.fetch = realFetch }
 }
 
+console.log('\n[6g] 更新包完整性：只看 PK 头的半包不再被接受')
+{
+  /* 造一个“头是 PK、实际被截断”的 1MB+ 假包：v2.13.1 更新失败的根因 */
+  const truncated = Buffer.alloc(1024 * 1024 + 32)
+  truncated[0] = 0x50; truncated[1] = 0x4b; truncated[2] = 0x03; truncated[3] = 0x04
+  r = await call('exact /dsh-startup/update-upload', 'POST', truncated, '/dsh-startup/update-upload?version=9.9.9')
+  const upBad = JSON.parse(r.body)
+  check('截断 zip 被拒（校验到中央目录）', upBad.ok === false && /不完整|损坏|zip 校验/.test(String(upBad.error || '')), r.body.slice(0, 160))
+  check('坏包不落盘', !fs.existsSync(path.join(SMOKE_HOME, 'boot-suite-updates', '9.9.9.zip')))
+}
+
 console.log('\n[7] XSS 边界：身份名称里的尖括号不会逃出内联脚本')
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { identity: '</script><img src=x onerror=alert(1)>' } }))
 const payload = inlinePayload(renderRows(before, collectRows()))
