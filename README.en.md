@@ -53,6 +53,14 @@ The repo ships three maintenance scripts that work **without a usable UI**:
 | `tools/rollback.cmd` | roll back to the newest snapshot under `backups/` |
 | `tools/make-backup.ps1` | snapshot the current state (run before editing code) |
 
+### Update protection: automatic emergency rollback (v2.13.3)
+
+Before every install/update, the installer drops a **desktop rollback button** for the currently working version
+(`紧急回滚-V<current版>（先完全退出 DSH 再双击）.cmd`). If the new version fails to install or the app no longer opens,
+fully quit DeepSeek Harness (window + tray) and double-click it: the plugin switches back to the previous working version,
+keeping your settings untouched. After a successful update the old button is replaced automatically on the next update —
+you do not need to delete it. Every rollback writes a `dsh-boot-suite 回滚日志` log on the desktop.
+
 Kill every `DeepSeek Harness` process, run the script, relaunch. Diagnostics land in `~/.dsh/boot-suite-diag.log`.
 
 ## Tests
