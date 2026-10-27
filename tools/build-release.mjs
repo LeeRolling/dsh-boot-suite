@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 
 const root = process.cwd();
 const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-release-'));
@@ -12,7 +12,7 @@ function copy(src, dst) {
   fs.mkdirSync(dst, { recursive: true });
   for (const e of fs.readdirSync(src, { withFileTypes: true })) {
     if (skip.has(e.name)) continue;
-    if (e.name.endsWith('.zip')) continue;
+    if (e.name.endsWith('.zip') || e.name.endsWith('.tgz')) continue;
     const s = path.join(src, e.name);
     const d = path.join(dst, e.name);
     if (e.isDirectory()) copy(s, d); else fs.copyFileSync(s, d);
@@ -41,4 +41,28 @@ const vpkg = validatePackageJson(path.join(verify, 'package.json'), 'zip 内');
 if (vpkg.version !== pkg.version) throw new Error('zip 内版本 ' + vpkg.version + ' 与源目录 ' + pkg.version + ' 不一致');
 fs.rmSync(stage, { recursive: true, force: true });
 fs.rmSync(verify, { recursive: true, force: true });
+
+/* 硬性规定（2026-10-28）：每次发版必须带 dsh-boot-suite.tgz ——
+   插件市场的安装链接固定指向 latest/download/dsh-boot-suite.tgz，
+   少了它市场里的“安装”按钮就会指向旧版。所以打包脚本自己产，不靠手打。 */
+const outDir = path.dirname(out);
+const tgz = path.join(outDir, 'dsh-boot-suite.tgz');
+if (fs.existsSync(tgz)) fs.renameSync(tgz, tgz.replace(/\.tgz$/, '-bak-' + Date.now() + '.tgz'));
+/* Node 24 在 Windows 上不允许直接 spawn .cmd（CVE 修复），所以直接找 npm-cli.js
+   用当前 node 执行；找不到才退回 shell 调 npm。 */
+const npmCli = path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js');
+let packOut;
+if (fs.existsSync(npmCli)) {
+  packOut = execFileSync(process.execPath, [npmCli, 'pack', '--silent', '--pack-destination', outDir], { cwd: root, encoding: 'utf8' }).trim();
+} else {
+  packOut = execSync('npm pack --silent --pack-destination "' + outDir + '"', { cwd: root, encoding: 'utf8' }).trim();
+}
+const packName = packOut.split(/\r?\n/).filter(Boolean).pop();
+const packed = path.join(outDir, packName);
+if (!fs.existsSync(packed)) throw new Error('npm pack 没有产出 tgz: ' + packName);
+fs.renameSync(packed, tgz);
+const tbuf = fs.readFileSync(tgz);
+if (tbuf.length < 3 || tbuf[0] !== 0x1f || tbuf[1] !== 0x8b) throw new Error('dsh-boot-suite.tgz 不是合法的 gzip');
+if (tbuf.length < 1024 * 1024) throw new Error('dsh-boot-suite.tgz 太小（' + tbuf.length + ' B），疑似打包不完整');
+console.log('TGZ OK version=' + vpkg.version + ' size=' + tbuf.length + ' bytes -> ' + tgz);
 console.log('RELEASE OK version=' + vpkg.version + ' size=' + fs.statSync(out).size + ' bytes -> ' + out);

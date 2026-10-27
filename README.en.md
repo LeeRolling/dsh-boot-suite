@@ -33,6 +33,8 @@ Everything is drawn live with DOM, CSS animation and WebAudio — no image seque
 
 The chat wallpaper **ships with a default background** (v2.13.1, the whale-girl still from act 2), so a fresh install
 already has a wallpaper; Settings → "聊天背景" → "背景图" can switch back to it at any time, or turn the image off.
+Chat text auto-adapts to the actual wallpaper+veil brightness, and since v2.13.10 the native Windows caption buttons
+(minimize / maximize / close) keep a fixed high-contrast pair in both light and dark appearance.
 Each half is **independent**: a broken animation never breaks the wallpaper and vice versa; the UI always comes up.
 
 ## Install

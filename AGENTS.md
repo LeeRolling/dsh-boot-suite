@@ -1,7 +1,7 @@
 # AGENTS.md · 工作规范（每个会话开始先读这份）
 
 > 这份文件是给"下一个我"看的：上下文被压缩、或者换了会话，先读这里，别重新摸索。
-> 最后更新：2026-10-26 · 版本 2.12.1
+> 最后更新：2026-10-28 · 版本 2.13.9（内部迭代，Release 仍为 2.13.4）
 
 ## 一、项目坐标
 
@@ -25,7 +25,7 @@
 5. **首帧注入走 index 行**：`script-src` 行才会执行；`html` 行里的 `<script>` 在桌面端不跑。
 6. **作者字段如实标**：`author` 写原作者，`adaptedBy` 写改版者（沈宏宏的作品不能署成自己的）。
 7. **用户目录优先**：`~/.dsh/startup-templates` 覆盖内置同名模板，别写反。
-8. **.cmd 必须纯 ASCII**：UTF-8 无 BOM 的 .cmd 会被当 GBK 执行成乱码。
+8. **.cmd 必须纯 ASCII**：UTF-8 无 BOM 的 .cmd 会被当 GBK 执行成乱码。**交付给用户的 .cmd/.ps1 必须由模板或生成器产出并读回校验**，禁止用「数组 + 字符串拼接」生成（2026-10-28 v2.13.9 事故：`+$v+` 被拆成独立数组元素，版本号单独成行，用户双击后 cmd 把 `2.13.9` 当命令、更新器未启动）。生成器：`node tools/make-upgrade-helper.mjs <版本>`；交付前自己逐行读一遍。
 9. **PowerShell 5.1 读 UTF-8** 用 `[System.IO.File]::ReadAllText`，别用 `Get-Content`。
 10. **装/更新插件后禁止自动启动 DSH**：助手只负责安装，最后让用户手动打开；不要连续快速重启。若 DSH 报 `desktop welcome: Web authentication failed`，先备份 webstate/profile 再按官方恢复流程处理（2026-10-26 事故，详见交接文档第 2/7 节）。
 
@@ -60,6 +60,8 @@ npx --yes impeccable@latest detect --json --no-config tools/editor.html preview/
 | Chrome（截图/验证） | `C:\Program Files\Google\Chrome\Application\chrome.exe` |
 | 打包 | `npm pack --pack-destination ..\03-发布包` 然后重命名成 `dsh-boot-suite.tgz` |
 | 编辑器官网入口 | 设置 →「启动动画」→「打开模板编辑器」 |
+| 生成桌面升级助手 | `node tools/make-upgrade-helper.mjs <版本>`（整段模板 + 写后读回校验） |
+| 生成紧急回滚助手 | 由 `tools/install.ps1` 安装时自动生成（`tools/rollback-version.ps1` + 桌面 bat），无需手工 |
 
 ## 六、验证套路（别靠"应该没问题"）
 
@@ -79,6 +81,7 @@ npx --yes impeccable@latest detect --json --no-config tools/editor.html preview/
 | 双订阅 | `ctx.inject` 与 `ctx.on` 同时订阅 → 两个启动根 → 黑屏 | 互斥订阅 + `contributeRows` 幂等 |
 | 早退不揭幕 | 单幕播放播完接终幕，看起来"闪到最后一屏" | 有 `count` 时播完停住 |
 | 装完自动启动 DSH | `DeepSeek Harness is unavailable` / `desktop welcome: Web authentication failed`，连点多次也打不开 | 安装助手只安装、不启动；失败时先彻底退出所有 DSH 进程、备份 webstate，再手动打开一次，禁止循环重启 |
+| 生成 .cmd 被拆行 | 用户双击后报 `'2.13.9' is not recognized`、`Processing -File ... failed`，更新器根本没启动 | 用 `tools/make-upgrade-helper.mjs` 模板生成；写后读回逐行校验，版本号不能单独成行、install.ps1 路径必须完整（2026-10-28 事故） |
 
 ## 八、文档索引（压缩后按需读）
 

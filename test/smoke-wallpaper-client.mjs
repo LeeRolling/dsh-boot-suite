@@ -220,6 +220,36 @@ ok(css.includes('html.dsh-cw-light #dsh-cw-bg > .dsh-cw-veil { background: linea
 ok(css.includes('html.dsh-cw-dark #dsh-cw-bg > .dsh-cw-veil { background: linear-gradient(rgba(8,10,16,.74), rgba(6,8,14,.62)); }'), '深色主题压深纱')
 ok(css.includes('html.dsh-cw-light #dsh-cw-bg { background: #f7f1f8; }'), '浅色兜底底色')
 ok(css.includes('html.dsh-cw-dark #dsh-cw-bg { background: #0b0d12; }'), '深色兜底底色')
+/* v2.13.5：纱/兜底改跟壁纸亮度走，文字 token 自适应 */
+ok(!css.includes('html.dsh-cw-bg-dark #dsh-cw-bg > .dsh-cw-veil'), 'v2.13.9 纱不再按壁纸亮度强塞（用户拖浓度滑块真的生效）')
+ok(!css.includes('html.dsh-cw-bg-light #dsh-cw-bg > .dsh-cw-veil'), 'v2.13.9 纱只跟外观主题走')
+ok(css.includes('text-shadow: 0 1px 2px'), 'v2.13.9 聊天文字带轻阴影兜底（明暗不均也能读）')
+ok(code.includes('function effectiveLum') && code.includes('function veilBlend'), 'v2.13.9 文字颜色按「壁纸 + 纱」实际亮度判定')
+ok(css.includes('.dsh-cw-txt-light {') && css.includes('--dsw-alias-label-primary: #f5f7fa !important'), 'v2.13.5 暗背景 → 文字提亮')
+ok(css.includes('.dsh-cw-txt-dark {') && css.includes('--dsw-alias-label-primary: #111418 !important'), 'v2.13.5 亮背景 → 文字压深')
+ok(mod.__BG_CLASSES.join(',') === 'dsh-cw-bg-dark,dsh-cw-bg-light', '__BG_CLASSES 固定', js(mod.__BG_CLASSES))
+ok(mod.__TEXT_CLASSES.join(',') === 'dsh-cw-txt-dark,dsh-cw-txt-light', '__TEXT_CLASSES 固定', js(mod.__TEXT_CLASSES))
+ok(mod.__PANEL_CLASSES.join(',') === 'dsh-cw-panel-dark,dsh-cw-panel-light', 'v2.13.6 __PANEL_CLASSES 固定', js(mod.__PANEL_CLASSES))
+ok(css.includes('.dsh-cw-txt-light { color: #eef2f8 !important;'), 'v2.13.6 暗背景文字兜底色')
+ok(css.includes('.dsh-cw-panel-light { background-color:'), 'v2.13.6 暗背景侧边栏/输入框面板底色')
+ok(css.includes('.dsh-cw-txt-dark { color: #10141a !important;'), 'v2.13.6 亮背景文字兜底色')
+ok(css.includes('.dsh-cw-panel-dark { background-color:'), 'v2.13.6 亮背景侧边栏/输入框面板底色')
+ok(!css.includes('.dsh-cw-panel-light textarea') && !css.includes('.dsh-cw-panel-dark textarea'), 'v2.13.8 输入框不再被插件刷文字色（交回 DSH 原生主题）')
+ok(css.includes('.dsh-cw-panel-light { background-color: rgba(8,11,18,.72) !important; }'), 'v2.13.8 深色外观面板底色')
+ok(css.includes('.dsh-cw-panel-dark { background-color: rgba(248,250,253,.93) !important; }'), 'v2.13.8 浅色外观面板底色')
+ok(!css.includes('fill: currentColor'), 'v2.13.8 不再覆盖图标颜色（避免白底白图标）')
+ok(typeof mod.__findHeaderRoot === 'function', 'v2.13.7 顶部标题栏查找导出')
+ok(code.includes('chromePanel') && code.includes('var appDark'), 'v2.13.8 外框只垫外观面板、聊天正文跟壁纸亮度')
+ok(typeof mod.__markerSaysDark === 'function' && typeof mod.__tokenSaysDark === 'function', 'v2.13.8 主题判定函数可测试导出')
+ok(code.includes('el.contains(comp)'), 'v2.13.8 聊天正文根节点停在输入框外面（不把白字漏进输入框）')
+ok(css.includes('.dsh-cw-txt-light :not(pre) > code'), 'v2.13.6 行内代码 chip 对比底色')
+ok(css.includes('html:not([data-dsh-caption]).dsh-cw-light body>span[style*="dsw-specific-sidebar-fill"]'), 'v2.13.10 浅色：窗口按钮探针浅底深图标')
+ok(css.includes('background-color: #f9fafb !important; color: #0f1115 !important'), 'v2.13.10 浅色：固定高对比色对')
+ok(css.includes('html:not([data-dsh-caption]).dsh-cw-dark body>span[style*="dsw-specific-sidebar-fill"]'), 'v2.13.10 深色：窗口按钮探针深底浅图标')
+ok(css.includes('background-color: #1b1b1c !important; color: #f9fafb !important'), 'v2.13.10 深色：固定高对比色对')
+ok(code.includes('function syncCaptionProbe') && code.includes("data-dsh-caption"), 'v2.13.10 片头期间不覆盖探针 + 结束后主动重测')
+ok(typeof mod.__findChatRoot === 'function' && typeof mod.__findSidebarRoot === 'function', 'v2.13.6 根节点查找导出（聊天/侧边栏）')
+ok(typeof mod.__findComposer === 'function' && typeof mod.__findInputBox === 'function', 'v2.13.6 输入框查找导出')
 ok(css.includes('#dsh-cw-banner'), '横幅选择器 #dsh-cw-banner 在位')
 ok(css.includes('white-space: nowrap'), '横幅不换行（一行铺满）')
 ok(css.includes('font-weight: 800'), '横幅加粗（大字要够分量）')
@@ -278,6 +308,25 @@ setAttrs([], [], 'rgb(247, 241, 248)')
 mod.__looksDark()
 sandbox.getComputedStyle = () => ({ backgroundColor: 'rgba(0, 0, 0, 0)' })
 ok(mod.__looksDark() === false, '亮度已缓存 → 注入 CSS 后不会因透明底翻转成深色')
+sandbox.getComputedStyle = () => ({ backgroundColor: 'rgb(247, 241, 248)' })
+
+/* v2.13.8 回归：插件自己的 dsh-cw-* 类不算主题标记；token 支持十六进制 */
+html.attributes = []; body.attributes = []
+html.className = 'dsh-cw-bg-dark dsh-cw-dark'
+body.className = 'dsh-cw-panel-light'
+ok(mod.__markerSaysDark() === false, 'v2.13.8 dsh-cw-bg-dark / dsh-cw-panel-light 不被误判成深色外观')
+html.className = 'app-dark'
+ok(mod.__markerSaysDark() === true, 'v2.13.8 真正的 dark 标记仍能识别')
+html.className = ''; body.className = ''
+let tok = ''
+sandbox.getComputedStyle = () => ({ backgroundColor: 'rgba(0, 0, 0, 0)', getPropertyValue: (k) => (k === '--dsw-alias-label-primary' ? tok : '') })
+tok = '#0f1115'
+ok(mod.__tokenSaysDark() === false, 'v2.13.8 十六进制深色文字 token → 浅色外观')
+tok = '#f9fafb'
+ok(mod.__tokenSaysDark() === true, 'v2.13.8 十六进制浅色文字 token → 深色外观')
+tok = 'rgb(15, 17, 21)'
+ok(mod.__tokenSaysDark() === false, 'v2.13.8 rgb() 深色文字 token → 浅色外观')
+tok = ''
 sandbox.getComputedStyle = () => ({ backgroundColor: 'rgb(247, 241, 248)' })
 
 console.log('\n=== ⑤ mountBg：循环视频元素（#dsh-cw-video）===')
@@ -408,7 +457,7 @@ ok(intervals.every((t) => t.cleared) || intervals.length === 0, '旧的 interval
   intervals.map((t) => (t.cleared ? 'cleared' : 'live')).join(','))
 
 console.log('\n=== ⑦ v2.13.0 测试钩子 / BUILD ===')
-ok(mod.__BUILD === 'cw-27', '__BUILD = cw-27（排查浏览器跑的是不是新包）', String(mod.__BUILD))
+ok(mod.__BUILD === 'cw-33', '__BUILD = cw-33（排查浏览器跑的是不是新包）', String(mod.__BUILD))
 ok(mod.__VIDEO_ID === 'dsh-cw-video', '__VIDEO_ID = dsh-cw-video', String(mod.__VIDEO_ID))
 ok(typeof mod.__startShuffle === 'function', '__startShuffle 导出')
 ok(typeof mod.__stopShuffle === 'function', '__stopShuffle 导出')
