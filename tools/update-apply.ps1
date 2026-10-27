@@ -121,6 +121,7 @@ try {
 
   Log '安装完成，清理旧版本目录…'
   if (Test-Path $pkgOld) { Remove-Item $pkgOld -Recurse -Force -ErrorAction SilentlyContinue }
+  Log '回滚按钮已就绪：桌面上「紧急回滚-V<旧版本>」可在新版打不开时用；更新成功后旧按钮已被安装器自动清理。'
 
   Log '正在重新打开 DSH…'
   if (Test-Path $Exe) { Start-Process -FilePath $Exe } else { Log '找不到 DSH 可执行文件，请手动打开客户端' }

@@ -127,6 +127,78 @@ if ($targets -contains 'desktop') {
   if ($running.Count -gt 0) { Say '（检查模式）桌面端正在运行 —— 真正安装前需要先完全退出' }
 }
 
+# ── 3.5 更新前的紧急回滚 checkpoint（v2.13.3）──────────────────────────────
+# 每次「换版本安装」前，把当前能用的版本记在桌面一个回滚按钮里：
+#   新版装不上 / 装完 DSH 打不开 -> 完全退出 DSH 后双击按钮，link 回旧版本目录。
+# 安装成功后清理旧按钮，保证桌面最多只有一个；安装失败则保留所有旧按钮。
+function Get-InstalledPlugin([string]$profileDir) {
+  $inst = Join-Path $profileDir 'node_modules\dsh-boot-suite'
+  $item = $null
+  if (Test-Path $inst) { $item = Get-Item $inst -Force -ErrorAction SilentlyContinue }
+  $pkgPath = $null
+  if ($item -and @('Junction', 'SymbolicLink') -contains $item.LinkType -and $item.Target) {
+    $pkgPath = @($item.Target)[0]
+  }
+  if (-not $pkgPath) {
+    $pj = Join-Path $profileDir 'package.json'
+    if (Test-Path $pj) {
+      try {
+        $o = [System.IO.File]::ReadAllText($pj, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
+        $dep = [string]$o.dependencies.'dsh-boot-suite'
+        if ($dep -match '^link:(.+)$') { $pkgPath = $Matches[1] }
+      } catch {}
+    }
+  }
+  if (-not $pkgPath) { return $null }
+  $pkgPath = ($pkgPath -replace '/', '\').TrimEnd('\')
+  $pjPath = Join-Path $pkgPath 'package.json'
+  if (-not (Test-Path $pjPath)) { return $null }
+  $ver = $null
+  try { $ver = [string](([System.IO.File]::ReadAllText($pjPath, [System.Text.Encoding]::UTF8) | ConvertFrom-Json).version) } catch {}
+  return @{ path = $pkgPath; version = $ver }
+}
+
+$checkpoint = $null
+if (-not $CheckOnly -and -not $env:DSH_BOOT_SUITE_ROLLBACK) {
+  foreach ($p in $targets) {
+    $info = Get-InstalledPlugin (Join-Path $profilesRoot $p)
+    if ($info -and $info.version -and $info.version -ne [string]$pkgSelf.version) { $checkpoint = $info; break }
+  }
+  if ($checkpoint) {
+    $rollbackSrc = Join-Path $PSScriptRoot 'rollback-version.ps1'
+    $updatesRoot = Join-Path $env:USERPROFILE '.dsh\boot-suite-updates'
+    if (Test-Path $rollbackSrc) {
+      New-Item -ItemType Directory -Force -Path $updatesRoot | Out-Null
+      Copy-Item $rollbackSrc (Join-Path $updatesRoot 'rollback-version.ps1') -Force
+      $desk = [Environment]::GetFolderPath('Desktop')
+      if (-not $desk) { $desk = Join-Path $env:USERPROFILE 'Desktop' }
+      New-Item -ItemType Directory -Force -Path $desk | Out-Null
+      $batName = '紧急回滚-V' + $checkpoint.version + '（先完全退出 DSH 再双击）.cmd'
+      $batPath = Join-Path $desk $batName
+      $lines = @(
+        '@echo off',
+        'setlocal',
+        ('title dsh-boot-suite rollback checkpoint v' + $checkpoint.version),
+        'echo ============================================================',
+        'echo  dsh-boot-suite emergency rollback checkpoint',
+        ('echo  Target (previous working version): v' + $checkpoint.version),
+        'echo  If the new version cannot install or DSH cannot open,',
+        'echo  fully quit DSH (window + tray), then double-click this file.',
+        'echo  It only switches the plugin version; your settings stay.',
+        'echo ============================================================',
+        ('powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.dsh\boot-suite-updates\rollback-version.ps1" -TargetPkg "' + $checkpoint.path + '" -Profile ' + $targets[0]),
+        'echo.',
+        'pause'
+      )
+      [System.IO.File]::WriteAllLines($batPath, $lines, [System.Text.Encoding]::Default)
+      $checkpoint.bat = $batPath
+      Say ''
+      Say ('[回滚保护] 当前 v' + $checkpoint.version + ' 已记成桌面按钮：' + $batName)
+      Say '           新版装不上或打不开 DSH 时，完全退出 DSH 后双击它即可回滚。'
+    }
+  }
+}
+
 $spec = 'link:' + ($RepoRoot -replace '\\', '/')
 
 function Fix-Bundles([string]$profileDir) {
@@ -260,6 +332,19 @@ foreach ($profile in $targets) {
   } else {
     Say '  [!] node_modules 里没看到 dsh-boot-suite，请检查上面的输出'
   }
+}
+
+if ($checkpoint -and $checkpoint.bat -and (Test-Path $checkpoint.bat)) {
+  $desk = [Environment]::GetFolderPath('Desktop')
+  if (-not $desk) { $desk = Join-Path $env:USERPROFILE 'Desktop' }
+  if (Test-Path $desk) {
+    Get-ChildItem $desk -Filter '紧急回滚-*.cmd' -File -ErrorAction SilentlyContinue | ForEach-Object {
+      if ($_.FullName -ne $checkpoint.bat) { Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue }
+    }
+  }
+  Say ''
+  Say ('[回滚保护] 新版安装成功，桌面回滚按钮已更新为：' + (Split-Path -Leaf $checkpoint.bat))
+  Say '           旧按钮已自动清理（下次更新会自动替换，不会越积越多）。'
 }
 
 Say ''
