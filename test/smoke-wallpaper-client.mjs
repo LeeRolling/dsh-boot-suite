@@ -220,6 +220,13 @@ ok(css.includes('html.dsh-cw-light #dsh-cw-bg > .dsh-cw-veil { background: linea
 ok(css.includes('html.dsh-cw-dark #dsh-cw-bg > .dsh-cw-veil { background: linear-gradient(rgba(8,10,16,.74), rgba(6,8,14,.62)); }'), '深色主题压深纱')
 ok(css.includes('html.dsh-cw-light #dsh-cw-bg { background: #f7f1f8; }'), '浅色兜底底色')
 ok(css.includes('html.dsh-cw-dark #dsh-cw-bg { background: #0b0d12; }'), '深色兜底底色')
+/* v2.13.5：纱/兜底改跟壁纸亮度走，文字 token 自适应 */
+ok(css.includes('html.dsh-cw-bg-dark #dsh-cw-bg > .dsh-cw-veil { background: linear-gradient(rgba(8,10,16,.74), rgba(6,8,14,.62)); }'), 'v2.13.5 壁纸暗 → 压深纱')
+ok(css.includes('html.dsh-cw-bg-light #dsh-cw-bg > .dsh-cw-veil { background: linear-gradient(rgba(253,250,254,.80), rgba(250,247,253,.68)); }'), 'v2.13.5 壁纸亮 → 压白纱')
+ok(css.includes('.dsh-cw-txt-light {') && css.includes('--dsw-alias-label-primary: #f5f7fa !important'), 'v2.13.5 暗背景 → 文字提亮')
+ok(css.includes('.dsh-cw-txt-dark {') && css.includes('--dsw-alias-label-primary: #111418 !important'), 'v2.13.5 亮背景 → 文字压深')
+ok(mod.__BG_CLASSES.join(',') === 'dsh-cw-bg-dark,dsh-cw-bg-light', '__BG_CLASSES 固定', js(mod.__BG_CLASSES))
+ok(mod.__TEXT_CLASSES.join(',') === 'dsh-cw-txt-dark,dsh-cw-txt-light', '__TEXT_CLASSES 固定', js(mod.__TEXT_CLASSES))
 ok(css.includes('#dsh-cw-banner'), '横幅选择器 #dsh-cw-banner 在位')
 ok(css.includes('white-space: nowrap'), '横幅不换行（一行铺满）')
 ok(css.includes('font-weight: 800'), '横幅加粗（大字要够分量）')
@@ -408,7 +415,7 @@ ok(intervals.every((t) => t.cleared) || intervals.length === 0, '旧的 interval
   intervals.map((t) => (t.cleared ? 'cleared' : 'live')).join(','))
 
 console.log('\n=== ⑦ v2.13.0 测试钩子 / BUILD ===')
-ok(mod.__BUILD === 'cw-27', '__BUILD = cw-27（排查浏览器跑的是不是新包）', String(mod.__BUILD))
+ok(mod.__BUILD === 'cw-28', '__BUILD = cw-28（排查浏览器跑的是不是新包）', String(mod.__BUILD))
 ok(mod.__VIDEO_ID === 'dsh-cw-video', '__VIDEO_ID = dsh-cw-video', String(mod.__VIDEO_ID))
 ok(typeof mod.__startShuffle === 'function', '__startShuffle 导出')
 ok(typeof mod.__stopShuffle === 'function', '__stopShuffle 导出')
