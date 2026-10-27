@@ -175,6 +175,7 @@ try {
   check('/config 的 imageOk=true（v2.13.1 起新装默认就有内置底图）', r.json && r.json.imageOk === true, String(r.json && r.json.imageOk))
   check('/config 的 image 指向内置默认图', r.json && typeof r.json.image === 'string' && r.json.image.endsWith('lib/assets/default-background.jpg'), r.json && r.json.image)
   check('/config 的 imageSource = builtin', r.json && r.json.imageSource === 'builtin', String(r.json && r.json.imageSource))
+  check('★ v2.13.4 config.imageFit 默认 cover', r.json && r.json.config && r.json.config.imageFit === 'cover', String(r.json && r.json.config && r.json.config.imageFit))
   const v0 = (r.json && r.json.video) || {}
   check('★ /config.video 默认值：enabled=false / mode=single / shuffleMinutes=0 / selectedId 空 / count=0 / current=null',
     v0.enabled === false && v0.mode === 'single' && v0.shuffleMinutes === 0 &&
@@ -213,6 +214,10 @@ try {
   check('★ 白名单外字段一个都没写进 applied',
     r.json && r.json.applied && sortKeys(r.json.applied) === 'banner', sortKeys(r.json && r.json.applied))
   check('banner 生效为 B', r.json && r.json.applied && r.json.applied.banner === 'B', JSON.stringify(r.json && r.json.applied))
+  r = await callJson('exact /chat-wallpaper/set', 'POST', JSON.stringify({ imageFit: 'contain' }))
+  check('★ v2.13.4 /set 接受 imageFit=contain', r.json && r.json.applied && r.json.applied.imageFit === 'contain', JSON.stringify(r.json && r.json.applied))
+  r = await callJson('exact /chat-wallpaper/set', 'POST', JSON.stringify({ imageFit: 'fill' }))
+  check('★ v2.13.4 非法 imageFit 被忽略', r.json && r.json.applied && !('imageFit' in r.json.applied), JSON.stringify(r.json && r.json.applied))
   r = await callJson('exact /chat-wallpaper/config')
   check('再读 /config：banner = B', r.json && r.json.config && r.json.config.banner === 'B', r.json && r.json.config && r.json.config.banner)
   const cfgFile = path.join(HOME, 'chat-wallpaper.json')
