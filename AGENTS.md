@@ -28,7 +28,7 @@
 8. **.cmd 必须纯 ASCII**：UTF-8 无 BOM 的 .cmd 会被当 GBK 执行成乱码。**交付给用户的 .cmd/.ps1 必须由模板或生成器产出并读回校验**，禁止用「数组 + 字符串拼接」生成（2026-10-28 v2.13.9 事故：`+$v+` 被拆成独立数组元素，版本号单独成行，用户双击后 cmd 把 `2.13.9` 当命令、更新器未启动）。生成器：`node tools/make-upgrade-helper.mjs <版本>`；交付前自己逐行读一遍。
 9. **PowerShell 5.1 读 UTF-8** 用 `[System.IO.File]::ReadAllText`，别用 `Get-Content`。
 10. **装/更新插件后禁止自动启动 DSH**：助手只负责安装，最后让用户手动打开；不要连续快速重启。若 DSH 报 `desktop welcome: Web authentication failed`，先备份 webstate/profile 再按官方恢复流程处理（2026-10-26 事故，详见交接文档第 2/7 节）。
-11. **每次 Release 必须同步发 npm**：GitHub Release 上传完三资产（两 zip + `dsh-boot-suite.tgz`）后，双击桌面「**发布 dsh-boot-suite 到 npm（按浏览器提示确认）**」，在浏览器点 Authorize（必要时 Windows Hello）等窗口 SUCCESS；再用 `npm view dsh-boot-suite version` 核对版本。npm 账号 `leerolling`，令牌存 `~/.npmrc`（约 90 天有效，到期前用桌面「保存 npm 发布令牌」助手重存）；**publish/deprecate 会要求浏览器一次性确认（EOTP），不能纯命令行静默完成**。只发 Release 不发 npm 视为发版未完成。
+11. **每次 Release 必须同步发 npm**：GitHub Release 上传完三资产（两 zip + `dsh-boot-suite.tgz`）后，在仓库根目录跑 `npm publish`（账号 `leerolling`，令牌存 `~/.npmrc`，带 bypass 2FA、2027-01-26 到期），再用 `npm view dsh-boot-suite version` 核对版本；若出现 EOTP 浏览器确认，改用桌面「发布 dsh-boot-suite 到 npm（按浏览器提示确认）」。只发 Release 不发 npm 视为发版未完成。
 
 ## 三、每轮收尾清单（做完功能必跑）
 
@@ -39,7 +39,7 @@ npm run motion:check         # 动效回归：画面在动/分幕换过/根节�
 npm run ui:detect            # impeccable 61 条规则（需要网络，跑不跑都可）
 ```
 
-然后：`git add -A` → 提交（中文说明"为什么"）→ push → 如有发版：tag + `gh release create`（三资产含 tgz）→ 双击桌面发布 npm 助手（浏览器确认）→ 两处都复核版本。
+然后：`git add -A` → 提交（中文说明"为什么"）→ push → 如有发版：tag + `gh release create`（三资产含 tgz）→ `npm publish`（若弹浏览器确认就用桌面发布助手）→ 两处都复核版本。
 **push 完成要用 `git ls-remote` 核对远端**，网络经常 reset，命令"看起来成功"不算数。
 
 ## 四、impeccable 的用法（2026-10-18 决定：只当发布前检查，不装 skill）
@@ -60,7 +60,7 @@ npx --yes impeccable@latest detect --json --no-config tools/editor.html preview/
 | pnpm | `...\resources\runtime\primary-runtime\dependencies\pnpm\bin\pnpm.cjs` |
 | Chrome（截图/验证） | `C:\Program Files\Google\Chrome\Application\chrome.exe` |
 | 打包 | `npm pack --pack-destination ..\03-发布包` 然后重命名成 `dsh-boot-suite.tgz` |
-| 发布 npm | 双击桌面「发布 dsh-boot-suite 到 npm（按浏览器提示确认）」，浏览器点 Authorize；发布后 `npm view dsh-boot-suite version` 核对 |
+| 发布 npm | 仓库根目录 `npm publish`（令牌带 bypass；若 EOTP 用桌面发布助手），发布后 `npm view dsh-boot-suite version` 核对 |
 | 编辑器官网入口 | 设置 →「启动动画」→「打开模板编辑器」 |
 | 生成桌面升级助手 | `node tools/make-upgrade-helper.mjs <版本>`（整段模板 + 写后读回校验） |
 | 生成紧急回滚助手 | 由 `tools/install.ps1` 安装时自动生成（`tools/rollback-version.ps1` + 桌面 bat），无需手工 |
