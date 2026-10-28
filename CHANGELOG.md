@@ -1,3 +1,18 @@
+## [2.13.11] — 2026-10-28
+
+### 新增：纱的「镜头模糊」
+- 设置 → 聊天背景 → 纱：新增「镜头模糊」滑块，强度 0–100、默认 0。0 完全不模糊，100 约 24px；滑块拖动实时生效，写在当前外观主题那一份配置里。
+- 实现：只给纱层加 `backdrop-filter: blur()`，模糊的是纱后面的壁纸/视频，纱上面的聊天文字不受影响；强度为 0 时不生成任何模糊规则。
+
+### 修复：一键安装在新版 DSH（0.2.1-rc.3）上误判成功
+- 症状：`安装.cmd` 调用 `dsh plugin add`，新版 DSH 的 `dsh` 命令行不解析任何子命令（`dsh plugin` 和 `dsh --help` 都只打印 `dsh web: http://127.0.0.1:xxxxx/?token=...` 就退出），但退出码是 0；旧逻辑误判安装成功，跳过自带的手动安装兜底，留下「bundles 里加了 dsh-boot-suite，但 dependencies/node_modules 里没有」的危险状态 → DSH 启动时报 `cannot resolve profile bundle "dsh-boot-suite"`。
+- 2.13.11：安装器新增 `Test-InstalledOk()`，以 profile 真实文件为准（`node_modules/dsh-boot-suite` 存在 + `package.json` 的 dependencies 指向它 + 版本号匹配）；命令行退出码 0 但实际没装时自动改「手动安装」兜底；安装后仍校验失败则回滚 profile，并且不会往 bundles 写不存在的插件。
+
+### 构建
+- 版本号 2.13.10 → 2.13.11；client BUILD `cw-34`；13 套测试通过（新增镜头模糊 7 项、安装器兜底 3 项回归断言）。
+
+---
+
 ## [2.13.10] — 2026-10-28
 
 ### 修复：浅色/深色外观下右上角窗口按钮（最小化/最大化/关闭）看不清

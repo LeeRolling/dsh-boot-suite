@@ -218,6 +218,12 @@ ok(css.includes('#dsh-cw-bg > img'), '底图的 <img> 规则在位')
 ok(css.includes('object-fit: cover'), 'object-fit 生效')
 ok(css.includes('html.dsh-cw-light #dsh-cw-bg > .dsh-cw-veil { background: linear-gradient(rgba(253,250,254,.80), rgba(250,247,253,.68)); }'), '浅色主题压白纱')
 ok(css.includes('html.dsh-cw-dark #dsh-cw-bg > .dsh-cw-veil { background: linear-gradient(rgba(8,10,16,.74), rgba(6,8,14,.62)); }'), '深色主题压深纱')
+/* v2.13.11：镜头模糊只加在纱上（backdrop-filter 模糊纱后面的壁纸/视频，不动纱上面的文字） */
+ok(!css.includes('backdrop-filter'), 'veilBlur=0 时不生成模糊规则（默认完全不动）')
+const cssBlur55 = mod.__buildCss({ ...base, __imageOk: true, veilBlur: 55 })
+ok(cssBlur55.includes('-webkit-backdrop-filter: blur(13.2px)') && cssBlur55.includes('backdrop-filter: blur(13.2px)'), 'veilBlur=55 → 13.2px 模糊', String(cssBlur55.match(/blur\([^)]+\)/)))
+const cssBlur100 = mod.__buildCss({ ...base, __imageOk: true, veilBlur: 100 })
+ok(cssBlur100.includes('backdrop-filter: blur(24px)'), 'veilBlur=100 → 24px（100 已是最强）')
 ok(css.includes('html.dsh-cw-light #dsh-cw-bg { background: #f7f1f8; }'), '浅色兜底底色')
 ok(css.includes('html.dsh-cw-dark #dsh-cw-bg { background: #0b0d12; }'), '深色兜底底色')
 /* v2.13.5：纱/兜底改跟壁纸亮度走，文字 token 自适应 */
@@ -457,7 +463,7 @@ ok(intervals.every((t) => t.cleared) || intervals.length === 0, '旧的 interval
   intervals.map((t) => (t.cleared ? 'cleared' : 'live')).join(','))
 
 console.log('\n=== ⑦ v2.13.0 测试钩子 / BUILD ===')
-ok(mod.__BUILD === 'cw-33', '__BUILD = cw-33（排查浏览器跑的是不是新包）', String(mod.__BUILD))
+ok(mod.__BUILD === 'cw-34', '__BUILD = cw-34（排查浏览器跑的是不是新包）', String(mod.__BUILD))
 ok(mod.__VIDEO_ID === 'dsh-cw-video', '__VIDEO_ID = dsh-cw-video', String(mod.__VIDEO_ID))
 ok(typeof mod.__startShuffle === 'function', '__startShuffle 导出')
 ok(typeof mod.__stopShuffle === 'function', '__stopShuffle 导出')
