@@ -79,6 +79,16 @@ https://github.com/LeeRolling/dsh-boot-suite/releases/latest/download/dsh-boot-s
 > 从旧的两个插件（`dsh-startup-screen` / `dsh-chat-wallpaper`）迁过来的话，
 > 先 `dsh plugin --profile desktop remove` 掉它们，再装本插件。
 
+### 方式三：npm（v2.13.11 起）
+
+插件已发布到 npm 公共仓库，包名 `dsh-boot-suite`（版本号与 GitHub Release 一致）：
+
+- 桌面端：**设置 → 插件 → 添加插件**，输入 `dsh-boot-suite` 安装；
+- 普通 dsh web：`dsh plugin add dsh-boot-suite`。
+
+> npm 上的是标准插件包（含内置模板与素材），安装后同样在设置页看到「启动动画」「聊天背景」。
+> 如果 npm 版本落后于最新 Release，以 Release 的一键安装包为准。
+
 ---
 
 ## 开机动画
