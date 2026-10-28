@@ -28,7 +28,7 @@
 8. **.cmd 必须纯 ASCII**：UTF-8 无 BOM 的 .cmd 会被当 GBK 执行成乱码。**交付给用户的 .cmd/.ps1 必须由模板或生成器产出并读回校验**，禁止用「数组 + 字符串拼接」生成（2026-10-28 v2.13.9 事故：`+$v+` 被拆成独立数组元素，版本号单独成行，用户双击后 cmd 把 `2.13.9` 当命令、更新器未启动）。生成器：`node tools/make-upgrade-helper.mjs <版本>`；交付前自己逐行读一遍。
 9. **PowerShell 5.1 读 UTF-8** 用 `[System.IO.File]::ReadAllText`，别用 `Get-Content`。
 10. **装/更新插件后禁止自动启动 DSH**：助手只负责安装，最后让用户手动打开；不要连续快速重启。若 DSH 报 `desktop welcome: Web authentication failed`，先备份 webstate/profile 再按官方恢复流程处理（2026-10-26 事故，详见交接文档第 2/7 节）。
-11. **每次 Release 必须同步发 npm**：GitHub Release 上传完三资产（两 zip + `dsh-boot-suite.tgz`）后，在仓库根目录跑 `npm publish`（账号 `leerolling`，令牌存 `~/.npmrc`，带 bypass 2FA、2027-01-26 到期），再用 `npm view dsh-boot-suite version` 核对版本；若出现 EOTP 浏览器确认，改用桌面「发布 dsh-boot-suite 到 npm（按浏览器提示确认）」。只发 Release 不发 npm 视为发版未完成。
+11. **每次 Release 必须同步发 npm**：GitHub Release 上传完三资产（两 zip + `dsh-boot-suite.tgz`）后，在仓库根目录跑 `npm publish`（账号 `leerolling`，令牌存 `~/.npmrc`，带 bypass 2FA、2027-01-26 到期），再用 `npm view dsh-boot-suite version` 核对版本；若出现 EOTP 浏览器确认，先 `npm login` 再重试，必要时临时重建发布助手。只发 Release 不发 npm 视为发版未完成。
 
 ## 三、每轮收尾清单（做完功能必跑）
 
