@@ -158,6 +158,23 @@ function Get-InstalledPlugin([string]$profileDir) {
   return @{ path = $pkgPath; version = $ver }
 }
 
+# v2.13.11：不要只信 dsh 命令行的退出码。新版 DSH（如 0.2.1-rc.3）的 dsh 命令行
+# 可能不解析任何子命令：直接打印 web 地址、退出码 0，却没装插件；旧逻辑会误判成功，
+# 留下「bundles 有、dependencies/node_modules 没有」的危险不一致状态。
+# 这里以 profile 的真实文件为准做安装后校验，失败就必须回滚或改手动安装。
+function Test-InstalledOk([string]$profileDir) {
+  $inst = Join-Path $profileDir 'node_modules\dsh-boot-suite'
+  if (-not (Test-Path $inst)) { return $false }
+  $pj = Join-Path $profileDir 'package.json'
+  if (-not (Test-Path $pj)) { return $false }
+  try {
+    $o = [System.IO.File]::ReadAllText($pj, [System.Text.Encoding]::UTF8) | ConvertFrom-Json
+    if (-not $o.dependencies -or -not $o.dependencies.'dsh-boot-suite') { return $false }
+    $ver = [string](([System.IO.File]::ReadAllText((Join-Path $inst 'package.json'), [System.Text.Encoding]::UTF8) | ConvertFrom-Json).version)
+    return ($ver -eq [string]$pkgSelf.version)
+  } catch { return $false }
+}
+
 $checkpoint = $null
 if (-not $CheckOnly -and -not $env:DSH_BOOT_SUITE_ROLLBACK) {
   foreach ($p in $targets) {
@@ -309,17 +326,25 @@ foreach ($profile in $targets) {
     if ($outAdd.Trim()) { $outAdd.Trim().Split([char]10) | ForEach-Object { '        ' + $_ } }
     $addExit = $LASTEXITCODE
     $ErrorActionPreference = $eapAdd
-    if ($addExit -ne 0 -or $outAdd -match 'managed exclusively') {
-      Say '  [2/3] 命令行被拒绝（desktop profile 仅允许客户端管理），改用「手动安装」…'
+    $installedOk = Test-InstalledOk $profileDir
+    if ($addExit -ne 0 -or $outAdd -match 'managed exclusively' -or -not $installedOk) {
+      if ($addExit -eq 0 -and -not $installedOk) {
+        Say '  [2/3] 命令行的退出码是 0，但插件并没有真正装进 profile。'
+        Say '        （新版 DSH 的 dsh 命令行不解析 plugin 子命令时会这样：打印 web 地址就退出）'
+        Say '        改用「手动安装」兜底…'
+      } else {
+        Say '  [2/3] 命令行被拒绝（desktop profile 仅允许客户端管理），改用「手动安装」…'
+      }
       Install-Manual $profileDir
-      if (Test-Path (Join-Path $profileDir 'node_modules\dsh-boot-suite')) { $addExit = 0 } else { $addExit = 1 }
+      if (Test-InstalledOk $profileDir) { $addExit = 0 } else { $addExit = 1 }
     }
   }
-  if (-not $ManualMode -and $addExit -ne 0) {
-    Say '  [x] 安装失败，正在回滚 profile 配置'
+  if (-not (Test-InstalledOk $profileDir)) {
+    Say '  [x] 安装后校验失败：profile 里没有可用的 dsh-boot-suite'
+    Say '      （bundles 里不会添加它，避免 DSH 启动时加载一个不存在的插件）'
     Copy-Item (Join-Path $bk.FullName 'package.json') (Join-Path $profileDir 'package.json') -Force
     Copy-Item (Join-Path $bk.FullName 'pnpm-lock.yaml') (Join-Path $profileDir 'pnpm-lock.yaml') -Force -ErrorAction SilentlyContinue
-    Die '安装失败，已回滚。把上面的报错发到仓库 issue。'
+    Die '安装失败，已回滚。把上面的输出发到仓库 issue。'
   }
 
   Say '  [3/3] 修正 bundles 列表 …'
