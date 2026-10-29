@@ -132,7 +132,7 @@ check('没有 Config 导出（普通对象不是 schemastery schema）', mod.Con
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 37 条路由（开机动画 26 + 聊天壁纸 11）', ROUTES.size === 37, [...ROUTES.keys()].join(' | '))
+check('注册了 38 条路由（开机动画 27 + 聊天壁纸 11）', ROUTES.size === 38, [...ROUTES.keys()].join(' | '))
 check('注册了 1 个 tapIndex', TAPS.length === 1)
 check('用了 ctx.effect 管理生命周期（开机动画 1 + 壁纸 11）', effects === 12, String(effects))
 
@@ -425,6 +425,12 @@ console.log('\n[6g] 更新包完整性：只看 PK 头的半包不再被接受')
   const upBad = JSON.parse(r.body)
   check('截断 zip 被拒（校验到中央目录）', upBad.ok === false && /不完整|损坏|zip 校验/.test(String(upBad.error || '')), r.body.slice(0, 160))
   check('坏包不落盘', !fs.existsSync(path.join(SMOKE_HOME, 'boot-suite-updates', '9.9.9.zip')))
+}
+
+console.log('\n[6h] v2.13.12：打开下载文件夹路由存在且只接受 POST')
+{
+  const getOpen = await call('exact /dsh-startup/open-downloads', 'GET')
+  check('GET /open-downloads 返回 405', getOpen.statusCode === 405, String(getOpen.statusCode))
 }
 
 console.log('\n[7] XSS 边界：身份名称里的尖括号不会逃出内联脚本')
