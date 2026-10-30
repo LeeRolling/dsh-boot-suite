@@ -8,7 +8,7 @@ if (buf.length >= 3 && buf[0] === 0xEF && buf[1] === 0xBB && buf[2] === 0xBF) {
 }
 const pkg = JSON.parse(buf.toString('utf8'));
 if (!pkg.version) throw new Error('package.json 缺少 version');
-for (const f of ['lib/index.js', 'lib/splash.js', 'lib/client.js', 'lib/assets/default-background.jpg', 'templates', 'tools/install.ps1', 'tools/update-apply.ps1', 'tools/rollback-version.ps1']) {
+for (const f of ['lib/index.js', 'lib/splash.js', 'lib/client.js', 'lib/assets/default-background.jpg', 'templates', 'tools/install.ps1', 'tools/update-apply.ps1', 'tools/rollback-version.ps1', 'lib/assets/voices/manifest.json']) {
   if (!fs.existsSync(path.join(root, f))) throw new Error('缺少 ' + f);
 }
 const installPs1 = fs.readFileSync(path.join(root, 'tools/install.ps1'), 'utf8');
@@ -23,5 +23,8 @@ for (const needle of ['Test-InstalledOk', '安装后校验失败', '命令行的
 const rollbackPs1 = fs.readFileSync(path.join(root, 'tools/rollback-version.ps1'), 'utf8');
 for (const needle of ['TargetPkg', 'CheckOnly', 'DSH_BOOT_SUITE_ROLLBACK', '回滚日志']) {
   if (!rollbackPs1.includes(needle)) throw new Error('rollback-version.ps1 缺少关键逻辑：' + needle);
+}
+for (const f of ['line-1.mp3', 'line-6.mp3', 'dry-line-1.mp3']) {
+  if (fs.existsSync(path.join(root, 'lib/assets', f))) throw new Error('旧 TTS 配音素材未删除：' + f);
 }
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');

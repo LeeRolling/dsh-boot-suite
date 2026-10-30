@@ -328,10 +328,17 @@ console.log('\n[8] 终幕用真声欢迎语（来自 Video Project 3 的 line-6�
   const src = fs.readFileSync(BUNDLE, 'utf8')
   check('全程没有 voice.tts( 调用（不再用 TTS 念白）', !/voice\.tts\(/.test(src))
   check('终幕挂了 line-6 素材', /voice\.line\(null, null, 'line-6'\)/.test(src))
+  check('终幕欢迎语按 welcomeDelay 延迟后播放', /C\.welcomeDelay/.test(src) && /welcomeDelay = Math\.max\(0, Math\.min\(3000/.test(src))
   check('揭幕前会等欢迎语播完', /\.then\(function \(\) \{ return welcome \}\)/.test(src))
   check('预加载包含 line-6', /ensureAsset\('line-6'\)/.test(src))
   check('五步仍然各自挂着真声素材', (src.match(/audio: 'line-/g) || []).length === 5)
   check('总共 6 份人声素材被引用', (src.match(/'line-[1-6]'/g) || []).length >= 6)
+  check('配音音色可切换：voicePack 为 f–k 时走 voice:<pack>:line-N 路由',
+    /C\.voicePack/.test(src) && /'voice:' \+ pack \+ ':' \+ asset/.test(src)
+    && /tplAssets && tplAssets\[asset\]/.test(src))
+  check('5 套声音效果预设都在，播放链路按 C.voiceFx 叠加',
+    ['ai-mech', 'robot', 'radio', 'oldtv', 'dark'].every((k) => src.includes("'" + k + "':"))
+    && /playAssetAndWait\(useAsset, 0\.85, isGlobalLine \? fx : 'none'\)/.test(src))
 }
 
 console.log('\n[9] 模板：分幕可以自定义（1~24 幕，缺字段回落内置）')

@@ -112,6 +112,12 @@ const fetchStub = (url, init) => {
     if (!HIDDEN.includes(id)) HIDDEN.push(id)
     return Promise.resolve({ json: () => Promise.resolve({ ok: true, id, removed: false, hidden: true }) })
   }
+  if (u.includes('/dsh-startup/voices')) {
+    return Promise.resolve({ json: () => Promise.resolve({ ok: true, packs: [
+      { id: 'f', name: '英文音色F（默认）', lang: 'en' },
+      { id: 'g', name: '日文音色1', lang: 'ja' },
+    ], default: 'f' }) })
+  }
   if (u.includes('/dsh-startup/templates')) {
     return Promise.resolve({ json: () => Promise.resolve({ ok: true, templates: liveTemplates(), hidden: HIDDEN.slice() }) })
   }
@@ -211,10 +217,13 @@ const idInput = find(tree, (n) => n.type === 'input' && n.props.type === 'text' 
 check('身份名称输入框回填了当前配置', !!idInput, idInput && idInput.props.value)
 check('渲染出「启动动画」开关', texts.includes('启用启动动画'))
 check('渲染出「女声播报」开关', texts.includes('女声播报（念每一行的英文）'))
-check('渲染出「播报语言」字段', texts.includes('播报语言'))
+check('已删除旧 TTS「播报语言」字段', !texts.includes('播报语言'))
+check('渲染出「配音音色」字段', texts.includes('配音音色'))
+check('渲染出「声音效果」字段', texts.includes('声音效果'))
+check('渲染出「终幕语音延迟」字段', texts.includes('终幕语音延迟'))
 check('渲染出「界面音效」开关', texts.includes('界面音效'))
-check('渲染出音色选择（无 speechSynthesis 时给出提示）', texts.includes('音色'))
-check('渲染出语速/音调/音量', texts.includes('语速') && texts.includes('音调') && texts.includes('音量'))
+check('已删除旧 TTS 音色选择', !texts.includes('试听所选音色') && !texts.includes('语音来源'))
+check('渲染出音量、不再有语速/音调', texts.includes('音量') && !texts.includes('语速') && !texts.includes('音调'))
 check('渲染出「立即预览」按钮', !!find(tree, (n) => n.type === 'button' && n.props.children === '立即预览'))
 check('渲染出「恢复默认」按钮', !!find(tree, (n) => n.type === 'button' && n.props.children === '恢复默认'))
 
@@ -491,6 +500,20 @@ previewBtn.props.onClick()
 await flush(); await flush(); await flush()
 check('立即预览先重新拉配置', requests.length > beforePreview && requests.slice(beforePreview).some((r) => /\/dsh-startup\/config/.test(r.url || '')), '')
 check('立即预览调用 __DSH_STARTUP_API__.replay()', windowStub.__replayed === true)
+/* v2.13.15 回归：选完「配音音色」直接点预览（还没点保存）也必须按当前选择播 */
+tree = renderPanel()
+const voiceSel = walk(tree).filter((n) => n.type === 'select' && Array.isArray(n.props.children) && n.props.children.some((o) => o && o.props.value === 'g'))[0]
+check('配音音色下拉能从 /voices 拿到音色G', !!voiceSel, JSON.stringify(walk(tree).filter((n) => n.type === 'select').map((n) => (n.props.children || []).map((o) => o && o.props.value))))
+if (voiceSel) {
+  voiceSel.props.onChange({ target: { value: 'g' } })
+  await flush()
+  tree = renderPanel()
+  const previewBtn2 = find(tree, (n) => n.type === 'button' && n.props.children === '立即预览')
+  previewBtn2.props.onClick()
+  await flush(); await flush(); await flush()
+  check('立即预览使用未保存的 draft（voicePack=g）', windowStub.__DSH_STARTUP__ && windowStub.__DSH_STARTUP__.voicePack === 'g', windowStub.__DSH_STARTUP__ && windowStub.__DSH_STARTUP__.voicePack)
+  check('preview 合并 draft 的源码标记存在', code.includes('j.config, draft || {}'))
+}
 delete windowStub.__DSH_STARTUP_API__
 previewBtn.props.onClick()
 await flush(); await flush(); await flush()
