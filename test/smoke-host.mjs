@@ -132,7 +132,7 @@ check('没有 Config 导出（普通对象不是 schemastery schema）', mod.Con
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 38 条路由（开机动画 27 + 聊天壁纸 11）', ROUTES.size === 38, [...ROUTES.keys()].join(' | '))
+check('注册了 40 条路由（开机动画 29 + 聊天壁纸 11）', ROUTES.size === 40, [...ROUTES.keys()].join(' | '))
 check('注册了 1 个 tapIndex', TAPS.length === 1)
 check('用了 ctx.effect 管理生命周期（开机动画 1 + 壁纸 11）', effects === 12, String(effects))
 
@@ -154,9 +154,9 @@ r = await call('prefix /dsh-startup/asset', 'GET', undefined, '/dsh-startup/asse
 check('目录穿越被拒 -> 404', r.statusCode === 404, String(r.statusCode))
 r = await call('prefix /dsh-startup/asset', 'GET', undefined, '/dsh-startup/asset/nope.mp3')
 check('不存在的素材 -> 404', r.statusCode === 404, String(r.statusCode))
-for (const f of ['line-1', 'line-2', 'line-3', 'line-4', 'line-5']) {
+for (const f of ['line-1', 'dry-line-1']) {
   const rr = await call('prefix /dsh-startup/asset', 'GET', undefined, '/dsh-startup/asset/' + f + '.mp3')
-  check('真声素材 ' + f + '.mp3 -> 200', rr.statusCode === 200 && rr.body.length > 5000, rr.statusCode + ' ' + rr.body.length)
+  check('旧 TTS 素材已退役：' + f + '.mp3 -> 404', rr.statusCode === 404, String(rr.statusCode))
 }
 
 console.log('\n[4] 配置读写落盘')
@@ -165,6 +165,9 @@ let cfg = JSON.parse(r.body)
 check('GET config ok', cfg.ok === true)
 check('默认身份名称 = JOYCE MOORE', cfg.config.identity === 'JOYCE MOORE', cfg.config.identity)
 check('默认身份编号 = 0087', cfg.config.identityId === '0087', cfg.config.identityId)
+check('默认配音音色 = F（英文）', cfg.config.voicePack === 'f', cfg.config.voicePack)
+check('默认声音效果 = 机器人（robot）', cfg.config.voiceFx === 'robot', cfg.config.voiceFx)
+check('默认终幕语音延迟 = 550ms', cfg.config.welcomeDelay === 550, cfg.config.welcomeDelay)
 check('返回了配置文件路径', typeof cfg.file === 'string' && cfg.file.startsWith(SMOKE_HOME), cfg.file)
 check('返回了插件版本号（设置面板顶部要显示它）', typeof cfg.version === 'string' && /^\d+\.\d+\.\d+/.test(cfg.version), cfg.version)
 
@@ -431,6 +434,22 @@ console.log('\n[6h] v2.13.12：打开下载文件夹路由存在且只接受 POS
 {
   const getOpen = await call('exact /dsh-startup/open-downloads', 'GET')
   check('GET /open-downloads 返回 405', getOpen.statusCode === 405, String(getOpen.statusCode))
+}
+
+console.log('\n[6i] v2.13.19：6 套音色包清单与只读音频路由')
+{
+  const vp = await call('exact /dsh-startup/voices', 'GET')
+  const vpj = JSON.parse(vp.body)
+  check('GET /voices ok', vpj.ok === true)
+  check('6 个音色包（f、g–k）', Array.isArray(vpj.packs) && vpj.packs.length === 6, String(vpj.packs && vpj.packs.length))
+  check('F 包英文 / K 包日文', vpj.packs[0].id === 'f' && vpj.packs[0].lang === 'en' && vpj.packs[5].id === 'k' && vpj.packs[5].lang === 'ja', JSON.stringify(vpj.packs.slice(0, 1).concat(vpj.packs.slice(-1))))
+  check('默认音色 = f', vpj.default === 'f', String(vpj.default))
+  const va = await call('prefix /dsh-startup/voice', 'GET', undefined, '/dsh-startup/voice/f/line-1.mp3')
+  check('音色F line-1 音频 200 且是 mp3', va.statusCode === 200 && va.body.length > 1000 && (va.body[0] === 0xFF || va.body.slice(0, 3).toString() === 'ID3'), va.statusCode + ' ' + va.body.length)
+  const vb = await call('prefix /dsh-startup/voice', 'GET', undefined, '/dsh-startup/voice/f/line-7.mp3')
+  check('非法句号 line-7 -> 404', vb.statusCode === 404, String(vb.statusCode))
+  const vz = await call('prefix /dsh-startup/voice', 'GET', undefined, '/dsh-startup/voice/z/line-1.mp3')
+  check('未注册音色 z -> 404', vz.statusCode === 404, String(vz.statusCode))
 }
 
 console.log('\n[7] XSS 边界：身份名称里的尖括号不会逃出内联脚本')

@@ -463,7 +463,7 @@ ok(intervals.every((t) => t.cleared) || intervals.length === 0, '旧的 interval
   intervals.map((t) => (t.cleared ? 'cleared' : 'live')).join(','))
 
 console.log('\n=== ⑦ v2.13.0 测试钩子 / BUILD ===')
-ok(mod.__BUILD === 'cw-35', '__BUILD = cw-35（排查浏览器跑的是不是新包）', String(mod.__BUILD))
+ok(mod.__BUILD === 'cw-42', '__BUILD = cw-42（排查浏览器跑的是不是新包）', String(mod.__BUILD))
 ok(mod.__VIDEO_ID === 'dsh-cw-video', '__VIDEO_ID = dsh-cw-video', String(mod.__VIDEO_ID))
 ok(typeof mod.__startShuffle === 'function', '__startShuffle 导出')
 ok(typeof mod.__stopShuffle === 'function', '__stopShuffle 导出')
