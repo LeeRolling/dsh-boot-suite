@@ -1,6 +1,6 @@
 {
   "name": "dsh-boot-suite",
-  "version": "2.13.19",
+  "version": "2.13.20",
   "description": "DeepSeek Harness 启动动画与聊天背景插件：两幕开机动画、自定义动画导入、三段转场、6 套干音音色（英文 1 + 日文 5）+ 5 种声音效果、聊天背景图片/循环视频、更新前自动回滚；聊天背景新增黑白原版素材模式。",
   "keywords": [
     "dsh",
