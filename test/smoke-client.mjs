@@ -80,7 +80,7 @@ const CFG = {
 }
 /* v2.12.1 起模板列表；v2.12.4 内置模板删除 = 隐藏进 HIDDEN（可 unhide 恢复），本地模板才是真删除 */
 const BUILTIN_TPL = { id: 'archive-warm', name: '档案暖白', source: 'builtin' }
-const BUILTIN_TPL2 = { id: 'whale-girl-scan', name: '鲸鱼娘扫描睁眼', source: 'builtin' }
+const BUILTIN_TPL2 = { id: 'whale-girl-scan', name: '鲸鱼娘扫描睁眼（2K）', source: 'builtin' }
 const USER_TPL_A = { id: 'custom-local-a', name: '我的开场动画', source: 'user' }
 const USER_TPL_B = { id: 'custom-local-b', name: '淡入过渡', source: 'user' }
 const ALL_TEMPLATES = [BUILTIN_TPL, BUILTIN_TPL2, USER_TPL_A, USER_TPL_B]

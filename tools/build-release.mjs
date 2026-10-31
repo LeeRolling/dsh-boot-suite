@@ -7,7 +7,8 @@ const root = process.cwd();
 const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'dsh-release-'));
 const out = path.join(root, '..', '03-发布包', 'dsh-boot-suite-win.zip');
 /* code-motion：另一条工作线（动效研究/验证）的文档与媒体，不属于插件本体，发布包不打包 */
-const skip = new Set(['.git', 'node_modules', '08-备份', 'code-motion']);
+/* docs：主线（编辑器重制/风格库/演示素材）文档与媒体，体积可能非常大（GB 级），不属于插件运行必需，发布包不打包 */
+const skip = new Set(['.git', 'node_modules', '08-备份', 'code-motion', 'docs']);
 function copy(src, dst) {
   fs.mkdirSync(dst, { recursive: true });
   for (const e of fs.readdirSync(src, { withFileTypes: true })) {
