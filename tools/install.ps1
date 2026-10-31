@@ -16,7 +16,7 @@
     7. 自检并告诉你下一步
 #>
 [CmdletBinding()]
-param([switch]$CheckOnly, [string[]]$Profiles)
+param([switch]$CheckOnly, [switch]$Force, [string[]]$Profiles)
 
 $ErrorActionPreference = 'Stop'
 function Say($m) { Write-Host $m }
@@ -121,10 +121,13 @@ Say ('要装的 profile：' + ($targets -join '、'))
 # ── 3. 桌面端必须先完全退出 ─────────────────────────────────────────────────
 if ($targets -contains 'desktop') {
   $running = @(Get-Process -Name 'DeepSeek Harness' -ErrorAction SilentlyContinue)
-  if ($running.Count -gt 0 -and -not $CheckOnly) {
-    Die ('桌面端还在运行（' + $running.Count + ' 个进程）。请完全退出 DeepSeek Harness Desktop 后再双击安装。')
+  if ($running.Count -gt 0 -and -not $CheckOnly -and -not $Force) {
+    Die ('桌面端还在运行（' + $running.Count + ' 个进程）。请先完全退出 DeepSeek Harness Desktop 再双击安装；确实要热装可加 -Force（不推荐，装完手动重启）。')
   }
-  if ($running.Count -gt 0) { Say '（检查模式）桌面端正在运行 —— 真正安装前需要先完全退出' }
+  if ($running.Count -gt 0 -and $Force) {
+    Say ('[!] 桌面端还在运行（' + $running.Count + ' 个进程）：-Force 热装继续；装完请手动重启 DSH 让新代码生效。')
+  }
+  if ($running.Count -gt 0 -and $CheckOnly) { Say '（检查模式）桌面端正在运行 —— 真正安装前建议先完全退出' }
 }
 
 # ── 3.5 更新前的紧急回滚 checkpoint（v2.13.3）──────────────────────────────

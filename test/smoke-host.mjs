@@ -132,7 +132,7 @@ check('没有 Config 导出（普通对象不是 schemastery schema）', mod.Con
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 40 条路由（开机动画 29 + 聊天壁纸 11）', ROUTES.size === 40, [...ROUTES.keys()].join(' | '))
+check('注册了 44 条路由（开机动画 33 + 聊天壁纸 11）', ROUTES.size === 44, [...ROUTES.keys()].join(' | '))
 check('注册了 1 个 tapIndex', TAPS.length === 1)
 check('用了 ctx.effect 管理生命周期（开机动画 1 + 壁纸 11）', effects === 12, String(effects))
 
@@ -450,6 +450,28 @@ console.log('\n[6i] v2.13.19：6 套音色包清单与只读音频路由')
   check('非法句号 line-7 -> 404', vb.statusCode === 404, String(vb.statusCode))
   const vz = await call('prefix /dsh-startup/voice', 'GET', undefined, '/dsh-startup/voice/z/line-1.mp3')
   check('未注册音色 z -> 404', vz.statusCode === 404, String(vz.statusCode))
+}
+
+console.log('\n[6j] v2.14.0：用户自备 BGM 的路由与默认值')
+{
+  const c = await call('exact /dsh-startup/config')
+  const cj = JSON.parse(c.body)
+  check('BGM 默认关闭', cj.config.bgmEnabled === false, String(cj.config.bgmEnabled))
+  check('BGM 默认无文件 / 100 BPM / 音量 0.5', cj.config.bgmFile === '' && cj.config.bgmBpm === 100 && cj.config.bgmVolume === 0.5,
+    JSON.stringify({ f: cj.config.bgmFile, b: cj.config.bgmBpm, v: cj.config.bgmVolume }))
+  const lst0 = JSON.parse((await call('exact /dsh-startup/music/list')).body)
+  check('GET /music/list ok 且初始为空', lst0.ok === true && Array.isArray(lst0.files) && lst0.files.length === 0, JSON.stringify(lst0.files))
+  const small = Buffer.from('RIFF' + '\0'.repeat(200))
+  const up = JSON.parse((await call('exact /dsh-startup/music/upload', 'POST', small, '/dsh-startup/music/upload?name=test-music.wav')).body)
+  check('POST /music/upload ok', up.ok === true && /^music-/.test(up.file || ''), JSON.stringify(up))
+  const lst1 = JSON.parse((await call('exact /dsh-startup/music/list')).body)
+  check('上传后 list 出现 1 首', lst1.files.length === 1 && lst1.files[0].file === up.file, JSON.stringify(lst1.files))
+  const f = await call('exact /dsh-startup/music/file', 'GET', undefined, '/dsh-startup/music/file?name=' + encodeURIComponent(up.file))
+  check('GET /music/file 200 + audio/wav', f.statusCode === 200 && /audio\/wav/.test(f.headers['Content-Type']), f.statusCode + ' ' + f.headers['Content-Type'])
+  const bad = await call('exact /dsh-startup/music/file', 'GET', undefined, '/dsh-startup/music/file?name=../../package.json')
+  check('非法文件名 -> 404', bad.statusCode === 404, String(bad.statusCode))
+  const del = JSON.parse((await call('exact /dsh-startup/music/delete', 'POST', JSON.stringify({ file: up.file }))).body)
+  check('POST /music/delete ok', del.ok === true, JSON.stringify(del))
 }
 
 console.log('\n[7] XSS 边界：身份名称里的尖括号不会逃出内联脚本')

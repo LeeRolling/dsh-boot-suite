@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = process.cwd();
+const root = fileURLToPath(new URL('..', import.meta.url));
 const buf = fs.readFileSync(path.join(root, 'package.json'));
 if (buf.length >= 3 && buf[0] === 0xEF && buf[1] === 0xBB && buf[2] === 0xBF) {
   throw new Error('package.json 带 UTF-8 BOM，DSH 会拒绝加载');

@@ -50,7 +50,7 @@ const ctx = {
   on() { return () => {} },
   get(name) {
     if (name === 'webServer') return webServer
-    if (name === 'connection') return { requestRejection: () => undefined }
+    if (name === 'connection') return { requestRejection: (req) => (String((req && req.url) || '').includes('__deny=1') ? 401 : undefined) }
     return undefined
   },
   effect(fn) { effects++; const d = fn(); return () => { if (typeof d === 'function') d() } },
@@ -580,6 +580,12 @@ try {
   rootsRes = await callJson('exact /chat-wallpaper/videos')
   check('remove 后 /videos.roots 不再含该目录',
     !(rootsRes.json.roots || []).some((root) => root.path.toLowerCase().includes('custom-loops')), JSON.stringify(rootsRes.json.roots))
+
+  /* v2.14.0：壁纸路由接入信任栅栏（connection.requestRejection 返回状态码时直接拒绝） */
+  const deniedRes = await callJson('exact /chat-wallpaper/config', 'GET', undefined, '/chat-wallpaper/config?__deny=1')
+  check('★ 壁纸路由受信任栅栏保护：requestRejection 返回 401 时拒绝', deniedRes.res.statusCode === 401 && deniedRes.res.body === '', String(deniedRes.res.statusCode))
+  const allowedRes = await callJson('exact /chat-wallpaper/config', 'GET', undefined, '/chat-wallpaper/config')
+  check('栅栏放行普通请求', allowedRes.res.statusCode === 200, String(allowedRes.res.statusCode))
 
 } catch (e) {
   fail++

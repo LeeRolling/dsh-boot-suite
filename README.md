@@ -51,7 +51,7 @@ irm https://raw.githubusercontent.com/LeeRolling/dsh-boot-suite/main/install-onl
 
 https://github.com/LeeRolling/dsh-boot-suite/releases/latest/download/dsh-boot-suite-win.zip
 
-> 安装前请完全退出 DeepSeek Harness（窗口 + 托盘）。
+> 安装前建议完全退出 DeepSeek Harness（窗口 + 托盘）。安装器默认会检查进程；命令行热装可用 `dsh plugin add link:...`，装完重启 DSH 生效。
 > 安装脚本会自动处理旧版残留；出问题运行包里的「诊断.cmd」。
 
 
@@ -73,7 +73,7 @@ https://github.com/LeeRolling/dsh-boot-suite/releases/latest/download/dsh-boot-s
     dsh plugin --profile desktop add link:<仓库路径>
 
 
-**桌面端必须先完全退出** —— 否则 profile 的 `package.json` 被进程锁着，装不进去。
+**桌面端建议先完全退出**：安装器默认会检查进程、避免写入半截。实测运行中 `dsh plugin add link:` 也能装好（装完重启 DSH 生效）；确实要热装可给安装器加 `-Force`。
 （`dsh` 不在 PATH 里的话，桌面端自带的在 `%LOCALAPPDATA%\Programs\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd`）
 
 > 从旧的两个插件（`dsh-startup-screen` / `dsh-chat-wallpaper`）迁过来的话，
@@ -148,6 +148,13 @@ https://github.com/LeeRolling/dsh-boot-suite/releases/latest/download/dsh-boot-s
 点「安装」即落到 `~/.dsh/startup-templates/<id>/`。不建服务器、不需要登录。
 格式见 [docs/模板格式.md](docs/模板格式.md)。模板**只能是数据**，运行时不会执行模板里的任何代码。
 找不到模板、字段缺了、id 非法 —— 一律回落内置，不会黑屏。
+
+### 用户自备背景音乐（v2.14.0）
+
+- 设置 →「启动动画」→「背景音乐（用户自备）」导入本机音乐（mp3 / wav / ogg / m4a / aac / flac，≤100MB）；文件只存 `~/.dsh/startup-music`，不上传、不内置。
+- 波形里按拍数选段（时长 = 拍数 × 60 / BPM），只拖整段不拖边界；第一幕循环、第二幕可换曲并覆盖终幕、结束淡出，两段交叉叠化。
+- 配音时自动闪避音乐（ducking），淡入/淡出 0–10 秒可调。
+- 版权提示固定显示：请使用你拥有使用权的音乐。
 
 ### 自定义动画与转场（v2.12.0）
 
