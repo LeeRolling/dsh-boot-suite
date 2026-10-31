@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "id": "whale-girl-scan",
-  "name": "鲸鱼娘扫描睁眼",
+  "name": "鲸鱼娘扫描睁眼（2K）",
   "author": "素材：NativeDog1/dsh-boot-animation（BSD-3-Clause，原作者待上游确认）；模板维护：LeeRolling",
   "homepage": "https://github.com/LeeRolling/dsh-boot-suite",
   "license": "BSD-3-Clause",
   "version": "1.0.3",
-  "description": "鲸鱼娘「DeepSeek娘扫描睁眼」原片（2560×1440，7 秒），全屏播放 + 淡入淡出；底部保留素材署名。素材来源：NativeDog1/dsh-boot-animation 内置片库（BSD-3-Clause，原作者上游未标注）。",
+  "description": "鲸鱼娘「DeepSeek娘扫描睁眼」原片 2K 版（2560×1440，7 秒），全屏播放 + 淡入淡出；底部保留素材署名。素材来源：NativeDog1/dsh-boot-animation 内置片库（BSD-3-Clause，原作者上游未标注）。",
   "tags": [
     "anime",
     "whale",

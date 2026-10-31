@@ -232,10 +232,12 @@ MIT（只覆盖作者原创代码与文案）。
 | # | 动画 | 原作者 | 地址 |
 |---|---|---|---|
 | 1 | **最早的启动动画**（第一幕参考，带空格/回车交互的那支） | **沈宏宏**（@6shenhonghong9） | https://github.com/6shenhonghong9/dsh-startup-screen |
-| 2 | **鲸鱼娘「DeepSeek娘扫描睁眼」**（可选模板 `whale-girl-scan`，素材随包） | NativeDog1/dsh-boot-animation 内置片库（BSD-3-Clause；原作者上游未标注，待确认） | https://github.com/NativeDog1/dsh-boot-animation |
+| 2 | **鲸鱼娘「DeepSeek娘扫描睁眼」2K**（可选模板 `whale-girl-scan`，素材随包，默认第二幕） | NativeDog1/dsh-boot-animation 内置片库（BSD-3-Clause；原作者上游未标注，待确认） | https://github.com/NativeDog1/dsh-boot-animation |
 | 3 | **550C 启动动画**（学习复刻对象，对应 `550c-homage`） | @yannicksong0106 | https://github.com/yannicksong0106/dsh-550c-boot |
 
-前两项只做**形式参考与工程复刻**；第 2 项「鲸鱼娘扫描睁眼」素材按上游 **BSD-3-Clause** 许可随可选模板提供。
+前两项只做**形式参考与工程复刻**；第 2 项「鲸鱼娘扫描睁眼」素材按上游 **BSD-3-Clause** 许可随可选模板提供（2K 版默认；4K 版 `whale-girl-scan-4k` 由社区作者 **1catmint1** 的 [8K 超分版](https://github.com/1catmint1/dsh-boot-animation-8k) 下采样而来，同样 BSD-3-Clause）。
+
+> 8K 原版（10240×5760）请从 [1catmint1/dsh-boot-animation-8k](https://github.com/1catmint1/dsh-boot-animation-8k) 自行下载。作者实测桌面版 DSH 播放 8K 会内存泄漏、开机动完 2–7 分钟渲染进程可能崩溃，**桌面端请用 2K/4K 版**；8K 仅建议网页端或作静帧收藏。
 如果你喜欢这些动画，请去原仓库给作者点 star。
 
 以上作品版权归原作者所有。本项目只做**形式参考与工程复刻**，不复用其素材；
