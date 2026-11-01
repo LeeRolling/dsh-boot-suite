@@ -120,17 +120,25 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
 })();
 
 
-/* v2.15.2：加载阶段按空格切换下一条 tips；彩蛋卡片打开时不拦截（交给卡片自己的按钮）。 */
-document.addEventListener('keydown',function(e){
-  if(e.code!=='Space'&&e.key!==' ')return;
-  if(!lastLoaded)return;
+/* v2.15.3：加载阶段按空格 / 宿主转发 切换下一条 tips；彩蛋卡片打开时不拦截。
+   宿主转发用于 iframe 失焦（DSH 聊天输入框把焦点抢走后，模板内收不到空格）。 */
+function nextTip(){
+  if(!lastLoaded)return false;
   var card=document.getElementById('egg-card');
   if(card){
     var st=getComputedStyle(card);
-    if(st.display!=='none'&&st.visibility!=='hidden'&&card.getBoundingClientRect().width>0)return;
+    if(st.display!=='none'&&st.visibility!=='hidden'&&card.getBoundingClientRect().width>0)return false;
   }
-  e.preventDefault();e.stopPropagation();
   tipIndex=(tipIndex+1)%tips.length;
   setTip(tipIndex);
+  return true;
+}
+document.addEventListener('keydown',function(e){
+  if(e.code!=='Space'&&e.key!==' ')return;
+  if(nextTip()){e.preventDefault();e.stopPropagation();}
+});
+window.addEventListener('message',function(e){
+  var d=e&&e.data;
+  if(d&&typeof d==='object'&&d.type==='dsh-tip-next')nextTip();
 });
 setTip(0);
