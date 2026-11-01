@@ -77,4 +77,13 @@ if (!bigfishApp.includes('eggTimeForPct(Math.random()*100)')) throw new Error('�
 if (!splashJs.includes('bgm cut')) throw new Error('splash 缺少 BGM 截断')
 if (!splashJs.includes('dsh-startup-bgm')) throw new Error('splash 未处理 BGM 彩蛋信号')
 if (!bigfishCfg.includes('egg:{}')) throw new Error('config.js 仍固定 egg.at')
+/* v2.15.11：模板不再自己做白闪，结尾转场由插件接管 */
+for (const f of ['index.html', 'render.html']) {
+  const html = fs.readFileSync(path.join(root, 'templates/division-bigfish-codex', f), 'utf8')
+  if (html.includes('id="flash"')) throw new Error(f + ' 仍有模板白闪节点 #flash')
+}
+if (bigfishApp.includes('flashEl')) throw new Error('app.js 仍引用模板白闪 flashEl')
+if (bigfishApp.includes('flashEl')) throw new Error('app.js 仍残留白闪动画')
+if (skipCss.includes('#flash')) throw new Error('style.css 仍残留 #flash 样式')
+if (!/return done\.then\(function \(\) \{[\s\S]{0,260}transOut\(transType\('Out'\), finish\)/.test(splashJs)) throw new Error('iframe 模板收尾未交给插件退场转场')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');

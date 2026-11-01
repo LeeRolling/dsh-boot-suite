@@ -15,6 +15,4 @@
 .egg-actions{display:flex;justify-content:center;margin-top:30px;border-top:1px solid rgba(255,255,255,.12);padding-top:26px}
 #egg-retry{min-width:280px;padding:14px 26px;background:#15171a;border:1px solid rgba(255,255,255,.35);color:#e8e8e8;font-size:20px;letter-spacing:4px;cursor:pointer}
 #egg-retry:hover{border-color:#f09a2e;color:#fff;background:#1b1d21}
-#flash{position:fixed;inset:0;z-index:90;background:#fff;opacity:0;pointer-events:none;transition:opacity .22s ease}
-#flash.on{opacity:1}
 body.egg-on #skip{display:none!important}

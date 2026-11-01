@@ -57,7 +57,7 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
 /* ===== 掉线彩蛋 + 五句配音（Lead v11） ===== */
 (function(){
   var q=new URLSearchParams(location.search), EGG_CHANCE=0.28;
-  var eggEl=document.getElementById('egg'), flashEl=document.getElementById('flash'), btn=document.getElementById('egg-retry');
+  var eggEl=document.getElementById('egg'), btn=document.getElementById('egg-retry');
   var eggCfg=(cfg.egg||{}), eggFrom=+(eggCfg.min!=null?eggCfg.min:cfg.loadingStart), eggTo=Math.max(eggFrom+1, +(eggCfg.max!=null?eggCfg.max:cfg.duration-0.35));
   /* v2.15.10：掉线时机从「固定 9.2s」改为「进度 0–100%」随机；按百分比反查时间，保证 0%~100% 都可能掉线 */
   function eggTimeForPct(pct){
@@ -157,7 +157,7 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   function hideEgg(){eggEl.classList.remove('on');eggEl.setAttribute('aria-hidden','true');try{document.body.classList.remove('egg-on')}catch(e){}shown=false;}
   function reconnect(){if(done)return;hideEgg();stopVoice();bgmSig(true);resetPlayedAfter(cfg.loadingStart);waitStart=0;window.__WAIT_START__=0;seek(cfg.loadingStart);playing=true;last=performance.now();var pb=document.getElementById('play');if(pb)pb.textContent='暂停';render();}
   function doneEmit(){if(done)return;done=true;try{document.dispatchEvent(new CustomEvent('dsh-startup-done'))}catch(e){}try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-done'},'*')}catch(e){}try{if(typeof window.__DSH_DONE__==='function')window.__DSH_DONE__()}catch(e){}}
-  function flashDone(){window.__WAIT_START__=0;hideEgg();if(flashEl)flashEl.classList.add('on');setTimeout(function(){if(flashEl)flashEl.classList.remove('on');doneEmit()},260);}
+  function flashDone(){window.__WAIT_START__=0;hideEgg();doneEmit();}
   if(btn)btn.addEventListener('click',function(e){e.preventDefault();reconnect();});
   if(aud.orig3)aud.orig3.addEventListener('ended',function(){v3Ended=true});
   (function watch(){
