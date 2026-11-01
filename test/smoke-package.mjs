@@ -60,5 +60,14 @@ if (!splashJs.includes('dsh-startup-voice')) throw new Error('splash 未处理�
 if (!/engine === 'iframe'[\s\S]{0,160}bgm\.start\(\)/.test(splashJs)) throw new Error('iframe 模板未启动 BGM')
 if (!clientJs.includes('配音音量')) throw new Error('设置页缺少配音音量')
 if (!clientJs.includes('bigfishVoiceVolume')) throw new Error('设置页缺少 bigfishVoiceVolume')
-if (!clientJs.includes("(isArchiveWarm || draft.template === 'division-bigfish-codex')")) throw new Error('BGM 组未对全景大肥鱼显示')
+if (!clientJs.includes('style: (isArchiveWarm || isBigfish)')) throw new Error('BGM 组未对全景大肥鱼显示')
+/* v2.15.9：无第二幕不切第二段音乐、BGM 循环开关、跳过按钮位置 */
+if (!hostStartup.includes('bgmLoop: true')) throw new Error('host-startup 缺少 bgmLoop 默认值')
+if (!hostStartup.includes("'bgmLoop'")) throw new Error('host-startup BOOL_KEYS 缺 bgmLoop')
+if (!splashJs.includes('C.bgmLoop !== false')) throw new Error('splash 未使用 bgmLoop')
+if (!/if \(!TEMPLATE2[\s\S]{0,420}bgm\.toSecond\(\)/.test(splashJs)) throw new Error('splash 在无第二幕时仍提前切第二段音乐')
+if (!clientJs.includes('hasSecondAct')) throw new Error('设置页缺少第二幕判断')
+if (!clientJs.includes('bgmLoop')) throw new Error('设置页缺少循环开关')
+const skipCss = fs.readFileSync(path.join(root, 'templates/division-bigfish-codex/style.css'), 'utf8')
+if (!skipCss.includes('top:64px;right:72px')) throw new Error('跳过按钮位置未调整')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');
