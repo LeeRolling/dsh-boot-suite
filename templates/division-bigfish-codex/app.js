@@ -77,7 +77,19 @@ function render(){
    vOn=true;
  }else{
    const vsched=(window.__VSCHED__&&window.__VSCHED__.length)?window.__VSCHED__:(window.VOICE_SCHED||[]).map(function(s){var atV=(s.at<=9.2)?s.at-3.4:5.8+(s.at-9.2)/1.5;return{key:s.key,at:atV,dur:s.dur};});
-   for(const s of vsched){if(VT>=s.at-0.02&&VT<s.at+s.dur&&(!window.__DSH_AUDIO_ON__||window.__DSH_ACTIVE_VOICE__===s.key)){sub=(cfg.voice&&cfg.voice.subs&&cfg.voice.subs[s.key])||"";const e=(window.VOICE_ENV||{})[s.key];if(e&&e.length){const vt=VT-s.at;vh=Array.from({length:20},(_,k)=>{const st=Math.max(0,vt-(19-k)*0.055);const fi=st/0.008;const ai=Math.min(e.length-1,Math.floor(fi));const af=fi-Math.floor(fi);const a=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);return 4+Math.min(360,Math.pow(Math.max(0,a),0.9)*360)});vOn=true;}break;}}
+   /* v2.15.17：有配音时，字幕/波形只跟「真正在播的那句」走（音频时钟），
+      避免时间轴窗口结束得比语音早、字幕提前消失。静音模式仍按时间轴显示。 */
+   const audioOn=!!window.__DSH_AUDIO_ON__, avNow=window.__DSH_ACTIVE_VOICE__||'', aNow=+window.__DSH_AUDIO_T__||0, aPlaying=!!window.__DSH_AUDIO_PLAYING__;
+   for(const s of vsched){
+     let vt=null;
+     if(audioOn){if(avNow===s.key&&aPlaying)vt=Math.max(0,aNow);}
+     else if(VT>=s.at-0.02&&VT<s.at+s.dur)vt=VT-s.at;
+     if(vt==null)continue;
+     sub=(cfg.voice&&cfg.voice.subs&&cfg.voice.subs[s.key])||"";
+     const e=(window.VOICE_ENV||{})[s.key];
+     if(e&&e.length){vh=Array.from({length:20},(_,k)=>{const st=Math.max(0,vt-(19-k)*0.055);const fi=st/0.008;const ai=Math.min(e.length-1,Math.floor(fi));const af=fi-Math.floor(fi);const a=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);return 4+Math.min(360,Math.pow(Math.max(0,a),0.9)*360)});vOn=true;}
+     break;
+   }
  }
 const h=vh||Array(20).fill(4);const voiceVisible=vOn?1:0;renderVoiceRow($('voice'),$('subtitle'),h,sub,voiceVisible);$('seek').value=t;$('time').textContent=(t-(+cfg.startAt||0)).toFixed(2)+' / '+(cfg.duration-(+cfg.startAt||0)).toFixed(2)+' s';
 }
@@ -118,14 +130,14 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   function bgmSig(on){try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-bgm',on:!!on},'*')}catch(e){}}
   var sched=vc.sched||[[4.6,'orig1',2.65],[8.0,'line1',3.375],[12.8,'line2',3.232],[20.0,'line3',3.300],[25.45,'orig3',2.77]];
   var eggLineAt=+(vc.eggLineAt!=null?vc.eggLineAt:2.0), eggReplayWait=+(vc.eggReplayWait!=null?vc.eggReplayWait:2.0), line4Dur=+(vc.line4Dur||1.911);
-  var aud={},played={},activeVoice=null,cueGate=false,cueFailTimer=null;window.__DSH_AUDIO_ON__=!mute;window.__DSH_ACTIVE_VOICE__='';
-  sched.forEach(function(e){var k=e[1];if(!mute&&vc[k]){var a=new Audio(vc[k]);a.preload='auto';a.volume=voiceVol;a.addEventListener('ended',function(){if(activeVoice===k){activeVoice=null;window.__DSH_ACTIVE_VOICE__='';}voiceDuck(false)});aud[k]=a;played[k]=false;}});
+  var aud={},played={},activeVoice=null,cueGate=false,cueFailTimer=null;window.__DSH_AUDIO_ON__=!mute;window.__DSH_ACTIVE_VOICE__='';window.__DSH_AUDIO_T__=-1;window.__DSH_AUDIO_PLAYING__=false;
+  sched.forEach(function(e){var k=e[1];if(!mute&&vc[k]){var a=new Audio(vc[k]);a.preload='auto';a.volume=voiceVol;a.addEventListener('ended',function(){if(activeVoice===k){activeVoice=null;window.__DSH_ACTIVE_VOICE__='';}window.__DSH_AUDIO_PLAYING__=false;window.__DSH_AUDIO_T__=-1;voiceDuck(false)});aud[k]=a;played[k]=false;}});
   if(!mute&&vc.reconnect){var rc=new Audio(vc.reconnect);rc.preload='auto';rc.volume=voiceVol;rc.addEventListener('ended',function(){if(activeVoice==='reconnect'){activeVoice=null;window.__DSH_ACTIVE_VOICE__=''}window.__DSH_CUE__='';window.__DSH_CUE_UNTIL__=0;cueGate=false;voiceDuck(false)});aud.reconnect=rc;played.reconnect=true;}
   /* v2.15.14：重连提示音只播自己这一行；播完（ended）才解除 cueGate，后续 line2/line3/orig3 才允许开始 */
   function playReconnectCue(){if(mute||!aud.reconnect)return;cueGate=true;setTimeout(function(){try{attachVoiceFx('reconnect');aud.reconnect.currentTime=0;aud.reconnect.play().catch(function(){})}catch(e){}activeVoice='reconnect';window.__DSH_ACTIVE_VOICE__='';var txt=(cfg.voice&&cfg.voice.subs&&cfg.voice.subs.reconnect)||'';var d=isFinite(aud.reconnect.duration)&&aud.reconnect.duration>0?aud.reconnect.duration:2.82;window.__DSH_CUE__=txt;window.__DSH_CUE_UNTIL__=performance.now()+d*1000+150;voiceDuck(true);if(cueFailTimer)clearTimeout(cueFailTimer);
     /* 兜底：音频若因自动播放策略被拒，ended 不会触发；到时强制解除门控，避免后续配音全被卡住 */
     cueFailTimer=setTimeout(function(){if(activeVoice==='reconnect'){activeVoice=null;window.__DSH_ACTIVE_VOICE__='';window.__DSH_CUE__='';window.__DSH_CUE_UNTIL__=0;cueGate=false;voiceDuck(false)}},d*1000+1500)},500)}
-  if(!mute&&vc.line4){var l4=new Audio(vc.line4);l4.preload='auto';l4.volume=voiceVol;l4.addEventListener('ended',function(){if(activeVoice==='line4'){activeVoice=null;window.__DSH_ACTIVE_VOICE__='';}voiceDuck(false)});aud.line4=l4;played.line4=false;}
+  if(!mute&&vc.line4){var l4=new Audio(vc.line4);l4.preload='auto';l4.volume=voiceVol;l4.addEventListener('ended',function(){if(activeVoice==='line4'){activeVoice=null;window.__DSH_ACTIVE_VOICE__='';}window.__DSH_AUDIO_PLAYING__=false;window.__DSH_AUDIO_T__=-1;voiceDuck(false)});aud.line4=l4;played.line4=false;}
   /* v2.15.5：模板内配音效果（与全局 5 个声音效果同参数）；只在宿主注入 voiceFx 时生效。 */
   var VOICE_FX_PRESETS={'ai-mech':{hp:130,lp:4200,peak:{f:260,g:4,q:1.0},drive:0.15,ring:0},'robot':{hp:180,lp:3200,peak:{f:1500,g:3,q:0.9},drive:0.35,ring:42},'radio':{hp:420,lp:2800,peak:{f:1800,g:5,q:1.2},drive:0.6,ring:0},'oldtv':{hp:220,lp:2200,peak:null,drive:0.45,ring:0},'dark':{hp:90,lp:1200,peak:{f:180,g:5,q:0.8},drive:0.1,ring:0}};
   var voiceFxMode=String((cfg&&cfg.voiceFx)||'none');
@@ -167,21 +179,25 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
     eggSub.setAttribute('font-family',"'DIN Alternate','Bahnschrift','Microsoft YaHei',sans-serif");
     eggSvg.appendChild(eggRow);eggSvg.appendChild(eggSub);eggEl.appendChild(eggSvg);
 }
-  function eggVoice(vt){
+  /* v2.15.17：彩蛋里的中文台词改为跟随 voice-line4 的真实播放时钟，不再用墙钟推算。
+     这样即使彩蛋的 setTimeout 被主线程拖慢，字幕也会和语音同时出现、同时结束。 */
+  function eggVoice(){
     ensureEggVoice();
+    var a=aud.line4, live=!!(window.__DSH_AUDIO_ON__&&a&&!a.paused&&!a.ended&&window.__DSH_ACTIVE_VOICE__==='line4');
+    var vt=live?Math.max(0,+a.currentTime||0):-1;
     var e=(window.VOICE_ENV||{}).line4||[], vh=Array(20).fill(4);
-    if(vt>=0&&vt<line4Dur&&e.length){
+    if(live&&vt<line4Dur+0.25&&e.length){
       var fi=vt/0.008, ai=Math.min(e.length-1,Math.floor(fi)), af=fi-Math.floor(fi);
       var amp=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);
       vh=[];for(var k=0;k<20;k++){var tv2=vt-(19-k)*0.06;var f2=tv2/0.008,i2=Math.min(e.length-1,Math.floor(f2));var a2=((e[i2]||0)*(1-(f2-Math.floor(f2)))+(e[Math.min(e.length-1,i2+1)]||0)*(f2-Math.floor(f2)));vh.push(4+Math.min(440,Math.pow(Math.max(0,a2),0.85)*440))}
     }
-    var show=(vt>=0&&vt<line4Dur&&window.__DSH_ACTIVE_VOICE__==='line4')?1:0;
+    var show=live?1:0;
     var st=show?((cfg.voice&&cfg.voice.subs&&cfg.voice.subs.line4)||''):'';
     renderVoiceRow(eggRow,eggSub,vh,st,show);
   }
   var shown=false,done=false,rolled=false,v3Ended=false,waitStart=0,v4Timer=null,replayTimer=null,eggShownAt=0,eggWait=false,eggWaitTimer=null;
   var hit=q.get('egg')==='1'||Math.random()<EGG_CHANCE;
-  function stopVoice(){voiceDuck(false);activeVoice=null;window.__DSH_ACTIVE_VOICE__='';window.__DSH_CUE__='';window.__DSH_CUE_UNTIL__=0;cueGate=false;if(cueFailTimer){clearTimeout(cueFailTimer);cueFailTimer=null}Object.keys(aud).forEach(function(k){var a=aud[k];try{a.pause();a.currentTime=0}catch(e){}});if(v4Timer){clearTimeout(v4Timer);v4Timer=null}if(replayTimer){clearTimeout(replayTimer);replayTimer=null}}
+  function stopVoice(){voiceDuck(false);activeVoice=null;window.__DSH_ACTIVE_VOICE__='';window.__DSH_AUDIO_PLAYING__=false;window.__DSH_AUDIO_T__=-1;window.__DSH_CUE__='';window.__DSH_CUE_UNTIL__=0;cueGate=false;if(cueFailTimer){clearTimeout(cueFailTimer);cueFailTimer=null}Object.keys(aud).forEach(function(k){var a=aud[k];try{a.pause();a.currentTime=0}catch(e){}});if(v4Timer){clearTimeout(v4Timer);v4Timer=null}if(replayTimer){clearTimeout(replayTimer);replayTimer=null}}
   function playKey(k,offset){var a=aud[k];if(a&&!played[k]){played[k]=true;attachVoiceFx(k);try{a.currentTime=Math.max(0,offset||0);a.play().catch(function(){});activeVoice=k;window.__DSH_ACTIVE_VOICE__=k}catch(e){}voiceDuck(true);}}
   function resetPlayedAfter(t0){
     Object.keys(played).forEach(function(k){played[k]=false});v3Ended=false;
@@ -197,12 +213,12 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
     stopVoice();
     bgmSig(false);
     eggEl.classList.add('on'); eggEl.setAttribute('aria-hidden','false'); try{document.body.classList.add('egg-on')}catch(e){}
-    eggShownAt=performance.now(); eggVoice(-1);
+    eggShownAt=performance.now(); eggVoice();
     v4Timer=setTimeout(function(){playKey('line4')},eggLineAt*1000);
     /* v2.15.6：不再自动 reconnect——彩蛋必须等用户点【重新连接】，否则动画会自己往下走、声音叠在一起。 */
     render();
   }
-  function eggFrame(sec){showEgg();stopVoice();window.__EGG_T=Math.max(0,sec);eggShownAt=performance.now()-window.__EGG_T*1000;if(sec>=eggLineAt)playKey('line4');eggVoice(window.__EGG_T-eggLineAt);}
+  function eggFrame(sec){showEgg();stopVoice();window.__EGG_T=Math.max(0,sec);eggShownAt=performance.now()-window.__EGG_T*1000;if(sec>=eggLineAt)playKey('line4');eggVoice();}
   function hideEgg(){eggEl.classList.remove('on');eggEl.setAttribute('aria-hidden','true');try{document.body.classList.remove('egg-on')}catch(e){}shown=false;}
   /* v2.15.14：重连后不再续播断句（原来会把 line1 从半句接着放，和 reconnect 叠在一起）。
      顺序：等待 0.5s → 只播 reconnect（独占一行）→ 播完解除 cueGate → line2/line3/orig3 按时间线继续。 */
@@ -220,6 +236,10 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   if(aud.orig3)aud.orig3.addEventListener('ended',function(){v3Ended=true});
   (function watch(){
     if(!done){
+      /* v2.15.17：把当前配音的真实播放状态镜像到 window，供 render()/eggVoice() 使用，
+         让字幕与波形以音频时钟为准，而不是按时间轴推算。 */
+      var __av=activeVoice?aud[activeVoice]:null;
+      if(__av){window.__DSH_AUDIO_T__=+__av.currentTime||0;window.__DSH_AUDIO_DUR__=+__av.duration||0;window.__DSH_AUDIO_PLAYING__=!__av.paused&&!__av.ended;}
       if(playing&&!cueGate){sched.forEach(function(e){if(t>=e[0])playKey(e[1]);});}
       /* v2.15.16：掉线彩蛋若正好赶上某句配音，先等这句播完再弹出，避免语音和字幕被硬切断（有兜底超时）。 */
       if(!rolled&&playing&&!shown&&t>=eggAt){
@@ -236,7 +256,7 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
           } else {rolled=true;showEgg();}
         } else if(!eggWait){rolled=true;showEgg();}
       }
-      if(shown){var elap=(window.__EGG_T!=null?window.__EGG_T:(performance.now()-eggShownAt)/1000);eggVoice(elap-eggLineAt);}
+      if(shown){eggVoice();}
       if(!shown&&t>=cfg.duration-0.02){if(!waitStart){waitStart=performance.now();window.__WAIT_START__=waitStart;}var waitVoice=(!mute&&aud.orig3&&!v3Ended&&(performance.now()-waitStart<4000));if(!waitVoice)flashDone();}
     }
     requestAnimationFrame(watch);
