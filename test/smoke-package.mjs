@@ -111,4 +111,8 @@ if (!bigfishApp.includes('playing&&!cueGate')) throw new Error('重连期间未�
 if (!bigfishApp.includes('played.line2=false;played.line3=false;played.orig3=false')) throw new Error('重连后未重置后续配音的播放标记')
 if (/resetPlayedAfter\(cfg\.loadingStart\)/.test(bigfishApp)) throw new Error('重连仍会续播断句（resetPlayedAfter）')
 if (!bigfishApp.includes('cueFailTimer')) throw new Error('重连提示音缺少播放失败的兜底解除门控')
+/* v2.15.15：重连提示音也要走插件的配音效果；line3 顺延，避免和 line2 叠音 */
+if (!bigfishApp.includes("attachVoiceFx('reconnect')")) throw new Error('重连提示音未接入配音效果')
+if (!bigfishApp.includes("[20.0,'line3',3.300]")) throw new Error('app.js 默认时间线未把 line3 顺延到 20.0s')
+if (!bigfishCfg.includes("[20.0,'line3',3.300]")) throw new Error('config.js 时间线未把 line3 顺延到 20.0s')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');
