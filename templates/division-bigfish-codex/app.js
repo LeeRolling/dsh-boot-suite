@@ -112,7 +112,7 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
       if(playing){sched.forEach(function(e){if(t>=e[0])playKey(e[1]);});}
       if(!rolled&&playing&&!shown&&t>=eggAt){rolled=true;if(hit)showEgg();}
       if(shown){var elap=(window.__EGG_T!=null?window.__EGG_T:(performance.now()-eggShownAt)/1000);eggVoice(elap-eggLineAt);}
-      if(!shown&&t>=cfg.duration-0.02){if(!waitStart)waitStart=performance.now();var waitVoice=(playing&&!v3Ended&&(performance.now()-waitStart<3500));if(!waitVoice)flashDone();}
+      if(!shown&&t>=cfg.duration-0.02){if(!waitStart)waitStart=performance.now();var waitVoice=(!mute&&aud.orig3&&!v3Ended&&(performance.now()-waitStart<4000));if(!waitVoice)flashDone();}
     }
     requestAnimationFrame(watch);
   })();
