@@ -15,6 +15,36 @@ function persist(){try{localStorage.setItem('division-editable',JSON.stringify(c
 for(const [id,key] of [['username','username'],['heading','title'],['body','description']])$(id).oninput=()=>{cfg[key]=$(id).value;persist();$('title').textContent=cfg.title;$('description').textContent=cfg.description;render()};
 $('gap').oninput=()=>{cfg.voiceY=853+ +$('gap').value;persist();render()};
 function progress(time){const a=cfg.progress;if(time<=a[0][0])return a[0][1];for(let i=1;i<a.length;i++)if(time<=a[i][0])return a[i-1][1]+(a[i][1]-a[i-1][1])*(time-a[i-1][0])/(a[i][0]-a[i-1][0]);return a.at(-1)[1]}
+var __voiceMeasure=null;
+function voiceTextWidth(text,fs,ls,weight){
+  try{
+    var g=$('voice');var svg=g&&g.ownerSVGElement;if(!svg)return String(text||'').length*fs*0.82;
+    if(!__voiceMeasure){__voiceMeasure=document.createElementNS('http://www.w3.org/2000/svg','text');__voiceMeasure.setAttribute('opacity','0');__voiceMeasure.setAttribute('x','-4000');__voiceMeasure.setAttribute('y','-4000');svg.appendChild(__voiceMeasure);}
+    var m=__voiceMeasure;
+    m.setAttribute('font-family',"'DIN Alternate','Bahnschrift','Microsoft YaHei',sans-serif");
+    m.setAttribute('font-weight',weight||'700');
+    m.setAttribute('letter-spacing',String(ls||0));
+    m.setAttribute('font-size',String(fs));
+    m.textContent=text||'';
+    return m.getComputedTextLength();
+  }catch(e){return String(text||'').length*fs*0.82}
+}
+function renderVoiceRow(h,sub,visible){
+  var g=$('voice');if(!g)return;
+  var baseY=cfg.voiceY,iconW=150,gap=28,dshFs=140,dshLs=14,barW=4.5,barGap=19.2;
+  var dshW=voiceTextWidth('DSH',dshFs,dshLs,'700');
+  var subFs=42,subW=sub?voiceTextWidth(sub,subFs,1,'400'):0;
+  var waveW=19*barGap+barW;
+  var total=iconW+gap+dshW+gap+waveW+(subW?gap+subW:0);
+  while(total>1860&&subW&&subFs>30){subFs-=2;subW=voiceTextWidth(sub,subFs,1,"400");total=iconW+gap+dshW+gap+waveW+gap+subW}
+  var x=960-total/2;
+  var dshX=x+iconW+gap,waveX=dshX+dshW+gap,subX=waveX+waveW+gap;
+  var bars=h.map(function(v,i){return '<rect x="'+(i*barGap).toFixed(2)+'" y="'+(baseY-v/2).toFixed(1)+'" width="'+barW+'" height="'+v.toFixed(1)+'" rx="1.1" fill="#efeee5"/>'}).join('');
+  g.innerHTML='<image href="assets/whale-badge-line.png" x="'+x+'" y="'+(baseY-iconW/2)+'" width="'+iconW+'" height="'+iconW+'" preserveAspectRatio="xMidYMid meet"/><text x="'+dshX+'" y="'+baseY+'" dominant-baseline="central" font-family="\'DIN Alternate\',\'Bahnschrift\',\'Microsoft YaHei\',sans-serif" font-size="'+dshFs+'" font-weight="700" letter-spacing="'+dshLs+'" fill="#e8e5d9">DSH</text><g transform="translate('+waveX+' 0)">'+bars+'</g>';
+  g.setAttribute('transform','translate(0 0)');
+  g.style.opacity=visible;
+  var se=$('subtitle');if(se){if(se.textContent!==sub)se.textContent=sub||'';se.setAttribute('x',String(subX));se.setAttribute('y',String(baseY));se.setAttribute('text-anchor','start');se.setAttribute('dominant-baseline','central');se.setAttribute('font-size',String(subFs));se.style.opacity=(visible&&sub)?1:0}
+}
 function render(){
  const m=HUDMotion.state(t,cfg.loadingStart),loading=m.load,p=progress(t);
  lastLoaded=m.load;
@@ -39,10 +69,7 @@ function render(){
  $('statusDots').style.opacity=m.opacity*m.labelOpacity*(.35+.65*Math.abs(Math.sin(rt*4)));
  let VT=(window.__VTIME__!=null)?+window.__VTIME__:(t<=9.2?t-3.4:5.8+(t-9.2)/1.5);VT+=waitSec;let vh=null,vOn=false,sub="";const vsched=(window.__VSCHED__&&window.__VSCHED__.length)?window.__VSCHED__:(window.VOICE_SCHED||[]).map(function(s){var atV=(s.at<=9.2)?s.at-3.4:5.8+(s.at-9.2)/1.5;return{key:s.key,at:atV,dur:s.dur};});
  for(const s of vsched){if(VT>=s.at-0.02&&VT<s.at+s.dur){sub=(cfg.voice&&cfg.voice.subs&&cfg.voice.subs[s.key])||"";const e=(window.VOICE_ENV||{})[s.key];if(e&&e.length){const vt=VT-s.at;vh=Array.from({length:20},(_,k)=>{const st=Math.max(0,vt-(19-k)*0.055);const fi=st/0.008;const ai=Math.min(e.length-1,Math.floor(fi));const af=fi-Math.floor(fi);const a=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);return 4+Math.min(360,Math.pow(Math.max(0,a),0.9)*360)});vOn=true;}break;}}
- const h=vh||Array(20).fill(4);const voiceVisible=vOn?1:0;const scale=cfg.voiceWidth/1920;
- $('voice').style.opacity=voiceVisible;
- $('voice').setAttribute('transform',`translate(${960-cfg.voiceWidth/2} ${cfg.voiceY-303*scale}) scale(${scale})`);
- $('voice').innerHTML=VoiceAnimation.foreground(0.85,h);{const se=$('subtitle');if(se){if(sub!==se.textContent)se.textContent=sub;se.setAttribute('y',String(cfg.voiceY+36));se.style.opacity=(voiceVisible&&sub)?1:0}}$('seek').value=t;$('time').textContent=(t-(+cfg.startAt||0)).toFixed(2)+' / '+(cfg.duration-(+cfg.startAt||0)).toFixed(2)+' s';
+const h=vh||Array(20).fill(4);const voiceVisible=vOn?1:0;renderVoiceRow(h,sub,voiceVisible);$('seek').value=t;$('time').textContent=(t-(+cfg.startAt||0)).toFixed(2)+' / '+(cfg.duration-(+cfg.startAt||0)).toFixed(2)+' s';
 }
 function syncAudio(){if(!env)return;const at=t- +$('voiceStart').value;if(at<0||at>=env.duration){audio.pause();return}if(Math.abs(audio.currentTime-at)>.12)audio.currentTime=at;if(playing&&audio.paused)audio.play().catch(()=>{$('audioInfo').textContent='请点击播放以启用音频。'});if(!playing)audio.pause()}
 function play(){if(t>=cfg.duration)t=+cfg.startAt||0;playing=true;last=performance.now();$('play').textContent='暂停';syncAudio()}
