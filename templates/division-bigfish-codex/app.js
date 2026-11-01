@@ -58,10 +58,24 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
 (function(){
   var q=new URLSearchParams(location.search), EGG_CHANCE=0.28;
   var eggEl=document.getElementById('egg'), flashEl=document.getElementById('flash'), btn=document.getElementById('egg-retry');
-  var eggCfg=(cfg.egg||{}), eggAt=+(eggCfg.at!=null?eggCfg.at:cfg.loadingStart);
+  var eggCfg=(cfg.egg||{}), eggFrom=+(eggCfg.min!=null?eggCfg.min:cfg.loadingStart), eggTo=Math.max(eggFrom+1, +(eggCfg.max!=null?eggCfg.max:cfg.duration-0.35));
+  /* v2.15.10：掉线时机从「固定 9.2s」改为「进度 0–100%」随机；按百分比反查时间，保证 0%~100% 都可能掉线 */
+  function eggTimeForPct(pct){
+    var a=cfg.progress||[];
+    for(var i=1;i<a.length;i++){
+      if(pct<=a[i][1]){
+        var p0=a[i-1][1],p1=a[i][1],t0=a[i-1][0],t1=a[i][0];
+        return p1===p0?t0:(t0+(t1-t0)*(pct-p0)/(p1-p0));
+      }
+    }
+    return +cfg.speedEnd||eggTo;
+  }
+  var eggAt=(q.get('egg')==='1')?eggFrom:Math.max(eggFrom,Math.min(eggTo,eggTimeForPct(Math.random()*100)));
   var vc=(cfg.voice||{}), mute=q.get('mute')==='1';
   var voiceVol=Number(cfg&&cfg.voiceVolume!=null?cfg.voiceVolume:0.5);if(!isFinite(voiceVol))voiceVol=0.5;voiceVol=Math.max(0,Math.min(1,voiceVol));
   function voiceDuck(on){try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-voice',on:!!on},'*')}catch(e){}}
+  /* v2.15.10：彩蛋弹出时请宿主截断 BGM；重连后请宿主重新播 */
+  function bgmSig(on){try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-bgm',on:!!on},'*')}catch(e){}}
   var sched=vc.sched||[[4.6,'orig1',2.65],[8.0,'line1',3.375],[12.8,'line2',3.232],[17.9,'line3',3.300],[25.45,'orig3',2.77]];
   var eggLineAt=+(vc.eggLineAt!=null?vc.eggLineAt:2.0), eggReplayWait=+(vc.eggReplayWait!=null?vc.eggReplayWait:2.0), line4Dur=+(vc.line4Dur||1.911);
   var aud={},played={};
@@ -119,11 +133,20 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   var shown=false,done=false,rolled=false,v3Ended=false,waitStart=0,v4Timer=null,replayTimer=null,eggShownAt=0;
   var hit=q.get('egg')==='1'||Math.random()<EGG_CHANCE;
   function stopVoice(){voiceDuck(false);Object.keys(aud).forEach(function(k){var a=aud[k];try{a.pause();a.currentTime=0}catch(e){}});if(v4Timer){clearTimeout(v4Timer);v4Timer=null}if(replayTimer){clearTimeout(replayTimer);replayTimer=null}}
-  function playKey(k){var a=aud[k];if(a&&!played[k]){played[k]=true;attachVoiceFx(k);try{a.currentTime=0;a.play().catch(function(){})}catch(e){}voiceDuck(true);}}
-  function resetPlayed(){Object.keys(played).forEach(function(k){played[k]=false});v3Ended=false}
+  function playKey(k,offset){var a=aud[k];if(a&&!played[k]){played[k]=true;attachVoiceFx(k);try{a.currentTime=Math.max(0,offset||0);a.play().catch(function(){})}catch(e){}voiceDuck(true);}}
+  function resetPlayedAfter(t0){
+    Object.keys(played).forEach(function(k){played[k]=false});v3Ended=false;
+    /* v2.15.10：重连回到 loadingStart 时，已播完的语音标记为已播、正在播的从断点续播，避免多句同时响起 */
+    sched.forEach(function(e){
+      var k=e[1],s=e[0],end=e[0]+(e[2]||0);
+      if(end<=t0){played[k]=true}
+      else if(s<t0){played[k]=true;playKey(k,t0-s)}
+    });
+  }
   function showEgg(){
     if(shown||done)return; shown=true; rolled=true; playing=false;
     stopVoice();
+    bgmSig(false);
     eggEl.classList.add('on'); eggEl.setAttribute('aria-hidden','false'); try{document.body.classList.add('egg-on')}catch(e){}
     eggShownAt=performance.now(); eggVoice(-1);
     v4Timer=setTimeout(function(){playKey('line4')},eggLineAt*1000);
@@ -132,7 +155,7 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   }
   function eggFrame(sec){showEgg();stopVoice();window.__EGG_T=Math.max(0,sec);eggShownAt=performance.now()-window.__EGG_T*1000;if(sec>=eggLineAt)playKey('line4');eggVoice(window.__EGG_T-eggLineAt);}
   function hideEgg(){eggEl.classList.remove('on');eggEl.setAttribute('aria-hidden','true');try{document.body.classList.remove('egg-on')}catch(e){}shown=false;}
-  function reconnect(){if(done)return;hideEgg();stopVoice();resetPlayed();waitStart=0;window.__WAIT_START__=0;seek(cfg.loadingStart);playing=true;last=performance.now();var pb=document.getElementById('play');if(pb)pb.textContent='暂停';render();}
+  function reconnect(){if(done)return;hideEgg();stopVoice();bgmSig(true);resetPlayedAfter(cfg.loadingStart);waitStart=0;window.__WAIT_START__=0;seek(cfg.loadingStart);playing=true;last=performance.now();var pb=document.getElementById('play');if(pb)pb.textContent='暂停';render();}
   function doneEmit(){if(done)return;done=true;try{document.dispatchEvent(new CustomEvent('dsh-startup-done'))}catch(e){}try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-done'},'*')}catch(e){}try{if(typeof window.__DSH_DONE__==='function')window.__DSH_DONE__()}catch(e){}}
   function flashDone(){window.__WAIT_START__=0;hideEgg();if(flashEl)flashEl.classList.add('on');setTimeout(function(){if(flashEl)flashEl.classList.remove('on');doneEmit()},260);}
   if(btn)btn.addEventListener('click',function(e){e.preventDefault();reconnect();});

@@ -70,4 +70,11 @@ if (!clientJs.includes('hasSecondAct')) throw new Error('设置页缺少第二�
 if (!clientJs.includes('bgmLoop')) throw new Error('设置页缺少循环开关')
 const skipCss = fs.readFileSync(path.join(root, 'templates/division-bigfish-codex/style.css'), 'utf8')
 if (!skipCss.includes('top:64px;right:72px')) throw new Error('跳过按钮位置未调整')
+/* v2.15.10：掉线时机随机、彩蛋截断 BGM、重连不叠音 */
+if (!bigfishApp.includes('dsh-startup-bgm')) throw new Error('模板未上报 BGM 彩蛋信号')
+if (!bigfishApp.includes('resetPlayedAfter')) throw new Error('重连未按时间点重置语音')
+if (!bigfishApp.includes('eggTimeForPct(Math.random()*100)')) throw new Error('掉线时机未按进度百分比随机')
+if (!splashJs.includes('bgm cut')) throw new Error('splash 缺少 BGM 截断')
+if (!splashJs.includes('dsh-startup-bgm')) throw new Error('splash 未处理 BGM 彩蛋信号')
+if (!bigfishCfg.includes('egg:{}')) throw new Error('config.js 仍固定 egg.at')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');
