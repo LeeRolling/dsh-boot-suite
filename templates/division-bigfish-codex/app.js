@@ -69,7 +69,7 @@ function render(){
  $('statusArrow').style.opacity=m.opacity*m.labelOpacity;
  $('statusDots').style.opacity=m.opacity*m.labelOpacity*(.35+.65*Math.abs(Math.sin(rt*4)));
  let VT=(window.__VTIME__!=null)?+window.__VTIME__:(t<=9.2?t-3.4:5.8+(t-9.2)/1.5);VT+=waitSec;let vh=null,vOn=false,sub="";const vsched=(window.__VSCHED__&&window.__VSCHED__.length)?window.__VSCHED__:(window.VOICE_SCHED||[]).map(function(s){var atV=(s.at<=9.2)?s.at-3.4:5.8+(s.at-9.2)/1.5;return{key:s.key,at:atV,dur:s.dur};});
- for(const s of vsched){if(VT>=s.at-0.02&&VT<s.at+s.dur&&(!aud[s.key]||activeVoice===s.key)){sub=(cfg.voice&&cfg.voice.subs&&cfg.voice.subs[s.key])||"";const e=(window.VOICE_ENV||{})[s.key];if(e&&e.length){const vt=VT-s.at;vh=Array.from({length:20},(_,k)=>{const st=Math.max(0,vt-(19-k)*0.055);const fi=st/0.008;const ai=Math.min(e.length-1,Math.floor(fi));const af=fi-Math.floor(fi);const a=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);return 4+Math.min(360,Math.pow(Math.max(0,a),0.9)*360)});vOn=true;}break;}}
+ for(const s of vsched){if(VT>=s.at-0.02&&VT<s.at+s.dur&&(!window.__DSH_AUDIO_ON__||window.__DSH_ACTIVE_VOICE__===s.key)){sub=(cfg.voice&&cfg.voice.subs&&cfg.voice.subs[s.key])||"";const e=(window.VOICE_ENV||{})[s.key];if(e&&e.length){const vt=VT-s.at;vh=Array.from({length:20},(_,k)=>{const st=Math.max(0,vt-(19-k)*0.055);const fi=st/0.008;const ai=Math.min(e.length-1,Math.floor(fi));const af=fi-Math.floor(fi);const a=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);return 4+Math.min(360,Math.pow(Math.max(0,a),0.9)*360)});vOn=true;}break;}}
 const h=vh||Array(20).fill(4);const voiceVisible=vOn?1:0;renderVoiceRow($('voice'),$('subtitle'),h,sub,voiceVisible);$('seek').value=t;$('time').textContent=(t-(+cfg.startAt||0)).toFixed(2)+' / '+(cfg.duration-(+cfg.startAt||0)).toFixed(2)+' s';
 }
 function syncAudio(){if(!env)return;const at=t- +$('voiceStart').value;if(at<0||at>=env.duration){audio.pause();return}if(Math.abs(audio.currentTime-at)>.12)audio.currentTime=at;if(playing&&audio.paused)audio.play().catch(()=>{$('audioInfo').textContent='请点击播放以启用音频。'});if(!playing)audio.pause()}
@@ -109,9 +109,9 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   function bgmSig(on){try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-bgm',on:!!on},'*')}catch(e){}}
   var sched=vc.sched||[[4.6,'orig1',2.65],[8.0,'line1',3.375],[12.8,'line2',3.232],[17.9,'line3',3.300],[25.45,'orig3',2.77]];
   var eggLineAt=+(vc.eggLineAt!=null?vc.eggLineAt:2.0), eggReplayWait=+(vc.eggReplayWait!=null?vc.eggReplayWait:2.0), line4Dur=+(vc.line4Dur||1.911);
-  var aud={},played={},activeVoice=null;
-  sched.forEach(function(e){var k=e[1];if(!mute&&vc[k]){var a=new Audio(vc[k]);a.preload='auto';a.volume=voiceVol;a.addEventListener('ended',function(){if(activeVoice===k)activeVoice=null;voiceDuck(false)});aud[k]=a;played[k]=false;}});
-  if(!mute&&vc.line4){var l4=new Audio(vc.line4);l4.preload='auto';l4.volume=voiceVol;l4.addEventListener('ended',function(){if(activeVoice==='line4')activeVoice=null;voiceDuck(false)});aud.line4=l4;played.line4=false;}
+  var aud={},played={},activeVoice=null;window.__DSH_AUDIO_ON__=!mute;window.__DSH_ACTIVE_VOICE__='';
+  sched.forEach(function(e){var k=e[1];if(!mute&&vc[k]){var a=new Audio(vc[k]);a.preload='auto';a.volume=voiceVol;a.addEventListener('ended',function(){if(activeVoice===k){activeVoice=null;window.__DSH_ACTIVE_VOICE__='';}voiceDuck(false)});aud[k]=a;played[k]=false;}});
+  if(!mute&&vc.line4){var l4=new Audio(vc.line4);l4.preload='auto';l4.volume=voiceVol;l4.addEventListener('ended',function(){if(activeVoice==='line4'){activeVoice=null;window.__DSH_ACTIVE_VOICE__='';}voiceDuck(false)});aud.line4=l4;played.line4=false;}
   /* v2.15.5：模板内配音效果（与全局 5 个声音效果同参数）；只在宿主注入 voiceFx 时生效。 */
   var VOICE_FX_PRESETS={'ai-mech':{hp:130,lp:4200,peak:{f:260,g:4,q:1.0},drive:0.15,ring:0},'robot':{hp:180,lp:3200,peak:{f:1500,g:3,q:0.9},drive:0.35,ring:42},'radio':{hp:420,lp:2800,peak:{f:1800,g:5,q:1.2},drive:0.6,ring:0},'oldtv':{hp:220,lp:2200,peak:null,drive:0.45,ring:0},'dark':{hp:90,lp:1200,peak:{f:180,g:5,q:0.8},drive:0.1,ring:0}};
   var voiceFxMode=String((cfg&&cfg.voiceFx)||'none');
@@ -161,14 +161,14 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
       var amp=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);
       vh=[];for(var k=0;k<20;k++){var tv2=vt-(19-k)*0.06;var f2=tv2/0.008,i2=Math.min(e.length-1,Math.floor(f2));var a2=((e[i2]||0)*(1-(f2-Math.floor(f2)))+(e[Math.min(e.length-1,i2+1)]||0)*(f2-Math.floor(f2)));vh.push(4+Math.min(440,Math.pow(Math.max(0,a2),0.85)*440))}
     }
-    var show=(vt>=0&&vt<line4Dur&&activeVoice==='line4')?1:0;
+    var show=(vt>=0&&vt<line4Dur&&window.__DSH_ACTIVE_VOICE__==='line4')?1:0;
     var st=show?((cfg.voice&&cfg.voice.subs&&cfg.voice.subs.line4)||''):'';
     renderVoiceRow(eggRow,eggSub,vh,st,show);
   }
   var shown=false,done=false,rolled=false,v3Ended=false,waitStart=0,v4Timer=null,replayTimer=null,eggShownAt=0;
   var hit=q.get('egg')==='1'||Math.random()<EGG_CHANCE;
-  function stopVoice(){voiceDuck(false);activeVoice=null;Object.keys(aud).forEach(function(k){var a=aud[k];try{a.pause();a.currentTime=0}catch(e){}});if(v4Timer){clearTimeout(v4Timer);v4Timer=null}if(replayTimer){clearTimeout(replayTimer);replayTimer=null}}
-  function playKey(k,offset){var a=aud[k];if(a&&!played[k]){played[k]=true;attachVoiceFx(k);try{a.currentTime=Math.max(0,offset||0);a.play().catch(function(){});activeVoice=k}catch(e){}voiceDuck(true);}}
+  function stopVoice(){voiceDuck(false);activeVoice=null;window.__DSH_ACTIVE_VOICE__='';Object.keys(aud).forEach(function(k){var a=aud[k];try{a.pause();a.currentTime=0}catch(e){}});if(v4Timer){clearTimeout(v4Timer);v4Timer=null}if(replayTimer){clearTimeout(replayTimer);replayTimer=null}}
+  function playKey(k,offset){var a=aud[k];if(a&&!played[k]){played[k]=true;attachVoiceFx(k);try{a.currentTime=Math.max(0,offset||0);a.play().catch(function(){});activeVoice=k;window.__DSH_ACTIVE_VOICE__=k}catch(e){}voiceDuck(true);}}
   function resetPlayedAfter(t0){
     Object.keys(played).forEach(function(k){played[k]=false});v3Ended=false;
     /* v2.15.10：重连回到 loadingStart 时，已播完的语音标记为已播、正在播的从断点续播，避免多句同时响起 */
