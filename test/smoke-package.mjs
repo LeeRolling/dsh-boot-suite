@@ -50,4 +50,15 @@ const bigfishCfg = fs.readFileSync(path.join(root, 'templates/division-bigfish-c
 if (bigfishCfg.includes('eggReplayWait')) throw new Error('config.js 仍残留 eggReplayWait 自动重播字段')
 /* v2.15.7：结尾等待配音时必须继续渲染波形 */
 if (!bigfishApp.includes('if(!playing&&t>=cfg.duration-0.05)render();')) throw new Error('结尾等待期缺少渲染调用，波形会再次冻住')
+/* v2.15.8：模板配音音量 + iframe 模板 BGM */
+if (!hostStartup.includes('bigfishVoiceVolume: 50')) throw new Error('host-startup 缺少配音音量默认值')
+if (!hostStartup.includes('window.CONFIG.voiceVolume=')) throw new Error('host-startup 未注入模板配音音量')
+if (!bigfishApp.includes('a.volume=voiceVol')) throw new Error('模板配音未应用音量')
+if (!bigfishApp.includes('dsh-startup-voice')) throw new Error('模板未上报配音闪避事件')
+const splashJs = fs.readFileSync(path.join(root, 'lib/splash.js'), 'utf8')
+if (!splashJs.includes('dsh-startup-voice')) throw new Error('splash 未处理模板配音闪避')
+if (!/engine === 'iframe'[\s\S]{0,160}bgm\.start\(\)/.test(splashJs)) throw new Error('iframe 模板未启动 BGM')
+if (!clientJs.includes('配音音量')) throw new Error('设置页缺少配音音量')
+if (!clientJs.includes('bigfishVoiceVolume')) throw new Error('设置页缺少 bigfishVoiceVolume')
+if (!clientJs.includes("(isArchiveWarm || draft.template === 'division-bigfish-codex')")) throw new Error('BGM 组未对全景大肥鱼显示')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');

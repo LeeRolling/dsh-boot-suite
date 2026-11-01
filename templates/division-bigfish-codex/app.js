@@ -60,11 +60,13 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   var eggEl=document.getElementById('egg'), flashEl=document.getElementById('flash'), btn=document.getElementById('egg-retry');
   var eggCfg=(cfg.egg||{}), eggAt=+(eggCfg.at!=null?eggCfg.at:cfg.loadingStart);
   var vc=(cfg.voice||{}), mute=q.get('mute')==='1';
+  var voiceVol=Number(cfg&&cfg.voiceVolume!=null?cfg.voiceVolume:0.5);if(!isFinite(voiceVol))voiceVol=0.5;voiceVol=Math.max(0,Math.min(1,voiceVol));
+  function voiceDuck(on){try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-voice',on:!!on},'*')}catch(e){}}
   var sched=vc.sched||[[4.6,'orig1',2.65],[8.0,'line1',3.375],[12.8,'line2',3.232],[17.9,'line3',3.300],[25.45,'orig3',2.77]];
   var eggLineAt=+(vc.eggLineAt!=null?vc.eggLineAt:2.0), eggReplayWait=+(vc.eggReplayWait!=null?vc.eggReplayWait:2.0), line4Dur=+(vc.line4Dur||1.911);
   var aud={},played={};
-  sched.forEach(function(e){var k=e[1];if(!mute&&vc[k]){var a=new Audio(vc[k]);a.preload='auto';aud[k]=a;played[k]=false;}});
-  if(!mute&&vc.line4){var l4=new Audio(vc.line4);l4.preload='auto';aud.line4=l4;played.line4=false;}
+  sched.forEach(function(e){var k=e[1];if(!mute&&vc[k]){var a=new Audio(vc[k]);a.preload='auto';a.volume=voiceVol;a.addEventListener('ended',function(){voiceDuck(false)});aud[k]=a;played[k]=false;}});
+  if(!mute&&vc.line4){var l4=new Audio(vc.line4);l4.preload='auto';l4.volume=voiceVol;l4.addEventListener('ended',function(){voiceDuck(false)});aud.line4=l4;played.line4=false;}
   /* v2.15.5：模板内配音效果（与全局 5 个声音效果同参数）；只在宿主注入 voiceFx 时生效。 */
   var VOICE_FX_PRESETS={'ai-mech':{hp:130,lp:4200,peak:{f:260,g:4,q:1.0},drive:0.15,ring:0},'robot':{hp:180,lp:3200,peak:{f:1500,g:3,q:0.9},drive:0.35,ring:42},'radio':{hp:420,lp:2800,peak:{f:1800,g:5,q:1.2},drive:0.6,ring:0},'oldtv':{hp:220,lp:2200,peak:null,drive:0.45,ring:0},'dark':{hp:90,lp:1200,peak:{f:180,g:5,q:0.8},drive:0.1,ring:0}};
   var voiceFxMode=String((cfg&&cfg.voiceFx)||'none');
@@ -116,8 +118,8 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   }
   var shown=false,done=false,rolled=false,v3Ended=false,waitStart=0,v4Timer=null,replayTimer=null,eggShownAt=0;
   var hit=q.get('egg')==='1'||Math.random()<EGG_CHANCE;
-  function stopVoice(){Object.keys(aud).forEach(function(k){var a=aud[k];try{a.pause();a.currentTime=0}catch(e){}});if(v4Timer){clearTimeout(v4Timer);v4Timer=null}if(replayTimer){clearTimeout(replayTimer);replayTimer=null}}
-  function playKey(k){var a=aud[k];if(a&&!played[k]){played[k]=true;attachVoiceFx(k);try{a.currentTime=0;a.play().catch(function(){})}catch(e){}}}
+  function stopVoice(){voiceDuck(false);Object.keys(aud).forEach(function(k){var a=aud[k];try{a.pause();a.currentTime=0}catch(e){}});if(v4Timer){clearTimeout(v4Timer);v4Timer=null}if(replayTimer){clearTimeout(replayTimer);replayTimer=null}}
+  function playKey(k){var a=aud[k];if(a&&!played[k]){played[k]=true;attachVoiceFx(k);try{a.currentTime=0;a.play().catch(function(){})}catch(e){}voiceDuck(true);}}
   function resetPlayed(){Object.keys(played).forEach(function(k){played[k]=false});v3Ended=false}
   function showEgg(){
     if(shown||done)return; shown=true; rolled=true; playing=false;
