@@ -1,0 +1,142 @@
+{
+  "id": "b3-particles-home",
+  "name": "B3 粒子聚形 · 心→房子→家",
+  "source": "A-G_代码样片/B3_粒子聚形.md",
+  "duration": 3,
+  "fps": 60,
+  "seed": 2026,
+  "palette": {
+    "bg": "#07080C",
+    "glow": "#282E42",
+    "star": "#B8C6E6",
+    "c1": "#F08A8A",
+    "c2": "#F1C070",
+    "c3": "#A9C6FF",
+    "c4": "#F6EBD0",
+    "fg": "#EDE6D6"
+  },
+  "bg": {
+    "type": "layers",
+    "layers": [
+      { "type": "solid", "color": "$bg" },
+      {
+        "type": "radial",
+        "x": 960,
+        "y": 520,
+        "r": 820,
+        "r0": 0,
+        "stops": [
+          { "c": "#282E42", "at": 0, "a": 0.3 },
+          { "c": "#282E42", "at": 0.55, "a": 0.12 },
+          { "c": "#282E42", "at": 1, "a": 0 }
+        ]
+      }
+    ]
+  },
+  "texture": null,
+  "layout": { "safe": [96, 96, 1728, 888], "cols": 12 },
+  "timeline": [
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "particles",
+      "layer": 1,
+      "params": {
+        "count": 220,
+        "area": { "x": 0, "y": 0, "w": 1920, "h": 1080 },
+        "rmin": 0.8,
+        "rmax": 2.2,
+        "colors": ["$star"],
+        "blend": "lighter",
+        "twinkle": 0.6,
+        "cycles": 2,
+        "sway": 10,
+        "travel": 90,
+        "dotAlpha": 0.5,
+        "seed": 220
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "morph",
+      "layer": 10,
+      "params": {
+        "a": "heart",
+        "b": "house",
+        "count": 1500,
+        "seed": 7,
+        "cx": 960,
+        "cy": 520,
+        "scale": 380,
+        "hold": [0.2, 0.8],
+        "trail": [0.06, 0.12],
+        "colors": ["$c1", "$c2"],
+        "dotAlpha": 0.62,
+        "blend": "lighter",
+        "zoom": 0.012
+      }
+    },
+    {
+      "from": 0.0,
+      "to": 1.2,
+      "primitive": "text",
+      "layer": 30,
+      "params": {
+        "x": 960,
+        "y": 982,
+        "align": "center",
+        "font": "serifCJK",
+        "size": 52,
+        "tracking": 10,
+        "color": "$fg",
+        "lines": ["先有一颗心"],
+        "fadeIn": 0.28,
+        "fadeOut": 0.3
+      }
+    },
+    {
+      "from": 1.2,
+      "to": 2.4,
+      "primitive": "text",
+      "layer": 30,
+      "params": {
+        "x": 960,
+        "y": 982,
+        "align": "center",
+        "font": "serifCJK",
+        "size": 52,
+        "tracking": 10,
+        "color": "$fg",
+        "lines": ["再有一个房子"],
+        "fadeIn": 0.28,
+        "fadeOut": 0.3
+      }
+    },
+    {
+      "from": 2.4,
+      "to": 3.0,
+      "primitive": "text",
+      "layer": 30,
+      "params": {
+        "x": 960,
+        "y": 982,
+        "align": "center",
+        "font": "serifCJK",
+        "size": 52,
+        "tracking": 10,
+        "color": "$c4",
+        "lines": ["合起来，叫家"],
+        "fadeIn": 0.22,
+        "fadeOut": 0.34
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "vignette",
+      "layer": 40,
+      "params": { "alpha": 0.62, "inner": 340, "outer": 1150, "color": "#03040A" }
+    }
+  ]
+}

@@ -327,7 +327,7 @@ console.log('\n[5c] 删除该动画：本地删文件 / 内置隐藏可恢复（
   /* 第一幕/第二幕两个模板下拉：都含内置 archive-warm，且都有一项「内置/不播放」说明 */
   const templateSelects = () => walk(tree).filter((n) =>
     n.type === 'select' && Array.isArray(n.props.children) &&
-    n.props.children.some((o) => o && o.type === 'option' && o.props.value === 'archive-warm') &&
+    n.props.children.some((o) => o && o.type === 'option' && (o.props.value === 'archive-warm' || o.props.value === 'whale-girl-scan')) &&
     n.props.children.some((o) => o && o.type === 'option' && /内置|不播放/.test(String(o.props.children))))
   /* archive-warm 被隐藏后上面的定位会失效：改用「有内置/不播放说明」来找两个下拉 */
   const templateSelectsAny = () => walk(tree).filter((n) =>
@@ -351,11 +351,11 @@ console.log('\n[5c] 删除该动画：本地删文件 / 内置隐藏可恢复（
   check('★ 两行各有 1 个「删除该动画」（共 2 个，始终显示）',
     rows.length === 2 && deleteAnimBtns().length === 2,
     '行 ' + rows.length + ' / 按钮 ' + deleteAnimBtns().length)
-  check('★ 按钮固定在行内最右侧：两行 nowrap + space-between + gap 24px，按钮 marginLeft auto / minWidth 112px',
+  check('★ 行布局：nowrap + space-between + gap 24px；删除按钮 marginLeft 8px / minWidth 112px',
     rows.every((r) => r.props.style && r.props.style.flexWrap === 'nowrap' &&
       r.props.style.justifyContent === 'space-between' && r.props.style.gap === '24px') &&
     rows.every((r) => rowBtn(r).props.style &&
-      rowBtn(r).props.style.marginLeft === 'auto' && rowBtn(r).props.style.minWidth === '112px'),
+      rowBtn(r).props.style.marginLeft === '8px' && rowBtn(r).props.style.minWidth === '112px'),
     JSON.stringify(rows.map((r) => rowBtn(r).props.style)))
   check('底部说明改成「本地删文件 / 内置只是隐藏可恢复」',
     texts3().some((t) => String(t).includes('本地动画会删除文件')) &&
@@ -480,7 +480,7 @@ console.log('\n[5c] 删除该动画：本地删文件 / 内置隐藏可恢复（
   check('本地删除不会产生「恢复已隐藏」按钮（它不可恢复）', !restoreBtn() && HIDDEN.length === 0)
   check('回填后第一幕按钮回到置灰', rowValue(rows[0]) === '' && rowBtn(rows[0]).props.disabled === true)
   check('收尾仍有 2 个「删除该动画」按钮', deleteAnimBtns().length === 2 && rows.length === 2)
-  check('内置 archive-warm 仍可选择', templateSelects().length === 2 && hasOption(templateSelects()[1], 'archive-warm'))
+  check('内置 archive-warm 仍可选择', templateSelects().length === 2 && hasOption(templateSelects()[1], 'whale-girl-scan'))
   check('删除/隐藏流程共弹了 2 次 confirm', confirmCalls.length === confirmBefore + 2, String(confirmCalls.length))
 }
 

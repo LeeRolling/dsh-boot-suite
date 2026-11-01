@@ -1,0 +1,180 @@
+{
+  "id": "o45-godfather",
+  "name": "O45 教父 · 一盏顶光",
+  "source": "O_奥斯卡98部/O45_教父.md",
+  "duration": 3,
+  "fps": 60,
+  "seed": 1972,
+  "palette": {
+    "nearBlack": "#070403",
+    "dark": "#24150B",
+    "mid": "#8F5D2A",
+    "lit": "#E2B673",
+    "red": "#9C1A1A",
+    "skin": "#C79060",
+    "cloth": "#0C0805"
+  },
+  "bg": {
+    "type": "layers",
+    "layers": [
+      { "type": "solid", "color": "$nearBlack" },
+      {
+        "type": "radial",
+        "x": 960,
+        "y": 300,
+        "r": 1100,
+        "r0": 0,
+        "stops": [
+          { "c": "#2E1B0C", "at": 0, "a": 0.9 },
+          { "c": "#1A0F07", "at": 0.5, "a": 0.6 },
+          { "c": "#070403", "at": 1, "a": 0.2 }
+        ]
+      },
+      {
+        "type": "radial",
+        "x": 1338,
+        "y": 470,
+        "r": 470,
+        "r0": 40,
+        "stops": [
+          { "c": "#C9873C", "at": 0, "a": 0.5 },
+          { "c": "#8F5D2A", "at": 0.45, "a": 0.26 },
+          { "c": "#8F5D2A", "at": 1, "a": 0 }
+        ]
+      }
+    ]
+  },
+  "texture": {
+    "type": "canvas",
+    "alpha": 0.7,
+    "count": 2600,
+    "seed": 77
+  },
+  "layout": { "safe": [96, 96, 1728, 888], "cols": 12 },
+  "timeline": [
+    {
+      "from": 0, "to": 3, "primitive": "light_pool", "layer": 3,
+      "params": {
+        "x": 960, "y": 90, "r": 900,
+        "color": "$lit",
+        "strength": { "$wave": [0.30, 0.42, 1, 0] },
+        "cone": [150, 900]
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 10,
+      "params": {
+        "pts": [[540, 1084], [586, 838], [676, 752], [812, 700], [960, 688], [1112, 700], [1252, 752], [1338, 838], [1384, 1084]],
+        "scale": { "$wave": [1, 1.006, 1, 0] },
+        "fill": "$cloth"
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 11,
+      "params": {
+        "pts": [[918, 548], [1002, 548], [1024, 712], [896, 712]],
+        "fill": "#0A0604"
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 12,
+      "params": {
+        "pts": [[960, 290], [1014, 305], [1057, 346], [1081, 405], [1081, 471], [1057, 530], [1014, 571], [960, 586], [906, 571], [863, 530], [839, 471], [839, 405], [863, 346], [906, 305]],
+        "scale": { "$wave": [1, 1.006, 1, 0] },
+        "fill": "$cloth"
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 13,
+      "params": {
+        "pts": [[906, 706], [1014, 706], [968, 892], [952, 892]],
+        "fill": "#D9C5A2", "alpha": 0.92
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 13,
+      "params": {
+        "pts": [[906, 706], [960, 762], [1014, 706], [1014, 742], [960, 800], [906, 742]],
+        "fill": "#BFA983", "alpha": 0.9
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 14,
+      "params": {
+        "pts": [[896, 712], [846, 682], [842, 756], [900, 744]],
+        "fill": "#0B0705"
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 14,
+      "params": {
+        "pts": [[1024, 712], [1074, 682], [1078, 756], [1020, 744]],
+        "fill": "#0B0705"
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 15,
+      "params": {
+        "pts": [[1154, 812], [1149, 826], [1136, 835], [1120, 835], [1107, 826], [1102, 812], [1107, 798], [1120, 789], [1136, 789], [1149, 798]],
+        "fill": "$red",
+        "scale": { "$wave": [0.94, 1.06, 1, 0] }
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "line", "layer": 16,
+      "params": {
+        "pts": [[586, 838], [676, 752], [812, 700], [900, 690]],
+        "color": "$lit", "width": 6, "cap": "round", "blend": "lighter",
+        "alpha": 0.42, "progress": 1
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "line", "layer": 17,
+      "params": {
+        "pts": [[846, 470], [848, 400], [872, 348], [912, 306]],
+        "color": "$lit", "width": 5, "cap": "round", "blend": "lighter",
+        "alpha": 0.36, "progress": 1
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "oil_strokes", "layer": 20,
+      "params": {
+        "x": 620, "y": 720, "w": 700, "h": 300,
+        "count": 90,
+        "color": "$dark", "hi": "$lit",
+        "angle": 8, "spread": 0.45, "len": 96, "width": 13,
+        "strokeAlpha": 0.14, "hiRatio": 0.1,
+        "seed": 41
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "particles", "layer": 22,
+      "params": {
+        "count": 54,
+        "area": { "x": 300, "y": 120, "w": 1320, "h": 820 },
+        "rmin": 0.8, "rmax": 2.2,
+        "colors": ["$lit", "$mid"],
+        "travel": 320, "sway": 26, "dir": "up",
+        "blend": "lighter", "twinkle": 0.4, "cycles": 1,
+        "dotAlpha": 0.3, "seed": 88
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "vignette", "layer": 30,
+      "params": {
+        "alpha": 0.9, "inner": 300, "outer": 1080,
+        "color": "#040201", "mid": 0.5
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "text", "layer": 40,
+      "alpha": 0.55,
+      "params": {
+        "x": 96, "y": 1000,
+        "font": "mono", "size": 22, "tracking": 6,
+        "color": "$mid",
+        "lines": ["O45 / THE GODFATHER — 顶光 · 琥珀 · 红玫瑰"]
+      }
+    }
+  ]
+}

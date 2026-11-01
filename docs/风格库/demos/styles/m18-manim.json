@@ -1,0 +1,202 @@
+{
+  "id": "m18-manim",
+  "name": "M18 数学讲解 · sin 变 cos",
+  "source": "M_动态风格/M18_数学·科学讲解（3Blue1Brown 那种）.md",
+  "duration": 3,
+  "fps": 60,
+  "seed": 31415,
+  "palette": {
+    "bg": "#0E1116",
+    "grid": "#1B2431",
+    "axis": "#64748F",
+    "fg": "#E9EEF6",
+    "dim": "#3A475C",
+    "accent": "#58C4DD",
+    "gold": "#F0C674"
+  },
+  "bg": {
+    "type": "layers",
+    "layers": [
+      { "type": "solid", "color": "$bg" },
+      {
+        "type": "radial",
+        "x": 960,
+        "y": 540,
+        "r": 1250,
+        "r0": 0,
+        "stops": [
+          { "c": "#16202C", "at": 0, "a": 0.85 },
+          { "c": "#16202C", "at": 0.6, "a": 0.25 },
+          { "c": "#16202C", "at": 1, "a": 0 }
+        ]
+      }
+    ]
+  },
+  "texture": {
+    "type": "grain",
+    "alpha": 0.22,
+    "count": 1600,
+    "colors": ["#FFFFFF"],
+    "min": 1,
+    "max": 1.8,
+    "seed": 77
+  },
+  "layout": { "safe": [96, 96, 1728, 888], "cols": 12 },
+  "timeline": [
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "grid",
+      "layer": 1,
+      "params": {
+        "x": 180,
+        "y": 120,
+        "w": 1560,
+        "h": 760,
+        "spacing": 60,
+        "majorEvery": 4,
+        "width": 1,
+        "color": "$grid",
+        "minorAlpha": 0.5,
+        "majorAlpha": 0.9,
+        "progress": 1
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "axes",
+      "layer": 5,
+      "params": {
+        "x0": 260,
+        "x1": 1670,
+        "y0": 960,
+        "y1": 200,
+        "ox": 960,
+        "oy": 560,
+        "tick": 100,
+        "progress": 1,
+        "color": "$axis",
+        "width": 2.5,
+        "font": "math",
+        "labelSize": 34,
+        "labels": [
+          { "t": "x", "x": 1622, "y": 578 },
+          { "t": "y", "x": 928, "y": 208 }
+        ]
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "curve",
+      "layer": 10,
+      "alpha": 0.85,
+      "params": {
+        "fn": "cos",
+        "amp": 1.4,
+        "freq": 1,
+        "phase": 0,
+        "xr": [-6, 6],
+        "x0": 300,
+        "x1": 1620,
+        "oy": 560,
+        "unit": 120,
+        "samples": 260,
+        "width": 3,
+        "color": "$dim",
+        "progress": 1
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "curve",
+      "layer": 12,
+      "params": {
+        "fn": "sin",
+        "amp": 1.4,
+        "freq": 1,
+        "phase": { "$cyc": [6.283185, 1, 0] },
+        "morph": {
+          "fn": "cos",
+          "amp": 1.4,
+          "freq": 1,
+          "phase": 0,
+          "k": { "$pulse01": [1, 0] }
+        },
+        "xr": [-6, 6],
+        "x0": 300,
+        "x1": 1620,
+        "oy": 560,
+        "unit": 120,
+        "samples": 300,
+        "width": 5,
+        "color": "$accent",
+        "dotAt": 2.1,
+        "dotColor": "$gold",
+        "dotR": 9,
+        "dotRing": true,
+        "progress": 1
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 20,
+      "params": {
+        "x": 240,
+        "y": 214,
+        "font": "math",
+        "italic": true,
+        "size": 46,
+        "color": "$fg",
+        "lines": ["f(x) = sin(x)"],
+        "tracking": 1
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 20,
+      "alpha": 0.75,
+      "params": {
+        "x": 1680,
+        "y": 214,
+        "align": "right",
+        "font": "mono",
+        "size": 26,
+        "tracking": 5,
+        "color": "$axis",
+        "lines": ["M18 / 3BLUE1BROWN"]
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 30,
+      "params": {
+        "x": 960,
+        "y": 1012,
+        "align": "center",
+        "font": "serifCJK",
+        "size": 38,
+        "tracking": 4,
+        "color": "$fg",
+        "lines": ["把 sin 变成 cos，只差一个相位"],
+        "fadeIn": 0.4,
+        "fadeOut": 0.4
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "vignette",
+      "layer": 40,
+      "params": { "alpha": 0.55, "inner": 420, "outer": 1150, "color": "#05080C" }
+    }
+  ]
+}

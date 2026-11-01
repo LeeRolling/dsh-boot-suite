@@ -1,0 +1,154 @@
+{
+  "id": "l39-ascii-crt",
+  "name": "L39 ASCII · CRT 终端",
+  "source": "L_Lemo-Opuscar/L39_ASCII · CRT 终端.md",
+  "duration": 3,
+  "fps": 60,
+  "seed": 3991,
+  "palette": {
+    "amber": "#FFB454",
+    "amberDim": "#B87A32",
+    "ice": "#9FD8F0",
+    "glass": "#05070A",
+    "deep": "#0A0C0E"
+  },
+  "bg": {
+    "type": "layers",
+    "layers": [
+      { "type": "solid", "color": "$glass" },
+      {
+        "type": "radial",
+        "x": 960,
+        "y": 520,
+        "r": 700,
+        "r0": 0,
+        "stops": [
+          { "c": "#FFB454", "at": 0, "a": 0.1 },
+          { "c": "#FFB454", "at": 0.45, "a": 0.045 },
+          { "c": "#FFB454", "at": 1, "a": 0 }
+        ]
+      }
+    ]
+  },
+  "texture": null,
+  "layout": { "safe": [96, 96, 1728, 888], "cols": 12 },
+  "timeline": [
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "glyph_field",
+      "layer": 5,
+      "params": {
+        "art": [
+          "                 /     \\                ",
+          "               /         \\              ",
+          "             /=============\\            ",
+          "           /=================\\          ",
+          "         /#####################\\        ",
+          "       /#########################\\      ",
+          "     /#############################\\    ",
+          "    ===============###===============   ",
+          "    |###@@@@################@@@@####|   ",
+          "    |###@@@@################@@@@####|   ",
+          "    |###@@@@################@@@@####|   ",
+          "    |#############|   |#############|   ",
+          "    |#############|   |#############|   ",
+          "    |#############|   |#############|   ",
+          "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        ],
+        "cell": 30,
+        "cellW": 0.75,
+        "chh": 1.5,
+        "x": 510,
+        "y": 140,
+        "font": "mono",
+        "sizeK": 1,
+        "weight": 700,
+        "reveal": 1,
+        "color": "$amber",
+        "bright": "@",
+        "brightColor": "$ice",
+        "dimAlpha": 0.78,
+        "glow": 14
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "type_text",
+      "layer": 7,
+      "params": {
+        "x": 96,
+        "y": 150,
+        "text": "AMBER-P3 · 40 YEARS LATER · BOOT OK",
+        "font": "mono",
+        "size": 28,
+        "weight": 700,
+        "tracking": 2,
+        "color": "$amber",
+        "glow": 10,
+        "progress": { "$wave": [0, 1, 1, 0.12] },
+        "cursor": true,
+        "cursorPhase": { "$cyc": [6, 6, 0] },
+        "cursorColor": "$amber"
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 7,
+      "alpha": 0.5,
+      "params": {
+        "x": 1824,
+        "y": 150,
+        "align": "right",
+        "font": "mono",
+        "size": 22,
+        "tracking": 5,
+        "color": "$amberDim",
+        "lines": ["L39 / ASCII CRT"]
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "term_log",
+      "layer": 8,
+      "params": {
+        "x": 96,
+        "y": 942,
+        "w": 1728,
+        "size": 34,
+        "font": "mono",
+        "weight": 700,
+        "color": "$amber",
+        "tag": "LOG",
+        "tagColor": "$glass",
+        "prompt": "> ",
+        "text": "HOME.IMG LOADED // 家 · 已就绪",
+        "progress": { "$wave": [0, 1, 1, 0] },
+        "cursor": true,
+        "cursorPhase": { "$cyc": [6, 6, 0] }
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "crt",
+      "layer": 30,
+      "params": {
+        "power": { "$wave": [0.86, 1, 1, 0] },
+        "exposure": 1,
+        "scan": true,
+        "scanGap": 3,
+        "scanAlpha": 0.24,
+        "glass": true,
+        "radius": 26,
+        "flicker": 0.012,
+        "flickerK": 7,
+        "color": "$amber"
+      }
+    }
+  ]
+}

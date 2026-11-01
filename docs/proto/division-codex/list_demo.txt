@@ -1,0 +1,5 @@
+file 'F:/Lee的GitHub仓库/DeepSeek harness 开机动画/01-源码/docs/proto/division-codex/seg_head.mp4'
+file 'F:/Lee的GitHub仓库/DeepSeek harness 开机动画/01-源码/docs/proto/division-codex/seg_egg.mp4'
+file 'F:/Lee的GitHub仓库/DeepSeek harness 开机动画/01-源码/docs/proto/division-codex/seg_replay.mp4'
+file 'F:/Lee的GitHub仓库/DeepSeek harness 开机动画/01-源码/docs/proto/division-codex/seg_hold.mp4'
+file 'F:/Lee的GitHub仓库/DeepSeek harness 开机动画/01-源码/docs/proto/division-codex/seg_white.mp4'

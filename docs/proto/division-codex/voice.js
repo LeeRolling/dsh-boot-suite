@@ -1,0 +1,10 @@
+(function(global){
+const duration=151/60, count=20;
+function envelope(samples,rate){const step=Math.round(rate*.008),out=[];let peak=.001;for(let s=0;s<samples.length;s+=step){let sum=0,p=0,n=Math.min(step,samples.length-s);for(let i=0;i<n;i++){let v=Math.abs(samples[s+i]);sum+=v*v;p=Math.max(p,v)}let value=Math.sqrt(sum/n)*.65+p*.35;peak=Math.max(peak,value);out.push(value)}return {values:out,step:step/rate,peak,duration:samples.length/rate}}
+function amplitude(env,t){if(t<0||t>=env.duration)return 0;const i=t/env.step,a=Math.floor(i),f=i-a;return ((env.values[a]||0)*(1-f)+(env.values[a+1]||0)*f)/env.peak}
+function heights(env,t,gain=1){return Array.from({length:count},(_,i)=>{const v=amplitude(env,t+(i-(count-1)/2)*.019);return 4+Math.min(340,Math.pow(Math.max(0,v*gain),.85)*340)})}
+function arc(a,b){const r=135,cx=270,cy=525,rad=x=>x*Math.PI/180;return `M${cx+r*Math.cos(rad(a))},${cy+r*Math.sin(rad(a))}A${r},${r} 0 0 1 ${cx+r*Math.cos(rad(b))},${cy+r*Math.sin(rad(b))}`}
+function foreground(t,h){const reveal=Math.min(1,Math.max(0,(t-.055)/.16)),e=1-Math.pow(1-reveal,3),marker=(1-e)*.07+e;return `<g fill="none" stroke="#ff9700" stroke-width="40">${[-87,33,153].map(a=>`<path d="${arc(a,a+114)}"/>`).join('')}</g><g opacity="${.7*reveal}" fill="#e8e5d9">${[[20,337],[525,337],[20,716],[525,716]].map(([x,y])=>`<rect x="${270+(x-270)*marker-10}" y="${525+(y-525)*marker-10}" width="20" height="20"/>`).join('')}</g><g opacity="${reveal}"><text x="560" y="615" font-family="'DIN Alternate','Bahnschrift','Microsoft YaHei',sans-serif" font-size="178" font-weight="700" letter-spacing="18" fill="#e8e5d9">DSH</text></g><g opacity="${reveal}" fill="#efeee5">${h.map((v,i)=>`<rect x="${1348+i*29.2}" y="${525-v/2}" width="5.5" height="${v}" rx="1.1"/>`).join('')}</g>`}
+function svg(t,h){return `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080"><rect width="1920" height="1080" fill="black"/>${foreground(t,h)}</svg>`}
+global.VoiceAnimation={envelope,heights,foreground,svg,duration};
+})(typeof window!=='undefined'?window:globalThis);

@@ -1,0 +1,6 @@
+{
+  "name": "dsh-style-demos",
+  "private": true,
+  "type": "commonjs",
+  "description": "风格 demo：ir-player.js 是经典脚本（UMD），这里声明 commonjs 以便 node 端 require 做自检；浏览器 <script src> 不受影响。"
+}

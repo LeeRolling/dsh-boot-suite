@@ -1,0 +1,20 @@
+*{box-sizing:border-box}body{margin:0;background:#111;color:#bbb;font:14px 'Segoe UI','Microsoft YaHei',sans-serif}main{display:grid;grid-template-columns:minmax(0,1fr) 320px;min-height:100vh}#stage{background:#000;display:grid;align-items:center}svg{width:100%;max-height:100vh;aspect-ratio:16/9}aside{padding:25px;background:#181818;overflow:auto}h1{font-size:19px;color:#ed9a37;margin:0 0 25px}label{display:block;margin:14px 0;font-size:12px}input:not([type=range]),textarea{display:block;width:100%;margin-top:7px;padding:9px;background:#101010;color:#ddd;border:1px solid #424242;font:14px inherit}input[type=range]{display:block;width:100%;accent-color:#df8b26;margin-top:10px}button{padding:8px 10px;background:#29231c;color:#ddd;border:1px solid #685034;cursor:pointer}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}p{font-size:12px;line-height:1.8;color:#888}hr{border:0;border-top:1px solid #333;margin:24px 0}#description{color:#a5a5a5;font:19px/1.35 'Microsoft YaHei',sans-serif;overflow:hidden;word-break:break-word;height:58px}#stage:fullscreen{width:100vw;height:100vh}#stage:fullscreen svg{width:100%;height:100%}@media(max-width:900px){main{grid-template-columns:1fr}aside{max-width:700px;width:100%;margin:auto}}
+#skip{position:fixed;top:28px;right:36px;z-index:9;display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(0,0,0,.35);border:1px solid rgba(214,208,200,.45);color:#cfcac2;font:15px/1 'Microsoft YaHei',sans-serif;letter-spacing:2px;cursor:pointer;opacity:0;transition:opacity .6s ease;user-select:none}#skip.show{opacity:1}#skip:hover{color:#fff;border-color:#e8a33d;background:rgba(232,163,61,.12)}#skip .arr{color:#e8a33d}
+
+/* ===== 掉线彩蛋（Lead 增加） ===== */
+#egg{position:fixed;inset:0;z-index:80;display:none;overflow:hidden;background:#05070a}
+#egg.on{display:block}
+#egg-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.85) brightness(.85)}
+#egg-veil{position:absolute;inset:0;background:rgba(6,8,12,.55);backdrop-filter:blur(3px) saturate(.85);-webkit-backdrop-filter:blur(3px) saturate(.85)}
+#egg-card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(920px,86vw);background:rgba(16,18,20,.93);border:1px solid rgba(255,255,255,.08);box-shadow:0 30px 120px rgba(0,0,0,.6);padding:34px 40px 26px;font-family:'Microsoft YaHei',system-ui,sans-serif;color:#cfcfcf}
+.egg-head{display:flex;align-items:center;gap:16px;border-bottom:1px solid rgba(255,255,255,.12);padding-bottom:18px}
+.egg-badge{width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:#f08a1d;color:#111;font-weight:800;font-size:26px;line-height:1}
+.egg-title{font-size:30px;letter-spacing:2px;color:#f2f2f2}
+.egg-msg{padding:30px 6px 26px;font-size:24px;line-height:1.6;color:#bdbdbd}
+.egg-code{display:flex;justify-content:space-between;align-items:center;background:rgba(120,18,14,.55);border-left:3px solid #a1331f;padding:18px 22px;color:#ff6a5a;font:600 24px/1 Consolas,'Courier New',monospace;letter-spacing:2px}
+.egg-actions{display:flex;justify-content:center;margin-top:30px;border-top:1px solid rgba(255,255,255,.12);padding-top:26px}
+#egg-retry{min-width:280px;padding:14px 26px;background:#15171a;border:1px solid rgba(255,255,255,.35);color:#e8e8e8;font-size:20px;letter-spacing:4px;cursor:pointer}
+#egg-retry:hover{border-color:#f09a2e;color:#fff;background:#1b1d21}
+#flash{position:fixed;inset:0;z-index:90;background:#fff;opacity:0;pointer-events:none;transition:opacity .22s ease}
+#flash.on{opacity:1}
+body.egg-on #skip{display:none!important}

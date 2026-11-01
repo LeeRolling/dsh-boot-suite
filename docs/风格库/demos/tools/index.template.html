@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>风格 demo · 10 个 3 秒循环 · 风格→IR→预览</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #0a0c11;
+    --panel: #14171f;
+    --panel-2: #1a1e27;
+    --line: #242a36;
+    --fg: #e7ecf3;
+    --dim: #8d97a8;
+    --accent: #58c4dd;
+    --mono: "Cascadia Mono", Consolas, "DejaVu Sans Mono", "Courier New", monospace;
+    --sans: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); }
+  header {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+    padding: 12px 22px;
+    background: rgba(10, 12, 17, .92);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(6px);
+  }
+  header h1 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: .3px; }
+  header h1 small { color: var(--dim); font-weight: 400; margin-left: 8px; font-size: 12px; }
+  .spacer { flex: 1 1 auto; }
+  .btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  button {
+    font-family: var(--mono); font-size: 12px; color: var(--fg);
+    background: var(--panel-2); border: 1px solid var(--line);
+    padding: 6px 11px; border-radius: 6px; cursor: pointer;
+  }
+  button:hover { border-color: #3a4657; }
+  button.on { background: #1d3a44; border-color: var(--accent); color: #cdf3ff; }
+  #hud { font-family: var(--mono); font-size: 11.5px; color: var(--dim); white-space: nowrap; }
+  #hud b { color: var(--accent); font-weight: 600; }
+
+  main { padding: 18px 22px 64px; }
+  #grid {
+    display: grid; gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  }
+  .cell {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; overflow: hidden; cursor: zoom-in;
+    transition: border-color .15s ease;
+  }
+  .cell:hover { border-color: #38414f; }
+  .frame { position: relative; aspect-ratio: 16 / 9; background: #05070a; }
+  .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .cap {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 8px 12px 9px; font-family: var(--mono); font-size: 11.5px; color: var(--dim);
+    border-top: 1px solid var(--line);
+  }
+  .cap .idx { color: #5f6b7c; }
+  .cap .nm { color: var(--fg); font-weight: 600; font-size: 12.5px; font-family: var(--sans); }
+  .cap .id { margin-left: auto; color: #55606f; }
+  .cell .off { position: absolute; inset: 0; display: none; }
+
+  #modal {
+    position: fixed; inset: 0; z-index: 40; display: none;
+    background: rgba(4, 6, 9, .94);
+    padding: 24px; overflow: auto;
+  }
+  #modal.open { display: block; }
+  #modal .box { max-width: min(96vw, 1680px); margin: 0 auto; }
+  #modal .frame { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  #modal .bar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 10px 2px 12px; font-family: var(--mono); font-size: 12px; color: var(--dim);
+  }
+  #modal .bar .nm { font-family: var(--sans); font-size: 15px; color: var(--fg); font-weight: 700; }
+  #modal .bar .src { color: #6d7787; }
+  #modal .bar .grow { flex: 1 1 auto; }
+  footer { padding: 0 22px 40px; color: #5b6574; font-size: 12px; font-family: var(--mono); }
+</style>
+</head>
+<body>
+<header>
+  <h1>风格 demo · 10 个 3 秒循环<small>风格包 JSON → 通用 IR → Canvas2D 预览</small></h1>
+  <div class="spacer"></div>
+  <div class="btns">
+    <button id="btn-play" class="on">暂停</button>
+    <button id="btn-replay">重播</button>
+    <button id="btn-slow" data-speed="0.5">慢放 0.5×</button>
+    <button id="btn-slow4" data-speed="0.25">0.25×</button>
+    <button id="btn-speed1" data-speed="1" class="on">1×</button>
+    <button id="btn-guides">辅助线</button>
+  </div>
+  <div id="hud">t = 0.000s · 帧 0/180 · lod 0.50 · 渲染 0.0ms</div>
+</header>
+
+<main>
+  <div id="grid"></div>
+</main>
+
+<footer>
+  纯 Canvas2D · 无外部库 / 无字体下载 / 无网络请求 · 直接双击这个文件即可离线运行 · 点任意一格放大，Esc 关闭
+</footer>
+
+<div id="modal">
+  <div class="box">
+    <div class="bar">
+      <span class="nm" id="m-name">—</span>
+      <span class="src" id="m-src">—</span>
+      <span class="grow"></span>
+      <span id="m-count">—</span>
+      <button id="m-prev">← 上一个</button>
+      <button id="m-next">下一个 →</button>
+      <button id="m-close">关闭 (Esc)</button>
+    </div>
+    <div class="frame"><canvas id="m-canvas"></canvas></div>
+  </div>
+</div>
+
+<script id="packs" type="application/json">{{PACKS}}</script>
+<script>{{PLAYER}}</script>
+<script>
+(function () {
+  'use strict';
+
+  var IR = window.IR;
+  var FPS = 60, TOTAL = 180;          // 3s × 60fps = 180 个逻辑帧
+  var D = TOTAL / FPS;
+
+  var packs = JSON.parse(document.getElementById('packs').textContent);
+
+  var state = {
+    frame: 0,          // 逻辑帧（浮点，播放时按 dt 推进）
+    playing: true,
+    speed: 1,
+    guides: false,
+    lod: 0.5,
+    last: null,
+    renderMs: 0
+  };
+
+  var cells = [];      // { pack, canvas, wrap, io }
+  var modal = { open: false, index: 0, canvas: null };
+
+  function tNow() {
+    var f = Math.floor(state.frame) % TOTAL;
+    if (f < 0) f += TOTAL;
+    return f / FPS;
+  }
+
+  /* ---------------- 网格 ---------------- */
+
+  var grid = document.getElementById('grid');
+  packs.forEach(function (pack, i) {
+    var cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.setAttribute('role', 'button');
+    cell.setAttribute('tabindex', '0');
+
+    var frameBox = document.createElement('div');
+    frameBox.className = 'frame';
+    var cv = document.createElement('canvas');
+    frameBox.appendChild(cv);
+
+    var cap = document.createElement('div');
+    cap.className = 'cap';
+    var idx = document.createElement('span');
+    idx.className = 'idx';
+    idx.textContent = String(i + 1).padStart(2, '0');
+    var nm = document.createElement('span');
+    nm.className = 'nm';
+    nm.textContent = pack.name || pack.id;
+    var id = document.createElement('span');
+    id.className = 'id';
+    id.textContent = pack.id;
+    cap.appendChild(idx); cap.appendChild(nm); cap.appendChild(id);
+
+    cell.appendChild(frameBox);
+    cell.appendChild(cap);
+    grid.appendChild(cell);
+
+    var rec = { pack: pack, canvas: cv, cell: cell, visible: false, index: i };
+    cells.push(rec);
+
+    cell.addEventListener('click', function () { openModal(i); });
+    cell.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openModal(i); }
+    });
+
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        rec.visible = entries[0].isIntersecting;
+      }, { rootMargin: '160px' });
+      io.observe(cell);
+    } else {
+      rec.visible = true;
+    }
+  });
+
+  function fitAll() {
+    cells.forEach(function (rec) {
+      IR.fitCanvas(rec.canvas, { dpr: Math.min(window.devicePixelRatio || 1, 2) });
+    });
+    if (modal.canvas) IR.fitCanvas(modal.canvas, { dpr: Math.min(window.devicePixelRatio || 1, 2) });
+  }
+
+  /* ---------------- 主循环 ---------------- */
+
+  function renderAll() {
+    var t = tNow();
+    var t0 = performance.now();
+    for (var i = 0; i < cells.length; i++) {
+      var rec = cells[i];
+      if (!rec.visible && !modal.open) continue;
+      if (modal.open && modal.index === i) continue;   // 放大时这一格交给弹层画
+      IR.renderStyle(rec.pack, t, rec.canvas, { lod: state.lod, guides: state.guides });
+    }
+    if (modal.open) {
+      IR.renderStyle(packs[modal.index], t, modal.canvas, { lod: 1, guides: state.guides });
+    }
+    state.renderMs = performance.now() - t0;
+    return t;
+  }
+
+  function selfQuality() {
+    // 简单的自适应降级：渲染太慢就降 LOD；很富裕时再升回来（只影响元素个数，不影响 t）
+    var ms = state.renderMs;
+    var n = modal.open ? 1 : cells.filter(function (r) { return r.visible; }).length || 1;
+    var per = ms / n;
+    if (per > 9 && state.lod > 0.3) state.lod = Math.max(0.3, state.lod - 0.06);
+    else if (per < 3.2 && state.lod < 0.5) state.lod = Math.min(0.5, state.lod + 0.02);
+  }
+
+  var hud = document.getElementById('hud');
+  var acc = 0, hudAcc = 0;
+
+  function loop(now) {
+    if (state.last == null) state.last = now;
+    var dt = now - state.last;
+    state.last = now;
+    if (dt > 250) dt = 250;                       // 标签页切回来时不要跳一大段
+
+    if (state.playing) {
+      state.frame += dt / 1000 * FPS * state.speed;
+      if (state.frame >= 1e9) state.frame %= TOTAL;
+    }
+
+    var t = renderAll();
+
+    acc += dt;
+    if (acc > 400) { selfQuality(); acc = 0; }
+
+    hudAcc += dt;
+    if (hudAcc > 120) {
+      var f = Math.floor(state.frame) % TOTAL;
+      hud.innerHTML = 't = <b>' + t.toFixed(3) + 's</b> · 帧 <b>' + f + '/180</b> · lod <b>' +
+        state.lod.toFixed(2) + '</b> · 渲染 <b>' + state.renderMs.toFixed(1) + 'ms</b>';
+      hudAcc = 0;
+    }
+    requestAnimationFrame(loop);
+  }
+
+  /* ---------------- 控件 ---------------- */
+
+  var btnPlay = document.getElementById('btn-play');
+  var btnReplay = document.getElementById('btn-replay');
+  var btnGuides = document.getElementById('btn-guides');
+  var speedBtns = [document.getElementById('btn-slow'), document.getElementById('btn-slow4'), document.getElementById('btn-speed1')];
+
+  function setPlaying(v) {
+    state.playing = v;
+    btnPlay.textContent = v ? '暂停' : '播放';
+    btnPlay.classList.toggle('on', v);
+  }
+  btnPlay.addEventListener('click', function () { setPlaying(!state.playing); });
+  btnReplay.addEventListener('click', function () { state.frame = 0; setPlaying(true); });
+  btnGuides.addEventListener('click', function () {
+    state.guides = !state.guides;
+    btnGuides.classList.toggle('on', state.guides);
+  });
+  speedBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      state.speed = parseFloat(b.getAttribute('data-speed'));
+      speedBtns.forEach(function (x) { x.classList.toggle('on', x === b); });
+    });
+  });
+
+  /* ---------------- 放大 ---------------- */
+
+  var modalEl = document.getElementById('modal');
+  var mName = document.getElementById('m-name');
+  var mSrc = document.getElementById('m-src');
+  var mCount = document.getElementById('m-count');
+  modal.canvas = document.getElementById('m-canvas');
+
+  function openModal(i) {
+    modal.index = i;
+    modal.open = true;
+    modalEl.classList.add('open');
+    var p = packs[i];
+    mName.textContent = p.name || p.id;
+    mSrc.textContent = (p.id || '') + ' · 源风格：' + (p.source || '—');
+    mCount.textContent = (i + 1) + ' / ' + packs.length;
+    IR.fitCanvas(modal.canvas, { dpr: Math.min(window.devicePixelRatio || 1, 2) });
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    modal.open = false;
+    modalEl.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function step(d) {
+    if (!modal.open) return;
+    openModal((modal.index + d + packs.length) % packs.length);
+  }
+  document.getElementById('m-close').addEventListener('click', closeModal);
+  document.getElementById('m-prev').addEventListener('click', function () { step(-1); });
+  document.getElementById('m-next').addEventListener('click', function () { step(1); });
+  modalEl.addEventListener('click', function (ev) { if (ev.target === modalEl) closeModal(); });
+
+  window.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') closeModal();
+    else if (ev.key === ' ') { ev.preventDefault(); setPlaying(!state.playing); }
+    else if (ev.key === 'ArrowLeft') step(-1);
+    else if (ev.key === 'ArrowRight') step(1);
+  });
+
+  window.addEventListener('resize', function () { fitAll(); });
+
+  /* ---------------- 启动 ---------------- */
+
+  fitAll();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll);
+  requestAnimationFrame(loop);
+
+  window.__DEMOS__ = { packs: packs, state: state, cells: cells, openModal: openModal, closeModal: closeModal };
+})();
+</script>
+</body>
+</html>

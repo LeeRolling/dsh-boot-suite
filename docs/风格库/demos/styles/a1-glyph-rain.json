@@ -1,0 +1,121 @@
+{
+  "id": "a1-glyph-rain",
+  "name": "A1 字雨 · 压力下坠",
+  "source": "A-G_代码样片/A1_字雨.md",
+  "duration": 3,
+  "fps": 60,
+  "seed": 20261029,
+  "palette": {
+    "bg": "#0B0E15",
+    "bg2": "#050608",
+    "fg": "#D6E0F2",
+    "dim": "#96A4BE",
+    "accent": "#F1B25C"
+  },
+  "bg": {
+    "type": "layers",
+    "layers": [
+      {
+        "type": "linear",
+        "angle": 90,
+        "stops": [["$bg", 0], ["$bg2", 1]]
+      },
+      {
+        "type": "radial",
+        "x": 960,
+        "y": 1180,
+        "r": 760,
+        "r0": 0,
+        "stops": [
+          { "c": "#F1B25C", "at": 0, "a": 0.1 },
+          { "c": "#F1B25C", "at": 0.55, "a": 0.03 },
+          { "c": "#F1B25C", "at": 1, "a": 0 }
+        ]
+      }
+    ]
+  },
+  "texture": {
+    "type": "grain",
+    "alpha": 0.3,
+    "count": 2600,
+    "colors": ["#96A4BE", "#D6E0F2"],
+    "min": 1,
+    "max": 2.2,
+    "seed": 5
+  },
+  "layout": {
+    "safe": [96, 96, 1728, 888],
+    "cols": 12
+  },
+  "timeline": [
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "glyph_rain",
+      "layer": 10,
+      "params": {
+        "words": ["应该", "必须", "落后", "快点", "不行", "又错", "评价", "期待", "怕输", "比较", "焦虑", "时间", "责任", "成熟", "懂事", "忍耐", "讨好", "证明", "完美", "有用", "效率", "结果", "意义", "到底", "怎么办", "别人"],
+        "count": 26,
+        "size": 88,
+        "sizes": [0.55, 0.7, 0.9, 1.2, 1.7],
+        "area": { "x": 60, "y": -40, "w": 1800, "h": 1080 },
+        "fall": 1250,
+        "font": "serifCJK",
+        "color": "$fg",
+        "glyphAlpha": 0.92,
+        "pile": 46,
+        "pileH": 72,
+        "pileW": 1180,
+        "pileColor": "$dim",
+        "pileAlpha": 0.5,
+        "seed": 7717
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "glow_dot",
+      "layer": 20,
+      "params": {
+        "x": 960,
+        "y": 1016,
+        "r": 15,
+        "color": "$accent",
+        "core": "#FFF3DC",
+        "pulseK": 1,
+        "pulseAmp": 0.34
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "vignette",
+      "layer": 30,
+      "params": {
+        "alpha": 0.72,
+        "inner": 320,
+        "outer": 1180,
+        "color": "#030406"
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 40,
+      "alpha": 0.8,
+      "params": {
+        "x": 960,
+        "y": 132,
+        "align": "center",
+        "font": "serifCJK",
+        "size": 30,
+        "tracking": 12,
+        "color": "$dim",
+        "lines": ["他们说，你应该"],
+        "fadeIn": 0.5,
+        "fadeOut": 0.5
+      }
+    }
+  ]
+}

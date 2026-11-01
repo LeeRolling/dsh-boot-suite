@@ -336,6 +336,8 @@ console.log('\n[8] 终幕用真声欢迎语（来自 Video Project 3 的 line-6�
   check('配音音色可切换：voicePack 为 f–k 时走 voice:<pack>:line-N 路由',
     /C\.voicePack/.test(src) && /'voice:' \+ pack \+ ':' \+ asset/.test(src)
     && /tplAssets && tplAssets\[asset\]/.test(src))
+  check('全局 line-N 无人声包时也改走 voice 路由（不再请求已删除的 lib/assets）',
+    src.includes("'/dsh-startup/voice/' + pack + '/' + name + '.mp3'") && src.includes("if (pack === 'builtin') pack = 'f'"))
   check('5 套声音效果预设都在，播放链路按 C.voiceFx 叠加',
     ['ai-mech', 'robot', 'radio', 'oldtv', 'dark'].every((k) => src.includes("'" + k + "':"))
     && /playAssetAndWait\(useAsset, 0\.85, isGlobalLine \? fx : 'none'\)/.test(src))

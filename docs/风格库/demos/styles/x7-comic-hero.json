@@ -1,0 +1,206 @@
+{
+  "id": "x7-comic-hero",
+  "name": "X7 英雄漫画 · 三格一页",
+  "source": "X_code-video/X7_英雄漫画.md",
+  "duration": 3,
+  "fps": 60,
+  "seed": 7070,
+  "palette": {
+    "news": "#F4ECD6",
+    "ink": "#141414",
+    "red": "#E23B2E",
+    "yellow": "#FFD43B",
+    "blue": "#2A6FDB",
+    "cyan": "#59C3E8",
+    "paper": "#FFFDF4"
+  },
+  "bg": {
+    "type": "layers",
+    "layers": [
+      { "type": "solid", "color": "$news" },
+      {
+        "type": "radial",
+        "x": 960,
+        "y": 300,
+        "r": 1300,
+        "r0": 0,
+        "stops": [
+          { "c": "#FFFDF4", "at": 0, "a": 0.6 },
+          { "c": "#FFFDF4", "at": 0.6, "a": 0.16 },
+          { "c": "#FFFDF4", "at": 1, "a": 0 }
+        ]
+      }
+    ]
+  },
+  "texture": {
+    "type": "speckle",
+    "alpha": 0.6,
+    "count": 2800,
+    "colors": ["#141414", "#E8DCC0"],
+    "min": 1,
+    "max": 2.4,
+    "seed": 4242
+  },
+  "layout": { "safe": [90, 90, 1740, 894], "cols": 12 },
+  "timeline": [
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "rect",
+      "layer": 2,
+      "params": { "x": 90, "y": 106, "w": 1740, "h": 86, "fill": "$red" }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "type_text",
+      "layer": 3,
+      "params": {
+        "x": 118,
+        "y": 166,
+        "text": "X7 / COMIC HERO · 第 07 話",
+        "font": "mono",
+        "size": 36,
+        "weight": 700,
+        "tracking": 6,
+        "color": "$yellow",
+        "progress": { "$wave": [0, 1, 1, 0] },
+        "cursor": true,
+        "cursorPhase": { "$cyc": [4, 6, 0] },
+        "cursorColor": "$yellow"
+      }
+    },
+
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "comic_panel",
+      "layer": 10,
+      "params": { "x": 90, "y": 240, "w": 760, "h": 720, "skew": 0, "lineWidth": 9, "fill": "$paper", "border": "$ink", "shadow": true }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "focus_lines",
+      "layer": 11,
+      "params": {
+        "cx": 460, "cy": 590, "rIn": 130, "rOut": 330, "count": 62,
+        "rot": 0, "k": 1, "thick": 1, "color": "#E8C0B8", "alpha": 0.75, "seed": 12
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "halftone",
+      "layer": 12,
+      "params": {
+        "x": 90, "y": 750, "w": 760, "h": 210,
+        "spacing": 13, "rmax": 5.2, "angle": 45,
+        "rect": [92, 752, 756, 206],
+        "mode": "flat", "dir": "up", "gamma": 1.1,
+        "color": "$ink", "alpha": 0.3
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "hero",
+      "layer": 14,
+      "params": {
+        "x": 460, "y": 590, "scale": { "$wave": [1.05, 1.0, 1, 0] },
+        "cape": "$red", "body": "$blue", "skin": "#F0C9A0", "emblem": "$yellow", "color": "$ink"
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "caption",
+      "layer": 15,
+      "params": {
+        "x": 120, "y": 268, "w": 400, "h": 98, "rot": -3,
+        "fill": "$yellow", "stroke": "$ink", "lineWidth": 7,
+        "lines": ["「站住。」"], "size": 42, "font": "sansHeavy", "weight": 900,
+        "color": "$ink", "align": "center"
+      }
+    },
+
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "comic_panel",
+      "layer": 10,
+      "params": { "x": 880, "y": 240, "w": 950, "h": 360, "skew": 0, "lineWidth": 9, "fill": "$paper", "border": "$ink", "shadow": true }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "balloon",
+      "layer": 13,
+      "params": {
+        "x": 1180, "y": 380, "rx": 250, "ry": 108,
+        "tail": [-152, 172, 96],
+        "fill": "#FFFFFF", "stroke": "$ink", "lineWidth": 6,
+        "lines": ["别怕，", "我在这儿。"],
+        "size": 46, "font": "sansHeavy", "weight": 700, "color": "$ink",
+        "scale": { "$wave": [1, 1.03, 1, 0] }
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 14,
+      "params": {
+        "x": 1740, "y": 274, "align": "right",
+        "font": "mono", "size": 24, "tracking": 5,
+        "color": "$ink", "lines": ["PANEL 02"]
+      }
+    },
+
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "comic_panel",
+      "layer": 10,
+      "params": { "x": 880, "y": 640, "w": 950, "h": 320, "skew": -46, "lineWidth": 9, "fill": "$yellow", "border": "$ink", "shadow": true }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "halftone",
+      "layer": 11,
+      "params": {
+        "x": 880, "y": 640, "w": 950, "h": 320,
+        "spacing": 15, "rmax": 6, "angle": 20,
+        "circle": [1320, 810, 300],
+        "mode": "radial", "cx": 1320, "cy": 810, "r": 330,
+        "color": "$red", "alpha": 0.28
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "burst",
+      "layer": 13,
+      "params": {
+        "x": 1330, "y": 800, "r": 180, "ratio": 0.62, "spikes": 14, "start": 0.4, "jitter": 0.22,
+        "fill": "$red", "stroke": "$ink", "lineWidth": 6,
+        "text": "POW!", "font": "comic", "size": 92, "weight": 900,
+        "textColor": "$yellow", "textStroke": "$ink", "textRot": -8,
+        "scale": { "$wave": [0.94, 1.04, 1, 0] },
+        "rot": { "$osc": [3, 2, 0] },
+        "seed": 33
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 14,
+      "params": {
+        "x": 1000, "y": 700, "font": "mono", "size": 24, "tracking": 5,
+        "color": "$ink", "lines": ["PANEL 03"]
+      }
+    }
+  ]
+}

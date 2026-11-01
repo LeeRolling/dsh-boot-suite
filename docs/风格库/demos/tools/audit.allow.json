@@ -1,0 +1,14 @@
+[
+  {
+    "pack": "a1-glyph-rain",
+    "type": "text",
+    "sides": ["above"],
+    "reason": "字雨的字从画布上方落进来：尚未进入画面时 y<0 是正常表现，不是版式错误。"
+  },
+  {
+    "pack": "m23-five-act",
+    "type": "fill",
+    "sides": ["left"],
+    "reason": "幕间 wipe 在 progress=0 的瞬间还停在画布左侧之外（skew 让它成为一条斜边），下一帧才扫入。"
+  }
+]

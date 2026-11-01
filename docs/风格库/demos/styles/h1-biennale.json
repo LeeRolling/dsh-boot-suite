@@ -1,0 +1,190 @@
+{
+  "id": "h1-biennale",
+  "name": "H1 Biennale Yellow · 黄太阳版式",
+  "source": "H_现成版式/H1_Biennale Yellow.md",
+  "duration": 3,
+  "fps": 60,
+  "seed": 1968,
+  "palette": {
+    "paper": "#F2E9D2",
+    "sun": "#F6C23E",
+    "glow": "#F6D678",
+    "ink": "#1D2A68"
+  },
+  "bg": {
+    "type": "layers",
+    "layers": [
+      { "type": "solid", "color": "$paper" },
+      {
+        "type": "radial",
+        "x": 1300,
+        "y": 420,
+        "r": 1100,
+        "r0": 0,
+        "stops": [
+          { "c": "#FFFBEE", "at": 0, "a": 0.5 },
+          { "c": "#FFFBEE", "at": 0.55, "a": 0.14 },
+          { "c": "#FFFBEE", "at": 1, "a": 0 }
+        ]
+      }
+    ]
+  },
+  "texture": {
+    "type": "grain",
+    "alpha": 0.95,
+    "count": 5000,
+    "colors": ["#8C7A55", "#FFFAF0"],
+    "min": 1,
+    "max": 3,
+    "seed": 5001
+  },
+  "layout": { "safe": [64, 64, 1792, 952], "cols": 12 },
+  "timeline": [
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "frame",
+      "layer": 1,
+      "params": {
+        "x": 64, "y": 64, "w": 1792, "h": 952,
+        "color": "$ink", "width": 1.7,
+        "progress": { "$wave": [0.86, 1, 1, 0] },
+        "from": "center"
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "line",
+      "layer": 1,
+      "params": { "pts": [[64, 148], [1856, 148]], "color": "$ink", "width": 1.7, "cap": "butt" }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "line",
+      "layer": 1,
+      "params": { "pts": [[64, 932], [1856, 932]], "color": "$ink", "width": 1.7, "cap": "butt" }
+    },
+
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "sun",
+      "layer": 5,
+      "params": {
+        "x": 1380,
+        "y": 470,
+        "r": 250,
+        "color": "$sun",
+        "ink": "$ink",
+        "rings": [1, 1.32, 1.64],
+        "ringWidth": 1.7,
+        "ticks": true,
+        "tickR": 1.64,
+        "tickCount": 120,
+        "tickLong": 22,
+        "tickShort": 11,
+        "tickWidth": 1.6,
+        "haloR": { "$wave": [560, 604, 1, 0] },
+        "rot": { "$cyc": [3, 1, 0] },
+        "rise": { "$wave": [0.5, 0, 1, 0] }
+      }
+    },
+
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 10,
+      "params": {
+        "x": 100,
+        "y": { "$wave": [560, 551, 1, 0] },
+        "font": "serif",
+        "size": 214,
+        "tracking": { "$wave": [-4, 1, 1, 0] },
+        "color": "$ink",
+        "lines": ["折叠的"]
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 10,
+      "params": {
+        "x": 100,
+        "y": { "$wave": [770, 779, 1, 0] },
+        "font": "serif",
+        "size": 214,
+        "italic": true,
+        "tracking": -4,
+        "color": "$ink",
+        "lines": ["秩序"]
+      }
+    },
+
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 12,
+      "params": {
+        "x": 104,
+        "y": 118,
+        "font": "mono",
+        "size": 26,
+        "weight": 700,
+        "tracking": 6,
+        "color": "$ink",
+        "lines": ["BIENNALE YELLOW"]
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 12,
+      "params": {
+        "x": 1816,
+        "y": 118,
+        "align": "right",
+        "font": "mono",
+        "size": 26,
+        "weight": 700,
+        "tracking": 6,
+        "color": "$ink",
+        "lines": ["H1 / POSTER STUDY"]
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 12,
+      "params": {
+        "x": 104,
+        "y": 980,
+        "font": "serifCJK",
+        "size": 34,
+        "color": "$ink",
+        "lines": ["版式 · 纸本 · 2026"]
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 12,
+      "params": {
+        "x": 1816,
+        "y": 980,
+        "align": "right",
+        "font": "serifCJK",
+        "size": 34,
+        "color": "$ink",
+        "lines": ["一切从一张黄太阳开始"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "id": "k22-origami",
+  "name": "K22 折纸 · 一折一开",
+  "source": "K_卡通画风/K22_折纸.md",
+  "duration": 3,
+  "fps": 60,
+  "seed": 22,
+  "palette": {
+    "bg1": "#F2E9D6",
+    "bg2": "#E2D2B6",
+    "paper": "#FBF5E8",
+    "paper2": "#F0E3CB",
+    "paper3": "#DCC9A6",
+    "paper4": "#C3A97F",
+    "crease": "#B49B76",
+    "ink": "#6E5B41",
+    "red": "#C8503C"
+  },
+  "bg": {
+    "type": "layers",
+    "layers": [
+      { "type": "linear", "angle": 165, "stops": [["$bg1", 0], ["$bg2", 1]] },
+      {
+        "type": "radial",
+        "x": 960,
+        "y": 470,
+        "r": 1000,
+        "r0": 60,
+        "stops": [
+          { "c": "#FFFFFF", "at": 0, "a": 0.5 },
+          { "c": "#FFFFFF", "at": 0.6, "a": 0.15 },
+          { "c": "#FFFFFF", "at": 1, "a": 0 }
+        ]
+      }
+    ]
+  },
+  "texture": {
+    "type": "fiber",
+    "alpha": 0.5,
+    "count": 760,
+    "colors": ["#C8B392", "#FFFDF6"],
+    "seed": 9
+  },
+  "layout": { "safe": [96, 96, 1728, 888], "cols": 12 },
+  "timeline": [
+    {
+      "from": 0, "to": 3, "primitive": "line", "layer": 1,
+      "params": {
+        "pts": [[260, 832], [1660, 832]],
+        "color": "$paper4", "width": 2.5, "cap": "round", "progress": 1
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "ink_wash", "layer": 2,
+      "params": {
+        "x": 952, "y": 806, "r": 300,
+        "color": "#8A7352", "alpha": 0.34,
+        "spread": 0.4, "layers": 3, "seed": 5, "coreAlpha": 0.55, "edge": 0.6
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 6,
+      "params": {
+        "pts": [[790, 664], [612, 552], [596, 592], [772, 706]],
+        "pv": [790, 664],
+        "rot": { "$osc": [6, 1, 0] },
+        "fill": "$paper3", "stroke": "$crease", "lineWidth": 1.6
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 7,
+      "params": {
+        "pts": [[862, 644], [652, 462], [700, 512], [790, 690]],
+        "pv": [862, 644],
+        "rot": { "$osc": [-14, 1, 0] },
+        "fill": "$paper4", "stroke": "$crease", "lineWidth": 1.6
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 10,
+      "params": {
+        "pts": [[700, 748], [790, 662], [1032, 652], [1152, 748], [980, 774], [828, 772]],
+        "scale": { "$wave": [0.995, 1.004, 1, 0] },
+        "fill": "$paper", "stroke": "$crease", "lineWidth": 1.8
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 12,
+      "params": {
+        "pts": [[790, 662], [1032, 652], [980, 774], [828, 772]],
+        "fill": "$paper2", "stroke": "$crease", "lineWidth": 1.2
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 14,
+      "params": {
+        "pts": [[1032, 654], [1196, 492], [1240, 476], [1082, 670]],
+        "pv": [1032, 654],
+        "rot": { "$osc": [5, 1, 0] },
+        "fill": "$paper", "stroke": "$crease", "lineWidth": 1.6
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 16,
+      "params": {
+        "pts": [[1240, 476], [1306, 456], [1258, 506]],
+        "pv": [1240, 476],
+        "rot": { "$osc": [7, 1, 0] },
+        "fill": "$paper2", "stroke": "$crease", "lineWidth": 1.4
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 17,
+      "params": {
+        "pts": [[1306, 456], [1366, 474], [1308, 484]],
+        "fill": "$paper4", "stroke": "$crease", "lineWidth": 1.2
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 20,
+      "params": {
+        "pts": [[1044, 654], [1238, 486], [1156, 700]],
+        "pv": [1044, 654],
+        "rot": { "$osc": [16, 1, 0] },
+        "fill": "$paper", "stroke": "$crease", "lineWidth": 1.8
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 21,
+      "params": {
+        "pts": [[1044, 654], [1156, 700], [1108, 690]],
+        "pv": [1044, 654],
+        "rot": { "$osc": [16, 1, 0] },
+        "fill": "$paper2", "stroke": "$crease", "lineWidth": 1.2
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "line", "layer": 22,
+      "params": {
+        "pts": [[960, 712], [790, 662], [700, 748]],
+        "color": "$crease", "width": 1.3, "cap": "round", "progress": 1,
+        "dash": [9, 7]
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "line", "layer": 23,
+      "params": {
+        "pts": [[960, 712], [1032, 654], [1152, 748]],
+        "color": "$crease", "width": 1.3, "cap": "round", "progress": 1,
+        "dash": [9, 7]
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 26,
+      "params": {
+        "pts": [[404, 874], [462, 862], [430, 892]],
+        "fill": "$paper3", "stroke": "$crease", "lineWidth": 1.2,
+        "rot": { "$osc": [3, 1, 0] }
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 26,
+      "params": {
+        "pts": [[1512, 886], [1580, 872], [1544, 906]],
+        "fill": "$paper2", "stroke": "$crease", "lineWidth": 1.2,
+        "rot": { "$osc": [-4, 1, 0] }
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "poly", "layer": 26,
+      "params": {
+        "pts": [[560, 918], [604, 910], [582, 930]],
+        "fill": "$paper4", "stroke": "$crease", "lineWidth": 1.1
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "rect", "layer": 30,
+      "params": {
+        "x": 98, "y": 98, "w": 30, "h": 30,
+        "fill": "$red", "rot": { "$osc": [8, 1, 0] }
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "text", "layer": 32,
+      "alpha": 0.6,
+      "params": {
+        "x": 152, "y": 120, "size": 22, "font": "mono", "tracking": 5,
+        "color": "$ink", "lines": ["K22 / ORIGAMI — 一折一开"]
+      }
+    },
+    {
+      "from": 0, "to": 3, "primitive": "text", "layer": 34,
+      "alpha": 0.92,
+      "fadeIn": 0.35,
+      "fadeOut": 0.45,
+      "params": {
+        "x": 960, "y": 980, "size": 46, "font": "serifCJK", "tracking": 10,
+        "align": "center", "color": "$ink",
+        "lines": ["折出来的纸"]
+      }
+    }
+  ]
+}

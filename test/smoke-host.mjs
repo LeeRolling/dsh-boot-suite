@@ -132,7 +132,7 @@ check('没有 Config 导出（普通对象不是 schemastery schema）', mod.Con
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 44 条路由（开机动画 33 + 聊天壁纸 11）', ROUTES.size === 44, [...ROUTES.keys()].join(' | '))
+check('注册了 45 条路由（开机动画 34 + 聊天壁纸 11）', ROUTES.size === 45, [...ROUTES.keys()].join(' | '))
 check('注册了 1 个 tapIndex', TAPS.length === 1)
 check('用了 ctx.effect 管理生命周期（开机动画 1 + 壁纸 11）', effects === 12, String(effects))
 

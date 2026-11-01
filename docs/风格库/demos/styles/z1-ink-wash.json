@@ -1,0 +1,172 @@
+{
+  "id": "z1-ink-wash",
+  "name": "Z1 水墨 · 留白竹林",
+  "source": "Z_中国风/Z1_水墨.md",
+  "duration": 3,
+  "fps": 60,
+  "seed": 8801,
+  "palette": {
+    "paper": "#F3EEE2",
+    "ink": "#1A1A18",
+    "ink2": "#3A3A36",
+    "gray": "#8A8780",
+    "red": "#B03A2E"
+  },
+  "bg": {
+    "type": "layers",
+    "layers": [
+      { "type": "solid", "color": "$paper" },
+      {
+        "type": "radial",
+        "x": 620,
+        "y": 300,
+        "r": 1400,
+        "r0": 0,
+        "stops": [
+          { "c": "#FFFCEE", "at": 0, "a": 0.45 },
+          { "c": "#FFFCEE", "at": 0.55, "a": 0.12 },
+          { "c": "#FFFCEE", "at": 1, "a": 0 }
+        ]
+      }
+    ]
+  },
+  "texture": {
+    "type": "fiber",
+    "alpha": 0.55,
+    "count": 1500,
+    "colors": ["#9A927E", "#FFFDF6"],
+    "seed": 606
+  },
+  "layout": { "safe": [96, 96, 1728, 888], "cols": 12 },
+  "timeline": [
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "ink_wash",
+      "layer": 1,
+      "params": {
+        "x": 1260, "y": 430, "r": 520, "color": "$gray", "spread": 1.15,
+        "layers": 8, "coreAlpha": 0.2, "edge": 0.45,
+        "alpha": { "$wave": [0.62, 0.76, 1, 0] }, "seed": 21
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "ink_wash",
+      "layer": 1,
+      "params": {
+        "x": 1520, "y": 500, "r": 380, "color": "$gray", "spread": 1.05,
+        "layers": 7, "coreAlpha": 0.17, "edge": 0.42,
+        "alpha": { "$wave": [0.5, 0.64, 1, 0.35] }, "seed": 34
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "ink_wash",
+      "layer": 2,
+      "params": {
+        "x": 760, "y": 540, "r": 400, "color": "$ink2", "spread": 1,
+        "layers": 6, "coreAlpha": 0.2, "edge": 0.55,
+        "alpha": { "$wave": [0.48, 0.6, 1, 0.7] }, "seed": 55
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "ink_wash",
+      "layer": 2,
+      "params": {
+        "x": 1180, "y": 760, "r": 330, "color": "$gray", "spread": 1.05,
+        "layers": 5, "coreAlpha": 0.14, "edge": 0.4,
+        "alpha": { "$wave": [0.4, 0.52, 1, 0.15] }, "seed": 71
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "line",
+      "layer": 3,
+      "alpha": 0.32,
+      "params": { "pts": [[96, 830], [1824, 818]], "color": "$gray", "width": 1.4 }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "bamboo",
+      "layer": 10,
+      "params": {
+        "color": "$ink",
+        "nodeColor": "#0C0C0A",
+        "sway": 1,
+        "stalks": [
+          {
+            "x": 300, "y0": 110, "y1": 992, "w": 9, "nodes": 9,
+            "sway": 12, "phase": 0.0, "taper": 1.05, "alpha": 1,
+            "leaves": [
+              { "at": 0.9, "a": -30, "len": 168, "w": 26, "a2": 0.8 },
+              { "at": 0.84, "a": 22, "len": 132, "w": 21, "a2": 0.62 },
+              { "at": 0.76, "a": -42, "len": 146, "w": 23, "a2": 0.7 },
+              { "at": 0.7, "a": 12, "len": 108, "w": 18, "a2": 0.55 }
+            ]
+          },
+          {
+            "x": 432, "y0": 186, "y1": 992, "w": 7, "nodes": 8,
+            "sway": 16, "phase": 0.3, "taper": 1, "alpha": 0.92,
+            "leaves": [
+              { "at": 0.86, "a": -20, "len": 146, "w": 23, "a2": 0.72 },
+              { "at": 0.78, "a": 28, "len": 122, "w": 19, "a2": 0.58 },
+              { "at": 0.71, "a": -36, "len": 130, "w": 20, "a2": 0.66 }
+            ]
+          },
+          {
+            "x": 542, "y0": 268, "y1": 992, "w": 6, "nodes": 7,
+            "sway": 20, "phase": 0.55, "taper": 0.95, "alpha": 0.8,
+            "leaves": [
+              { "at": 0.82, "a": -32, "len": 128, "w": 20, "a2": 0.66 },
+              { "at": 0.74, "a": 18, "len": 100, "w": 16, "a2": 0.5 }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "seal",
+      "layer": 20,
+      "params": {
+        "x": 1690, "y": 268, "size": 92,
+        "color": "$red", "fg": "$paper",
+        "text": "山水", "vertical": true,
+        "font": "serifCJK", "weight": 700,
+        "rot": { "$osc": [1.6, 1, 0] },
+        "seed": 5
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 21,
+      "params": {
+        "x": 1824, "y": 916, "align": "right",
+        "font": "serifCJK", "size": 38, "tracking": 8,
+        "color": "$ink", "lines": ["空山新雨后", "天气晚来秋"]
+      }
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "primitive": "text",
+      "layer": 22,
+      "alpha": 0.5,
+      "params": {
+        "x": 96, "y": 148,
+        "font": "mono", "size": 22, "tracking": 6,
+        "color": "$gray", "lines": ["Z1 / INK WASH"]
+      }
+    }
+  ]
+}
