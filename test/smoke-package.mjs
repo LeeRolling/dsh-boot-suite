@@ -92,4 +92,11 @@ if (!bigfishApp.includes('rotate(${rt*5})')) throw new Error('外圈未使用 rt
 if (!bigfishApp.includes('rotate(${-rt*12})')) throw new Error('内圈未使用 rt 旋转')
 if (!bigfishApp.includes('Math.sin(rt*6.54)')) throw new Error('外圈脉冲未使用 rt')
 if (!/function flashDone\(\)\{hideEgg\(\);doneEmit\(\);\}/.test(bigfishApp)) throw new Error('flashDone 不应再清零旋转时钟')
+/* v2.15.13：配音中文字幕 */
+if (!bigfishApp.includes('cfg.voice.subs')) throw new Error('模板未使用字幕映射 cfg.voice.subs')
+if (!bigfishApp.includes('subtitle')) throw new Error('模板未更新 #subtitle')
+const bigfishHtml = fs.readFileSync(path.join(root, 'templates/division-bigfish-codex', 'index.html'), 'utf8')
+if (!bigfishHtml.includes('id="subtitle"')) throw new Error('index.html 缺少 #subtitle 字幕节点')
+if (!bigfishCfg.includes('警告：检测到新特工登录')) throw new Error('config.js 缺少中文字幕映射')
+if (!bigfishCfg.includes("line2:'装备与技能配置已验证。',line3:'倒计时十秒。'")) throw new Error('config.js 字幕未按音频拆分')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');
