@@ -179,7 +179,7 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
     var st=show?((cfg.voice&&cfg.voice.subs&&cfg.voice.subs.line4)||''):'';
     renderVoiceRow(eggRow,eggSub,vh,st,show);
   }
-  var shown=false,done=false,rolled=false,v3Ended=false,waitStart=0,v4Timer=null,replayTimer=null,eggShownAt=0;
+  var shown=false,done=false,rolled=false,v3Ended=false,waitStart=0,v4Timer=null,replayTimer=null,eggShownAt=0,eggWait=false,eggWaitTimer=null;
   var hit=q.get('egg')==='1'||Math.random()<EGG_CHANCE;
   function stopVoice(){voiceDuck(false);activeVoice=null;window.__DSH_ACTIVE_VOICE__='';window.__DSH_CUE__='';window.__DSH_CUE_UNTIL__=0;cueGate=false;if(cueFailTimer){clearTimeout(cueFailTimer);cueFailTimer=null}Object.keys(aud).forEach(function(k){var a=aud[k];try{a.pause();a.currentTime=0}catch(e){}});if(v4Timer){clearTimeout(v4Timer);v4Timer=null}if(replayTimer){clearTimeout(replayTimer);replayTimer=null}}
   function playKey(k,offset){var a=aud[k];if(a&&!played[k]){played[k]=true;attachVoiceFx(k);try{a.currentTime=Math.max(0,offset||0);a.play().catch(function(){});activeVoice=k;window.__DSH_ACTIVE_VOICE__=k}catch(e){}voiceDuck(true);}}
@@ -193,7 +193,7 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
     });
   }
   function showEgg(){
-    if(shown||done)return; shown=true; rolled=true; playing=false;
+    if(shown||done)return; shown=true; rolled=true; playing=false;eggWait=false;if(eggWaitTimer){clearTimeout(eggWaitTimer);eggWaitTimer=null}
     stopVoice();
     bgmSig(false);
     eggEl.classList.add('on'); eggEl.setAttribute('aria-hidden','false'); try{document.body.classList.add('egg-on')}catch(e){}
@@ -221,7 +221,21 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   (function watch(){
     if(!done){
       if(playing&&!cueGate){sched.forEach(function(e){if(t>=e[0])playKey(e[1]);});}
-      if(!rolled&&playing&&!shown&&t>=eggAt){rolled=true;if(hit)showEgg();}
+      /* v2.15.16：掉线彩蛋若正好赶上某句配音，先等这句播完再弹出，避免语音和字幕被硬切断（有兜底超时）。 */
+      if(!rolled&&playing&&!shown&&t>=eggAt){
+        if(!hit){rolled=true;}
+        else if(!eggWait&&activeVoice&&aud[activeVoice]&&!aud[activeVoice].paused&&!aud[activeVoice].ended){
+          var eggA=aud[activeVoice], eggLeft=(+eggA.duration||0)-(+eggA.currentTime||0);
+          if(isFinite(eggLeft)&&eggLeft>0.05&&t+eggLeft<=cfg.duration-0.25){
+            eggWait=true;
+            (function(a){
+              var fired=false,fin=function(){if(fired)return;fired=true;eggWait=false;eggWaitTimer=null;rolled=true;showEgg();};
+              a.addEventListener('ended',fin,{once:true});
+              eggWaitTimer=setTimeout(fin,eggLeft*1000+900);
+            })(eggA);
+          } else {rolled=true;showEgg();}
+        } else if(!eggWait){rolled=true;showEgg();}
+      }
       if(shown){var elap=(window.__EGG_T!=null?window.__EGG_T:(performance.now()-eggShownAt)/1000);eggVoice(elap-eggLineAt);}
       if(!shown&&t>=cfg.duration-0.02){if(!waitStart){waitStart=performance.now();window.__WAIT_START__=waitStart;}var waitVoice=(!mute&&aud.orig3&&!v3Ended&&(performance.now()-waitStart<4000));if(!waitVoice)flashDone();}
     }

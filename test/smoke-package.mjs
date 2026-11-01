@@ -115,4 +115,7 @@ if (!bigfishApp.includes('cueFailTimer')) throw new Error('重连提示音缺少
 if (!bigfishApp.includes("attachVoiceFx('reconnect')")) throw new Error('重连提示音未接入配音效果')
 if (!bigfishApp.includes("[20.0,'line3',3.300]")) throw new Error('app.js 默认时间线未把 line3 顺延到 20.0s')
 if (!bigfishCfg.includes("[20.0,'line3',3.300]")) throw new Error('config.js 时间线未把 line3 顺延到 20.0s')
+/* v2.15.16：掉线彩蛋等当前配音播完再弹出，不硬切语音/字幕 */
+if (!bigfishApp.includes('掉线彩蛋若正好赶上某句配音')) throw new Error('app.js 缺少彩蛋等待当前配音播完的逻辑')
+if (!bigfishApp.includes('eggWait=true')) throw new Error('app.js 缺少 eggWait 等待状态')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');
