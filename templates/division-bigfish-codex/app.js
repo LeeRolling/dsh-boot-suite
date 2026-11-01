@@ -29,22 +29,22 @@ function voiceTextWidth(text,fs,ls,weight){
     return m.getComputedTextLength();
   }catch(e){return String(text||'').length*fs*0.82}
 }
-function renderVoiceRow(h,sub,visible){
-  var g=$('voice');if(!g)return;
+function renderVoiceRow(g,se,h,sub,visible){
+  if(!g)return;
   var baseY=cfg.voiceY,s=(cfg.voiceWidth||520)/1920;
-  var iconW=270*s,gap=34*s,dshFs=178*s,dshLs=18*s,barW=4.5*s,barGap=29.2*s,subFs=dshFs;
+  var iconW=270*s,gap=34*s,dshFs=178*s,dshLs=18*s,barW=4.5*s,barGap=29.2*s,subFs=dshFs,subGap=subFs*2;
   var dshW=voiceTextWidth('DSH',dshFs,dshLs,'700');
   var waveW=19*barGap+barW;
   var subW=sub?voiceTextWidth(sub,subFs,0,'400'):0;
-  var total=iconW+gap+dshW+gap+waveW+(subW?gap+subW:0);
-  while(total>1860&&subW&&subFs>dshFs*0.7){subFs-=2*s;subW=voiceTextWidth(sub,subFs,0,'400');total=iconW+gap+dshW+gap+waveW+gap+subW}
+  var total=iconW+gap+dshW+gap+waveW+(subW?gap+subGap+subW:0);
+  while(total>1860&&subW&&subFs>dshFs*0.7){subFs-=2*s;subW=voiceTextWidth(sub,subFs,0,'400');total=iconW+gap+dshW+gap+waveW+gap+subGap+subW}
   var x=960-total/2;
-  var dshX=x+iconW+gap,waveX=dshX+dshW+gap,subX=waveX+waveW+gap;
+  var dshX=x+iconW+gap,waveX=dshX+dshW+gap,subX=waveX+waveW+subGap;
   var bars=h.map(function(v,i){return '<rect x="'+(i*barGap).toFixed(2)+'" y="'+(baseY-(v*s)/2).toFixed(1)+'" width="'+barW.toFixed(2)+'" height="'+(v*s).toFixed(1)+'" rx="'+(1.1*s).toFixed(2)+'" fill="#efeee5"/>'}).join('');
   g.innerHTML='<image href="assets/whale-badge-line.png" x="'+x+'" y="'+(baseY-iconW/2)+'" width="'+iconW+'" height="'+iconW+'" preserveAspectRatio="xMidYMid meet"/><text x="'+dshX+'" y="'+baseY+'" dominant-baseline="central" font-family="\'DIN Alternate\',\'Bahnschrift\',\'Microsoft YaHei\',sans-serif" font-size="'+dshFs+'" font-weight="700" letter-spacing="'+dshLs+'" fill="#e8e5d9">DSH</text><g transform="translate('+waveX+' 0)">'+bars+'</g>';
   g.setAttribute('transform','translate(0 0)');
   g.style.opacity=visible;
-  var se=$('subtitle');if(se){if(se.textContent!==sub)se.textContent=sub||'';se.setAttribute('x',String(subX));se.setAttribute('y',String(baseY));se.setAttribute('text-anchor','start');se.setAttribute('dominant-baseline','central');se.setAttribute('font-size',String(subFs));se.style.opacity=(visible&&sub)?1:0}
+  if(se){if(se.textContent!==sub)se.textContent=sub||'';se.setAttribute('x',String(subX));se.setAttribute('y',String(baseY));se.setAttribute('text-anchor','start');se.setAttribute('dominant-baseline','central');se.setAttribute('font-size',String(subFs));se.style.opacity=(visible&&sub)?1:0}
 }
 function render(){
  const m=HUDMotion.state(t,cfg.loadingStart),loading=m.load,p=progress(t);
@@ -69,8 +69,8 @@ function render(){
  $('statusArrow').style.opacity=m.opacity*m.labelOpacity;
  $('statusDots').style.opacity=m.opacity*m.labelOpacity*(.35+.65*Math.abs(Math.sin(rt*4)));
  let VT=(window.__VTIME__!=null)?+window.__VTIME__:(t<=9.2?t-3.4:5.8+(t-9.2)/1.5);VT+=waitSec;let vh=null,vOn=false,sub="";const vsched=(window.__VSCHED__&&window.__VSCHED__.length)?window.__VSCHED__:(window.VOICE_SCHED||[]).map(function(s){var atV=(s.at<=9.2)?s.at-3.4:5.8+(s.at-9.2)/1.5;return{key:s.key,at:atV,dur:s.dur};});
- for(const s of vsched){if(VT>=s.at-0.02&&VT<s.at+s.dur){sub=(cfg.voice&&cfg.voice.subs&&cfg.voice.subs[s.key])||"";const e=(window.VOICE_ENV||{})[s.key];if(e&&e.length){const vt=VT-s.at;vh=Array.from({length:20},(_,k)=>{const st=Math.max(0,vt-(19-k)*0.055);const fi=st/0.008;const ai=Math.min(e.length-1,Math.floor(fi));const af=fi-Math.floor(fi);const a=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);return 4+Math.min(360,Math.pow(Math.max(0,a),0.9)*360)});vOn=true;}break;}}
-const h=vh||Array(20).fill(4);const voiceVisible=vOn?1:0;renderVoiceRow(h,sub,voiceVisible);$('seek').value=t;$('time').textContent=(t-(+cfg.startAt||0)).toFixed(2)+' / '+(cfg.duration-(+cfg.startAt||0)).toFixed(2)+' s';
+ for(const s of vsched){if(VT>=s.at-0.02&&VT<s.at+s.dur&&(!aud[s.key]||activeVoice===s.key)){sub=(cfg.voice&&cfg.voice.subs&&cfg.voice.subs[s.key])||"";const e=(window.VOICE_ENV||{})[s.key];if(e&&e.length){const vt=VT-s.at;vh=Array.from({length:20},(_,k)=>{const st=Math.max(0,vt-(19-k)*0.055);const fi=st/0.008;const ai=Math.min(e.length-1,Math.floor(fi));const af=fi-Math.floor(fi);const a=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);return 4+Math.min(360,Math.pow(Math.max(0,a),0.9)*360)});vOn=true;}break;}}
+const h=vh||Array(20).fill(4);const voiceVisible=vOn?1:0;renderVoiceRow($('voice'),$('subtitle'),h,sub,voiceVisible);$('seek').value=t;$('time').textContent=(t-(+cfg.startAt||0)).toFixed(2)+' / '+(cfg.duration-(+cfg.startAt||0)).toFixed(2)+' s';
 }
 function syncAudio(){if(!env)return;const at=t- +$('voiceStart').value;if(at<0||at>=env.duration){audio.pause();return}if(Math.abs(audio.currentTime-at)>.12)audio.currentTime=at;if(playing&&audio.paused)audio.play().catch(()=>{$('audioInfo').textContent='请点击播放以启用音频。'});if(!playing)audio.pause()}
 function play(){if(t>=cfg.duration)t=+cfg.startAt||0;playing=true;last=performance.now();$('play').textContent='暂停';syncAudio()}
@@ -109,9 +109,9 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   function bgmSig(on){try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-bgm',on:!!on},'*')}catch(e){}}
   var sched=vc.sched||[[4.6,'orig1',2.65],[8.0,'line1',3.375],[12.8,'line2',3.232],[17.9,'line3',3.300],[25.45,'orig3',2.77]];
   var eggLineAt=+(vc.eggLineAt!=null?vc.eggLineAt:2.0), eggReplayWait=+(vc.eggReplayWait!=null?vc.eggReplayWait:2.0), line4Dur=+(vc.line4Dur||1.911);
-  var aud={},played={};
-  sched.forEach(function(e){var k=e[1];if(!mute&&vc[k]){var a=new Audio(vc[k]);a.preload='auto';a.volume=voiceVol;a.addEventListener('ended',function(){voiceDuck(false)});aud[k]=a;played[k]=false;}});
-  if(!mute&&vc.line4){var l4=new Audio(vc.line4);l4.preload='auto';l4.volume=voiceVol;l4.addEventListener('ended',function(){voiceDuck(false)});aud.line4=l4;played.line4=false;}
+  var aud={},played={},activeVoice=null;
+  sched.forEach(function(e){var k=e[1];if(!mute&&vc[k]){var a=new Audio(vc[k]);a.preload='auto';a.volume=voiceVol;a.addEventListener('ended',function(){if(activeVoice===k)activeVoice=null;voiceDuck(false)});aud[k]=a;played[k]=false;}});
+  if(!mute&&vc.line4){var l4=new Audio(vc.line4);l4.preload='auto';l4.volume=voiceVol;l4.addEventListener('ended',function(){if(activeVoice==='line4')activeVoice=null;voiceDuck(false)});aud.line4=l4;played.line4=false;}
   /* v2.15.5：模板内配音效果（与全局 5 个声音效果同参数）；只在宿主注入 voiceFx 时生效。 */
   var VOICE_FX_PRESETS={'ai-mech':{hp:130,lp:4200,peak:{f:260,g:4,q:1.0},drive:0.15,ring:0},'robot':{hp:180,lp:3200,peak:{f:1500,g:3,q:0.9},drive:0.35,ring:42},'radio':{hp:420,lp:2800,peak:{f:1800,g:5,q:1.2},drive:0.6,ring:0},'oldtv':{hp:220,lp:2200,peak:null,drive:0.45,ring:0},'dark':{hp:90,lp:1200,peak:{f:180,g:5,q:0.8},drive:0.1,ring:0}};
   var voiceFxMode=String((cfg&&cfg.voiceFx)||'none');
@@ -141,30 +141,34 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
     }catch(e){}
   }
   window.VOICE_SCHED=sched.map(function(e){return{key:e[1],at:e[0],dur:e[2]};});
-  var scale=cfg.voiceWidth/1920, eggSvg=null, eggG=null;
+  var scale=cfg.voiceWidth/1920, eggSvg=null, eggRow=null, eggSub=null;
   function ensureEggVoice(){
     if(eggSvg)return;
     eggSvg=document.createElementNS('http://www.w3.org/2000/svg','svg');
     eggSvg.setAttribute('viewBox','0 0 1920 1080');eggSvg.setAttribute('width','100%');eggSvg.setAttribute('height','100%');
     eggSvg.style.cssText='position:absolute;left:0;top:0;pointer-events:none;z-index:3';
-    eggG=document.createElementNS('http://www.w3.org/2000/svg','g');
-    eggG.setAttribute('transform','translate('+(960-cfg.voiceWidth/2)+' '+(cfg.voiceY-303*scale)+') scale('+scale+')');
-    eggSvg.appendChild(eggG);eggEl.appendChild(eggSvg);
-  }
+    eggRow=document.createElementNS('http://www.w3.org/2000/svg','g');
+    eggSub=document.createElementNS('http://www.w3.org/2000/svg','text');
+    eggSub.setAttribute('fill','#e9d6b8');
+    eggSub.setAttribute('font-family',"'DIN Alternate','Bahnschrift','Microsoft YaHei',sans-serif");
+    eggSvg.appendChild(eggRow);eggSvg.appendChild(eggSub);eggEl.appendChild(eggSvg);
+}
   function eggVoice(vt){
     ensureEggVoice();
     var e=(window.VOICE_ENV||{}).line4||[], vh=Array(20).fill(4);
     if(vt>=0&&vt<line4Dur&&e.length){
       var fi=vt/0.008, ai=Math.min(e.length-1,Math.floor(fi)), af=fi-Math.floor(fi);
       var amp=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);
-      vh=[];for(var k=0;k<20;k++){var tv2=vt-(19-k)*0.06;var f2=tv2/0.008,i2=Math.min(e.length-1,Math.floor(f2));var a2=((e[i2]||0)*(1-(f2-Math.floor(f2)))+(e[Math.min(e.length-1,i2+1)]||0)*(f2-Math.floor(f2)));vh.push(4+Math.min(440,Math.pow(Math.max(0,a2),0.8)*440));}
+      vh=[];for(var k=0;k<20;k++){var tv2=vt-(19-k)*0.06;var f2=tv2/0.008,i2=Math.min(e.length-1,Math.floor(f2));var a2=((e[i2]||0)*(1-(f2-Math.floor(f2)))+(e[Math.min(e.length-1,i2+1)]||0)*(f2-Math.floor(f2)));vh.push(4+Math.min(440,Math.pow(Math.max(0,a2),0.85)*440))}
     }
-    eggG.style.display=(vt>=0&&vt<line4Dur)?'':'none';eggG.innerHTML=VoiceAnimation.foreground(0.85,vh);
+    var show=(vt>=0&&vt<line4Dur&&activeVoice==='line4')?1:0;
+    var st=show?((cfg.voice&&cfg.voice.subs&&cfg.voice.subs.line4)||''):'';
+    renderVoiceRow(eggRow,eggSub,vh,st,show);
   }
   var shown=false,done=false,rolled=false,v3Ended=false,waitStart=0,v4Timer=null,replayTimer=null,eggShownAt=0;
   var hit=q.get('egg')==='1'||Math.random()<EGG_CHANCE;
-  function stopVoice(){voiceDuck(false);Object.keys(aud).forEach(function(k){var a=aud[k];try{a.pause();a.currentTime=0}catch(e){}});if(v4Timer){clearTimeout(v4Timer);v4Timer=null}if(replayTimer){clearTimeout(replayTimer);replayTimer=null}}
-  function playKey(k,offset){var a=aud[k];if(a&&!played[k]){played[k]=true;attachVoiceFx(k);try{a.currentTime=Math.max(0,offset||0);a.play().catch(function(){})}catch(e){}voiceDuck(true);}}
+  function stopVoice(){voiceDuck(false);activeVoice=null;Object.keys(aud).forEach(function(k){var a=aud[k];try{a.pause();a.currentTime=0}catch(e){}});if(v4Timer){clearTimeout(v4Timer);v4Timer=null}if(replayTimer){clearTimeout(replayTimer);replayTimer=null}}
+  function playKey(k,offset){var a=aud[k];if(a&&!played[k]){played[k]=true;attachVoiceFx(k);try{a.currentTime=Math.max(0,offset||0);a.play().catch(function(){});activeVoice=k}catch(e){}voiceDuck(true);}}
   function resetPlayedAfter(t0){
     Object.keys(played).forEach(function(k){played[k]=false});v3Ended=false;
     /* v2.15.10：重连回到 loadingStart 时，已播完的语音标记为已播、正在播的从断点续播，避免多句同时响起 */
