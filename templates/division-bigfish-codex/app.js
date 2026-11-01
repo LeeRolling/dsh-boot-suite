@@ -34,7 +34,7 @@ function render(){
  $('status').textContent=loading?'加载中':'连接中：'+cfg.username;$('status').style.opacity=m.opacity*m.labelOpacity;
  $('statusArrow').style.opacity=m.opacity*m.labelOpacity;
  $('statusDots').style.opacity=m.opacity*m.labelOpacity*(.35+.65*Math.abs(Math.sin(t*4)));
- const VT=(window.__VTIME__!=null)?+window.__VTIME__:(t<=9.2?t-3.4:5.8+(t-9.2)/1.5);let vh=null,vOn=false;const vsched=(window.__VSCHED__&&window.__VSCHED__.length)?window.__VSCHED__:(window.VOICE_SCHED||[]).map(function(s){var atV=(s.at<=9.2)?s.at-3.4:5.8+(s.at-9.2)/1.5;return{key:s.key,at:atV,dur:s.dur};});
+ const waitSec=((window.__VTIME__==null)&&window.__WAIT_START__>0&&t>=cfg.duration-0.03)?(performance.now()-window.__WAIT_START__)/1000:0;let VT=(window.__VTIME__!=null)?+window.__VTIME__:(t<=9.2?t-3.4:5.8+(t-9.2)/1.5);VT+=waitSec;let vh=null,vOn=false;const vsched=(window.__VSCHED__&&window.__VSCHED__.length)?window.__VSCHED__:(window.VOICE_SCHED||[]).map(function(s){var atV=(s.at<=9.2)?s.at-3.4:5.8+(s.at-9.2)/1.5;return{key:s.key,at:atV,dur:s.dur};});
  for(const s of vsched){if(VT>=s.at-0.02&&VT<s.at+s.dur){const e=(window.VOICE_ENV||{})[s.key];if(e&&e.length){const vt=VT-s.at;vh=Array.from({length:20},(_,k)=>{const st=Math.max(0,vt-(19-k)*0.055);const fi=st/0.008;const ai=Math.min(e.length-1,Math.floor(fi));const af=fi-Math.floor(fi);const a=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);return 4+Math.min(360,Math.pow(Math.max(0,a),0.9)*360)});vOn=true;}break;}}
  const h=vh||Array(20).fill(4);const voiceVisible=vOn?1:0;const scale=cfg.voiceWidth/1920;
  $('voice').style.opacity=voiceVisible;
@@ -48,7 +48,7 @@ function seek(v){t=Math.max(+cfg.startAt||0,Math.min(cfg.duration,v));last=perfo
 $('play').onclick=()=>playing?pause():play();$('restart').onclick=()=>{seek(+cfg.startAt||0);play()};$('seek').max=cfg.duration;$('seek').min=+cfg.startAt||0;$('seek').oninput=e=>seek(+e.target.value);$('connection').onclick=()=>{pause();seek(+cfg.startAt||0)};$('loading').onclick=()=>{pause();seek(14)};$('fullscreen').onclick=()=>$('stage').requestFullscreen();$('voiceStart').oninput=()=>{syncAudio();render()};
 $('file').onchange=async e=>{const f=e.target.files[0];if(!f)return;const id=++loadId;pause();try{ctx??=new AudioContext();const b=await ctx.decodeAudioData(await f.arrayBuffer());if(id!==loadId)return;const samples=new Float32Array(b.length);for(let c=0;c<b.numberOfChannels;c++){const a=b.getChannelData(c);for(let i=0;i<a.length;i++)samples[i]+=a[i]/b.numberOfChannels}env=VoiceAnimation.envelope(samples,b.sampleRate);if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(f);audio.src=url;$('audioInfo').textContent=f.name+' · '+b.duration.toFixed(1)+' 秒；点击播放试听。';render()}catch{$('audioInfo').textContent='音频无法解码，请使用 MP3、WAV 或 M4A。'}};
 $('reset').onclick=()=>{cfg=JSON.parse(JSON.stringify(defaults));persist();settings();render()};$('save').onclick=()=>{const a=document.createElement('a'),u=URL.createObjectURL(new Blob([JSON.stringify({...cfg,voiceStart:+$('voiceStart').value},null,2)],{type:'application/json'}));a.href=u;a.download='animation-settings.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};
-function tick(){if(playing){{const now=performance.now();const dt=(now-last)/1000;last=now;const sp=(t>=+cfg.speedStart&&t<+cfg.speedEnd)?(+cfg.speed||1):1;t=Math.min(cfg.duration,t+dt*sp);}if(t>=cfg.duration)pause();syncAudio();render()}requestAnimationFrame(tick)}settings();render();tick();
+function tick(){if(playing){{const now=performance.now();const dt=(now-last)/1000;last=now;const sp=(t>=+cfg.speedStart&&t<+cfg.speedEnd)?(+cfg.speed||1):1;t=Math.min(cfg.duration,t+dt*sp);}if(t>=cfg.duration)pause();syncAudio();render()}if(!playing&&t>=cfg.duration-0.05)render();requestAnimationFrame(tick)}settings();render();tick();
 
 $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pause();seek(t+1/60)};
 /* ===== 跳过按钮（Lead 增加） ===== */
@@ -65,6 +65,34 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   var aud={},played={};
   sched.forEach(function(e){var k=e[1];if(!mute&&vc[k]){var a=new Audio(vc[k]);a.preload='auto';aud[k]=a;played[k]=false;}});
   if(!mute&&vc.line4){var l4=new Audio(vc.line4);l4.preload='auto';aud.line4=l4;played.line4=false;}
+  /* v2.15.5：模板内配音效果（与全局 5 个声音效果同参数）；只在宿主注入 voiceFx 时生效。 */
+  var VOICE_FX_PRESETS={'ai-mech':{hp:130,lp:4200,peak:{f:260,g:4,q:1.0},drive:0.15,ring:0},'robot':{hp:180,lp:3200,peak:{f:1500,g:3,q:0.9},drive:0.35,ring:42},'radio':{hp:420,lp:2800,peak:{f:1800,g:5,q:1.2},drive:0.6,ring:0},'oldtv':{hp:220,lp:2200,peak:null,drive:0.45,ring:0},'dark':{hp:90,lp:1200,peak:{f:180,g:5,q:0.8},drive:0.1,ring:0}};
+  var voiceFxMode=String((cfg&&cfg.voiceFx)||'none');
+  var fxAC=null,fxDone={};
+  function voiceDriveCurve(amount){var k=Math.max(0,Math.min(1,Number(amount)||0))*60,n=1024,curve=new Float32Array(n);for(var i=0;i<n;i++){var x=(i*2)/n-1;curve[i]=((3+k)*x*20*Math.PI/180)/(Math.PI+k*Math.abs(x))}return curve}
+  function attachVoiceFx(k){
+    if(voiceFxMode==='none'||fxDone[k])return;
+    var a=aud[k];if(!a)return;
+    var P=VOICE_FX_PRESETS[voiceFxMode];if(!P)return;
+    var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+    function build(){
+      if(fxDone[k])return;
+      try{
+        var c=fxAC||(fxAC=new AC());var src=c.createMediaElementSource(a);var node=src;
+        if(P.hp){var hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=P.hp;node.connect(hp);node=hp}
+        if(P.lp){var lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=P.lp;node.connect(lp);node=lp}
+        if(P.peak){var pk=c.createBiquadFilter();pk.type='peaking';pk.frequency.value=P.peak.f;pk.gain.value=P.peak.g;pk.Q.value=P.peak.q;node.connect(pk);node=pk}
+        if(P.drive){var ws=c.createWaveShaper();ws.curve=voiceDriveCurve(P.drive);ws.oversample='2x';node.connect(ws);node=ws}
+        if(P.ring){var rg=c.createGain();rg.gain.value=0.55;var osc=c.createOscillator();osc.frequency.value=P.ring;osc.type='sine';var mg=c.createGain();mg.gain.value=0.45;osc.connect(mg);mg.connect(rg.gain);node.connect(rg);node=rg;osc.start()}
+        node.connect(c.destination);fxDone[k]=true;
+      }catch(e){}
+    }
+    try{
+      if(!fxAC)fxAC=new AC();
+      if(fxAC.state==='running')build();
+      else fxAC.resume().then(function(){if(fxAC.state==='running')build()}).catch(function(){});
+    }catch(e){}
+  }
   window.VOICE_SCHED=sched.map(function(e){return{key:e[1],at:e[0],dur:e[2]};});
   var scale=cfg.voiceWidth/1920, eggSvg=null, eggG=null;
   function ensureEggVoice(){
@@ -89,7 +117,7 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   var shown=false,done=false,rolled=false,v3Ended=false,waitStart=0,v4Timer=null,replayTimer=null,eggShownAt=0;
   var hit=q.get('egg')==='1'||Math.random()<EGG_CHANCE;
   function stopVoice(){Object.keys(aud).forEach(function(k){var a=aud[k];try{a.pause();a.currentTime=0}catch(e){}});if(v4Timer){clearTimeout(v4Timer);v4Timer=null}if(replayTimer){clearTimeout(replayTimer);replayTimer=null}}
-  function playKey(k){var a=aud[k];if(a&&!played[k]){played[k]=true;try{a.currentTime=0;a.play().catch(function(){})}catch(e){}}}
+  function playKey(k){var a=aud[k];if(a&&!played[k]){played[k]=true;attachVoiceFx(k);try{a.currentTime=0;a.play().catch(function(){})}catch(e){}}}
   function resetPlayed(){Object.keys(played).forEach(function(k){played[k]=false});v3Ended=false}
   function showEgg(){
     if(shown||done)return; shown=true; rolled=true; playing=false;
@@ -97,14 +125,14 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
     eggEl.classList.add('on'); eggEl.setAttribute('aria-hidden','false'); try{document.body.classList.add('egg-on')}catch(e){}
     eggShownAt=performance.now(); eggVoice(-1);
     v4Timer=setTimeout(function(){playKey('line4')},eggLineAt*1000);
-    replayTimer=setTimeout(reconnect,(eggLineAt+line4Dur+eggReplayWait)*1000);
+    /* v2.15.6：不再自动 reconnect——彩蛋必须等用户点【重新连接】，否则动画会自己往下走、声音叠在一起。 */
     render();
   }
   function eggFrame(sec){showEgg();stopVoice();window.__EGG_T=Math.max(0,sec);eggShownAt=performance.now()-window.__EGG_T*1000;if(sec>=eggLineAt)playKey('line4');eggVoice(window.__EGG_T-eggLineAt);}
   function hideEgg(){eggEl.classList.remove('on');eggEl.setAttribute('aria-hidden','true');try{document.body.classList.remove('egg-on')}catch(e){}shown=false;}
-  function reconnect(){if(done)return;hideEgg();stopVoice();resetPlayed();waitStart=0;seek(cfg.loadingStart);playing=true;last=performance.now();var pb=document.getElementById('play');if(pb)pb.textContent='暂停';render();}
+  function reconnect(){if(done)return;hideEgg();stopVoice();resetPlayed();waitStart=0;window.__WAIT_START__=0;seek(cfg.loadingStart);playing=true;last=performance.now();var pb=document.getElementById('play');if(pb)pb.textContent='暂停';render();}
   function doneEmit(){if(done)return;done=true;try{document.dispatchEvent(new CustomEvent('dsh-startup-done'))}catch(e){}try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-done'},'*')}catch(e){}try{if(typeof window.__DSH_DONE__==='function')window.__DSH_DONE__()}catch(e){}}
-  function flashDone(){hideEgg();if(flashEl)flashEl.classList.add('on');setTimeout(function(){if(flashEl)flashEl.classList.remove('on');doneEmit()},260);}
+  function flashDone(){window.__WAIT_START__=0;hideEgg();if(flashEl)flashEl.classList.add('on');setTimeout(function(){if(flashEl)flashEl.classList.remove('on');doneEmit()},260);}
   if(btn)btn.addEventListener('click',function(e){e.preventDefault();reconnect();});
   if(aud.orig3)aud.orig3.addEventListener('ended',function(){v3Ended=true});
   (function watch(){
@@ -112,7 +140,7 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
       if(playing){sched.forEach(function(e){if(t>=e[0])playKey(e[1]);});}
       if(!rolled&&playing&&!shown&&t>=eggAt){rolled=true;if(hit)showEgg();}
       if(shown){var elap=(window.__EGG_T!=null?window.__EGG_T:(performance.now()-eggShownAt)/1000);eggVoice(elap-eggLineAt);}
-      if(!shown&&t>=cfg.duration-0.02){if(!waitStart)waitStart=performance.now();var waitVoice=(!mute&&aud.orig3&&!v3Ended&&(performance.now()-waitStart<4000));if(!waitVoice)flashDone();}
+      if(!shown&&t>=cfg.duration-0.02){if(!waitStart){waitStart=performance.now();window.__WAIT_START__=waitStart;}var waitVoice=(!mute&&aud.orig3&&!v3Ended&&(performance.now()-waitStart<4000));if(!waitVoice)flashDone();}
     }
     requestAnimationFrame(watch);
   })();

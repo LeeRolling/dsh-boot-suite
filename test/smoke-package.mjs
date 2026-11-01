@@ -28,4 +28,26 @@ for (const needle of ['TargetPkg', 'CheckOnly', 'DSH_BOOT_SUITE_ROLLBACK', '回�
 for (const f of ['line-1.mp3', 'line-6.mp3', 'dry-line-1.mp3']) {
   if (fs.existsSync(path.join(root, 'lib/assets', f))) throw new Error('旧 TTS 配音素材未删除：' + f);
 }
+
+/* v2.15.5：全景大肥鱼-含彩蛋版（重命名 + 结尾波形 + 模板内配音效果） */
+const tplJson = JSON.parse(fs.readFileSync(path.join(root, 'templates/division-bigfish-codex/template.json'), 'utf8'))
+if (tplJson.name !== '全景大肥鱼-含彩蛋版') throw new Error('模板名称未更新：' + tplJson.name)
+const bigfishApp = fs.readFileSync(path.join(root, 'templates/division-bigfish-codex/app.js'), 'utf8')
+for (const needle of ['attachVoiceFx', 'window.__WAIT_START__', 'VOICE_FX_PRESETS']) {
+  if (!bigfishApp.includes(needle)) throw new Error('模板内配音效果/结尾波形缺少：' + needle)
+}
+const hostStartup = fs.readFileSync(path.join(root, 'lib/host-startup.js'), 'utf8')
+if (!hostStartup.includes("bigfishVoiceFx: 'none'")) throw new Error('host-startup 缺少 bigfishVoiceFx 默认值')
+if (!hostStartup.includes("window.CONFIG.voiceFx='")) throw new Error('host-startup 未注入模板 voiceFx')
+const clientJs = fs.readFileSync(path.join(root, 'lib/client.js'), 'utf8')
+for (const needle of ['bigfishVoiceFx', '全景大肥鱼-含彩蛋版']) {
+  if (!clientJs.includes(needle)) throw new Error('设置页缺少：' + needle)
+}
+/* v2.15.6：掉线彩蛋必须等用户点【重新连接】，不许自动 reconnect */
+if (bigfishApp.includes('setTimeout(reconnect')) throw new Error('彩蛋仍有自动 reconnect 定时器')
+if (!bigfishApp.includes('必须等用户点【重新连接】')) throw new Error('彩蛋等待逻辑缺少注释锚点')
+const bigfishCfg = fs.readFileSync(path.join(root, 'templates/division-bigfish-codex/config.js'), 'utf8')
+if (bigfishCfg.includes('eggReplayWait')) throw new Error('config.js 仍残留 eggReplayWait 自动重播字段')
+/* v2.15.7：结尾等待配音时必须继续渲染波形 */
+if (!bigfishApp.includes('if(!playing&&t>=cfg.duration-0.05)render();')) throw new Error('结尾等待期缺少渲染调用，波形会再次冻住')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');

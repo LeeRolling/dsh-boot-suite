@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "id": "division-bigfish-codex",
-  "name": "全境大肥鱼（掉线彩蛋）",
+  "name": "全景大肥鱼-含彩蛋版",
   "engine": "iframe",
   "entry": "index.html",
   "author": "LeeRolling",
-  "description": "全境封锁风格的可编辑代码动画，含「掉线彩蛋」分支。",
+  "description": "全景大肥鱼风格的代码动画（含掉线彩蛋），五句配音可配效果。",
   "duration": 25.92
 }
