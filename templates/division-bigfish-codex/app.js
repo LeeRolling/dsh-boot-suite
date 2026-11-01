@@ -31,15 +31,16 @@ function voiceTextWidth(text,fs,ls,weight){
 }
 function renderVoiceRow(h,sub,visible){
   var g=$('voice');if(!g)return;
-  var baseY=cfg.voiceY,iconW=150,gap=28,dshFs=140,dshLs=14,barW=4.5,barGap=19.2;
+  var baseY=cfg.voiceY,s=(cfg.voiceWidth||520)/1920;
+  var iconW=270*s,gap=34*s,dshFs=178*s,dshLs=18*s,barW=4.5*s,barGap=29.2*s,subFs=dshFs;
   var dshW=voiceTextWidth('DSH',dshFs,dshLs,'700');
-  var subFs=42,subW=sub?voiceTextWidth(sub,subFs,1,'400'):0;
   var waveW=19*barGap+barW;
+  var subW=sub?voiceTextWidth(sub,subFs,0,'400'):0;
   var total=iconW+gap+dshW+gap+waveW+(subW?gap+subW:0);
-  while(total>1860&&subW&&subFs>30){subFs-=2;subW=voiceTextWidth(sub,subFs,1,"400");total=iconW+gap+dshW+gap+waveW+gap+subW}
+  while(total>1860&&subW&&subFs>dshFs*0.7){subFs-=2*s;subW=voiceTextWidth(sub,subFs,0,'400');total=iconW+gap+dshW+gap+waveW+gap+subW}
   var x=960-total/2;
   var dshX=x+iconW+gap,waveX=dshX+dshW+gap,subX=waveX+waveW+gap;
-  var bars=h.map(function(v,i){return '<rect x="'+(i*barGap).toFixed(2)+'" y="'+(baseY-v/2).toFixed(1)+'" width="'+barW+'" height="'+v.toFixed(1)+'" rx="1.1" fill="#efeee5"/>'}).join('');
+  var bars=h.map(function(v,i){return '<rect x="'+(i*barGap).toFixed(2)+'" y="'+(baseY-(v*s)/2).toFixed(1)+'" width="'+barW.toFixed(2)+'" height="'+(v*s).toFixed(1)+'" rx="'+(1.1*s).toFixed(2)+'" fill="#efeee5"/>'}).join('');
   g.innerHTML='<image href="assets/whale-badge-line.png" x="'+x+'" y="'+(baseY-iconW/2)+'" width="'+iconW+'" height="'+iconW+'" preserveAspectRatio="xMidYMid meet"/><text x="'+dshX+'" y="'+baseY+'" dominant-baseline="central" font-family="\'DIN Alternate\',\'Bahnschrift\',\'Microsoft YaHei\',sans-serif" font-size="'+dshFs+'" font-weight="700" letter-spacing="'+dshLs+'" fill="#e8e5d9">DSH</text><g transform="translate('+waveX+' 0)">'+bars+'</g>';
   g.setAttribute('transform','translate(0 0)');
   g.style.opacity=visible;
