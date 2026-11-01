@@ -86,4 +86,10 @@ if (bigfishApp.includes('flashEl')) throw new Error('app.js 仍引用模板白�
 if (bigfishApp.includes('flashEl')) throw new Error('app.js 仍残留白闪动画')
 if (skipCss.includes('#flash')) throw new Error('style.css 仍残留 #flash 样式')
 if (!/return done\.then\(function \(\) \{[\s\S]{0,260}transOut\(transType\('Out'\), finish\)/.test(splashJs)) throw new Error('iframe 模板收尾未交给插件退场转场')
+/* v2.15.12：结尾等配音时圆环继续转 */
+if (!bigfishApp.includes('const rt=t+waitSec')) throw new Error('结尾圆环未使用连续旋转时钟 rt')
+if (!bigfishApp.includes('rotate(${rt*5})')) throw new Error('外圈未使用 rt 旋转')
+if (!bigfishApp.includes('rotate(${-rt*12})')) throw new Error('内圈未使用 rt 旋转')
+if (!bigfishApp.includes('Math.sin(rt*6.54)')) throw new Error('外圈脉冲未使用 rt')
+if (!/function flashDone\(\)\{hideEgg\(\);doneEmit\(\);\}/.test(bigfishApp)) throw new Error('flashDone 不应再清零旋转时钟')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');

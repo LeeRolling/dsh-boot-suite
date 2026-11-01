@@ -18,23 +18,26 @@ function progress(time){const a=cfg.progress;if(time<=a[0][0])return a[0][1];for
 function render(){
  const m=HUDMotion.state(t,cfg.loadingStart),loading=m.load,p=progress(t);
  lastLoaded=m.load;
+ /* v2.15.12：结尾等配音时 t 冻结在 duration，波形/圆环改用连续时钟 rt，动画不中断 */
+ const waitSec=((window.__VTIME__==null)&&window.__WAIT_START__>0&&t>=cfg.duration-0.03)?(performance.now()-window.__WAIT_START__)/1000:0;
+ const rt=t+waitSec;
  $('rings').style.opacity=m.opacity;$('rings').removeAttribute('transform');
- $('outer').setAttribute('transform',`scale(${m.outerScale}) rotate(${t*5})`);$('outer').style.opacity=m.outerOpacity;
+ $('outer').setAttribute('transform',`scale(${m.outerScale}) rotate(${rt*5})`);$('outer').style.opacity=m.outerOpacity;
  $('ticks').setAttribute('transform',`scale(${m.outerScale*m.outerPulse})`);$('ticks').style.opacity=m.outerOpacity;
- $('outerPulse').setAttribute('r',210*m.outerScale*m.outerPulse);$('outerPulse').style.opacity=m.outerOpacity*(.16+.2*Math.pow(Math.max(0,Math.sin(t*6.54)),8));
+ $('outerPulse').setAttribute('r',210*m.outerScale*m.outerPulse);$('outerPulse').style.opacity=m.outerOpacity*(.16+.2*Math.pow(Math.max(0,Math.sin(rt*6.54)),8));
  $('markers').setAttribute('transform',`scale(${.66+.34*m.expand})`);$('markers').style.opacity=m.opacity;
- $('inner').setAttribute('transform',`rotate(${-t*12})`);$('middle').removeAttribute('transform');
+ $('inner').setAttribute('transform',`rotate(${-rt*12})`);$('middle').removeAttribute('transform');
  $('pulse').setAttribute('r',m.innerPulse);$('pulse').style.opacity=m.pulseOpacity;
  $('pulseTrail').setAttribute('r',Math.max(2,m.innerPulse-5));$('pulseTrail').style.opacity=m.pulseOpacity*.33;
  $('tip').style.opacity=m.tipOpacity*m.flicker;$('tip').setAttribute('transform',`translate(0 ${-7*(1-m.tipReveal)}) scale(1 ${.96+.04*m.tipReveal})`);
  $('percent').textContent=loading&&m.percentOpacity>0?Math.round(p)+'%':'';$('percent').style.opacity=m.percentOpacity;
  const sweep=m.solidRing*359+(1-m.solidRing)*(loading?Math.max(.01,p*3.6):265);
  $('progressArc').setAttribute('d',arc(98,-90,-90+sweep));$('progressArc').setAttribute('stroke',m.solidRing>.1?'#f99508':loading?'#f29420':'#9c5c10');
- $('progressArc').setAttribute('transform',`rotate(${loading||m.solidRing>.9?0:(t*110)%360})`);
+ $('progressArc').setAttribute('transform',`rotate(${loading||m.solidRing>.9?0:(rt*110)%360})`);
  $('status').textContent=loading?'加载中':'连接中：'+cfg.username;$('status').style.opacity=m.opacity*m.labelOpacity;
  $('statusArrow').style.opacity=m.opacity*m.labelOpacity;
- $('statusDots').style.opacity=m.opacity*m.labelOpacity*(.35+.65*Math.abs(Math.sin(t*4)));
- const waitSec=((window.__VTIME__==null)&&window.__WAIT_START__>0&&t>=cfg.duration-0.03)?(performance.now()-window.__WAIT_START__)/1000:0;let VT=(window.__VTIME__!=null)?+window.__VTIME__:(t<=9.2?t-3.4:5.8+(t-9.2)/1.5);VT+=waitSec;let vh=null,vOn=false;const vsched=(window.__VSCHED__&&window.__VSCHED__.length)?window.__VSCHED__:(window.VOICE_SCHED||[]).map(function(s){var atV=(s.at<=9.2)?s.at-3.4:5.8+(s.at-9.2)/1.5;return{key:s.key,at:atV,dur:s.dur};});
+ $('statusDots').style.opacity=m.opacity*m.labelOpacity*(.35+.65*Math.abs(Math.sin(rt*4)));
+ let VT=(window.__VTIME__!=null)?+window.__VTIME__:(t<=9.2?t-3.4:5.8+(t-9.2)/1.5);VT+=waitSec;let vh=null,vOn=false;const vsched=(window.__VSCHED__&&window.__VSCHED__.length)?window.__VSCHED__:(window.VOICE_SCHED||[]).map(function(s){var atV=(s.at<=9.2)?s.at-3.4:5.8+(s.at-9.2)/1.5;return{key:s.key,at:atV,dur:s.dur};});
  for(const s of vsched){if(VT>=s.at-0.02&&VT<s.at+s.dur){const e=(window.VOICE_ENV||{})[s.key];if(e&&e.length){const vt=VT-s.at;vh=Array.from({length:20},(_,k)=>{const st=Math.max(0,vt-(19-k)*0.055);const fi=st/0.008;const ai=Math.min(e.length-1,Math.floor(fi));const af=fi-Math.floor(fi);const a=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);return 4+Math.min(360,Math.pow(Math.max(0,a),0.9)*360)});vOn=true;}break;}}
  const h=vh||Array(20).fill(4);const voiceVisible=vOn?1:0;const scale=cfg.voiceWidth/1920;
  $('voice').style.opacity=voiceVisible;
@@ -157,7 +160,8 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   function hideEgg(){eggEl.classList.remove('on');eggEl.setAttribute('aria-hidden','true');try{document.body.classList.remove('egg-on')}catch(e){}shown=false;}
   function reconnect(){if(done)return;hideEgg();stopVoice();bgmSig(true);resetPlayedAfter(cfg.loadingStart);waitStart=0;window.__WAIT_START__=0;seek(cfg.loadingStart);playing=true;last=performance.now();var pb=document.getElementById('play');if(pb)pb.textContent='暂停';render();}
   function doneEmit(){if(done)return;done=true;try{document.dispatchEvent(new CustomEvent('dsh-startup-done'))}catch(e){}try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-done'},'*')}catch(e){}try{if(typeof window.__DSH_DONE__==='function')window.__DSH_DONE__()}catch(e){}}
-  function flashDone(){window.__WAIT_START__=0;hideEgg();doneEmit();}
+  /* v2.15.12：不清 __WAIT_START__，让圆环/波形一直转到 iframe 被移除（转场期间不跳帧） */
+  function flashDone(){hideEgg();doneEmit();}
   if(btn)btn.addEventListener('click',function(e){e.preventDefault();reconnect();});
   if(aud.orig3)aud.orig3.addEventListener('ended',function(){v3Ended=true});
   (function watch(){
