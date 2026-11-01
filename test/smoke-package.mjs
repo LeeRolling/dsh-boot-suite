@@ -104,4 +104,11 @@ if (!bigfishCfg.includes("reconnect:'检测到特工重新连接。'")) throw ne
 if (!bigfishCfg.includes("line4:'警告：特工已离线。'")) throw new Error('config.js 缺少彩蛋 line4 字幕')
 if (!bigfishApp.includes('renderVoiceRow')) throw new Error('模板未使用整行字幕布局 renderVoiceRow')
 if (!fs.existsSync(path.join(root, 'templates/division-bigfish-codex/assets/whale-badge-line.png'))) throw new Error('缺少鲸鱼徽章图标 whale-badge-line.png')
+/* v2.15.14：重连提示音独占一整行，播完再继续，且不再续播断句 */
+if (!bigfishApp.includes('重连接提示音独占一整行')) throw new Error('app.js 缺少重连提示音独占一行的实现')
+if (!bigfishApp.includes('const cueOn=')) throw new Error('渲染未使用重连提示音分支 cueOn')
+if (!bigfishApp.includes('playing&&!cueGate')) throw new Error('重连期间未门控后续配音（cueGate）')
+if (!bigfishApp.includes('played.line2=false;played.line3=false;played.orig3=false')) throw new Error('重连后未重置后续配音的播放标记')
+if (/resetPlayedAfter\(cfg\.loadingStart\)/.test(bigfishApp)) throw new Error('重连仍会续播断句（resetPlayedAfter）')
+if (!bigfishApp.includes('cueFailTimer')) throw new Error('重连提示音缺少播放失败的兜底解除门控')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');
