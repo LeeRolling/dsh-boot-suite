@@ -3,6 +3,12 @@ window.CONFIG={
   username:'人类与AI的日常',
   title:'什么是「模板」？',
   description:'模板是别人做好的启动动画，一键安装就生效。也可以自己换标题、换台词、换时长。',
+  tips:[
+    {title:'什么是「模板」？',description:'模板是别人做好的启动动画，一键安装就生效。也可以自己换标题、换台词、换时长。'},
+    {title:'操作提示',description:'按 空格 可以切换下一条提示；动画结束会自动进入聊天。'},
+    {title:'掉线彩蛋',description:'进度条运行中，有小概率遇到一条「掉线」消息，按提示重连即可继续。'},
+    {title:'想自己改？',description:'打开模板编辑器，标题、正文、连接用户名都能改，保存后下次启动生效。'}
+  ],
   duration:25.92,
   startAt:3.4,
   loadingStart:9.2,

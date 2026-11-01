@@ -8,12 +8,16 @@ $('inner').innerHTML=path(79,3,245,'#6d4713',2)+path(75,255,358,'#39270b',2)+pat
 $('markers').innerHTML=[0,120,240].map(a=>`<g transform="rotate(${a})"><path d="M-10 -165H10M-17 -172v-5h5M17 -172v-5h-5" fill="none" stroke="#77776d" stroke-width="2"/></g>`).join('')+'<path d="M-252 -3l-6 4 6 4M252 -3l6 4-6 4M-4 -235l4-6 4 6" fill="#555"/>';
 $('pages').innerHTML=Array.from({length:5},(_,i)=>`<rect x="${1215+i*17}" y="320" width="12" height="13" fill="${i?'#444':'#c77917'}"/>`).join('');
 function settings(){for(const [id,key] of [['username','username'],['heading','title'],['body','description']])$(id).value=cfg[key];$('title').textContent=cfg.title;$('description').textContent=cfg.description;$('gap').value=(cfg.voiceY||908)-853}
+var tips=(Array.isArray(cfg.tips)&&cfg.tips.length)?cfg.tips:[{title:cfg.title,description:cfg.description}];
+var tipIndex=0,lastLoaded=false;
+function setTip(i){var it=tips[i]||tips[0]||{};try{$('title').textContent=it.title||'';$('description').textContent=it.description||''}catch(e){}}
 function persist(){try{localStorage.setItem('division-editable',JSON.stringify(cfg))}catch{}}
 for(const [id,key] of [['username','username'],['heading','title'],['body','description']])$(id).oninput=()=>{cfg[key]=$(id).value;persist();$('title').textContent=cfg.title;$('description').textContent=cfg.description;render()};
 $('gap').oninput=()=>{cfg.voiceY=853+ +$('gap').value;persist();render()};
 function progress(time){const a=cfg.progress;if(time<=a[0][0])return a[0][1];for(let i=1;i<a.length;i++)if(time<=a[i][0])return a[i-1][1]+(a[i][1]-a[i-1][1])*(time-a[i-1][0])/(a[i][0]-a[i-1][0]);return a.at(-1)[1]}
 function render(){
  const m=HUDMotion.state(t,cfg.loadingStart),loading=m.load,p=progress(t);
+ lastLoaded=m.load;
  $('rings').style.opacity=m.opacity;$('rings').removeAttribute('transform');
  $('outer').setAttribute('transform',`scale(${m.outerScale}) rotate(${t*5})`);$('outer').style.opacity=m.outerOpacity;
  $('ticks').setAttribute('transform',`scale(${m.outerScale*m.outerPulse})`);$('ticks').style.opacity=m.outerOpacity;
@@ -114,3 +118,19 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   })();
   window.__DSH_APP__={play:play,pause:pause,seek:seek,showEgg:showEgg,eggFrame:eggFrame,flashDone:flashDone};
 })();
+
+
+/* v2.15.2：加载阶段按空格切换下一条 tips；彩蛋卡片打开时不拦截（交给卡片自己的按钮）。 */
+document.addEventListener('keydown',function(e){
+  if(e.code!=='Space'&&e.key!==' ')return;
+  if(!lastLoaded)return;
+  var card=document.getElementById('egg-card');
+  if(card){
+    var st=getComputedStyle(card);
+    if(st.display!=='none'&&st.visibility!=='hidden'&&card.getBoundingClientRect().width>0)return;
+  }
+  e.preventDefault();e.stopPropagation();
+  tipIndex=(tipIndex+1)%tips.length;
+  setTip(tipIndex);
+});
+setTip(0);
