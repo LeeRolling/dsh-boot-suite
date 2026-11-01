@@ -33,6 +33,26 @@ const pkgInstall = `%USERPROFILE%\\.dsh\\boot-suite-updates\\${version}\\pkg\\to
 const helperName = `升级到 ${version}（先完全退出 DSH 再双击）.cmd`
 const helperPath = path.join(desktop, helperName)
 
+/* 自检 0（2026-11-02 事故）：暂存包必须真的在 <updates>\<版本>\pkg\ 下，
+   否则生成的助手双击后必然报 “install.ps1 不存在”。生成前先确认，绝不给用户一个空指路牌。 */
+const stagedPkg = path.join(os.homedir(), '.dsh', 'boot-suite-updates', version, 'pkg')
+const stagedInstall = path.join(stagedPkg, 'tools', 'install.ps1')
+if (!fs.existsSync(stagedInstall)) {
+  console.error(`[x] 生成失败：暂存包不完整，缺少 ${stagedInstall}`)
+  console.error(`[x] 先把发布包解压到 ${stagedPkg}（注意是 pkg 子目录），再来生成桌面助手。`)
+  process.exit(1)
+}
+try {
+  const stagedVersion = JSON.parse(fs.readFileSync(path.join(stagedPkg, 'package.json'), 'utf8')).version
+  if (stagedVersion !== version) {
+    console.error(`[x] 生成失败：暂存包版本是 ${stagedVersion}，与要求的 ${version} 不一致`)
+    process.exit(1)
+  }
+} catch (err) {
+  console.error(`[x] 生成失败：读不到暂存包 package.json（${err.message}）`)
+  process.exit(1)
+}
+
 /* 整段模板：一行一个元素，绝不把版本号单独拼成数组元素 */
 const lines = [
   '@echo off',
