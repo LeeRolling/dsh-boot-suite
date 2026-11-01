@@ -111,6 +111,8 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   var eggLineAt=+(vc.eggLineAt!=null?vc.eggLineAt:2.0), eggReplayWait=+(vc.eggReplayWait!=null?vc.eggReplayWait:2.0), line4Dur=+(vc.line4Dur||1.911);
   var aud={},played={},activeVoice=null;window.__DSH_AUDIO_ON__=!mute;window.__DSH_ACTIVE_VOICE__='';
   sched.forEach(function(e){var k=e[1];if(!mute&&vc[k]){var a=new Audio(vc[k]);a.preload='auto';a.volume=voiceVol;a.addEventListener('ended',function(){if(activeVoice===k){activeVoice=null;window.__DSH_ACTIVE_VOICE__='';}voiceDuck(false)});aud[k]=a;played[k]=false;}});
+  if(!mute&&vc.reconnect){var rc=new Audio(vc.reconnect);rc.preload='auto';rc.volume=voiceVol;rc.addEventListener('ended',function(){if(activeVoice==='reconnect'){activeVoice=null;window.__DSH_ACTIVE_VOICE__=''}window.__DSH_CUE__='';window.__DSH_CUE_UNTIL__=0;voiceDuck(false)});aud.reconnect=rc;played.reconnect=true;}
+  function playReconnectCue(){if(mute||!aud.reconnect)return;setTimeout(function(){try{aud.reconnect.currentTime=0;aud.reconnect.play().catch(function(){})}catch(e){}activeVoice='reconnect';window.__DSH_ACTIVE_VOICE__='';var txt=(cfg.voice&&cfg.voice.subs&&cfg.voice.subs.reconnect)||'';window.__DSH_CUE__=txt;window.__DSH_CUE_UNTIL__=performance.now()+((aud.reconnect.duration||2.82)*1000+200);voiceDuck(true)},500)}
   if(!mute&&vc.line4){var l4=new Audio(vc.line4);l4.preload='auto';l4.volume=voiceVol;l4.addEventListener('ended',function(){if(activeVoice==='line4'){activeVoice=null;window.__DSH_ACTIVE_VOICE__='';}voiceDuck(false)});aud.line4=l4;played.line4=false;}
   /* v2.15.5：模板内配音效果（与全局 5 个声音效果同参数）；只在宿主注入 voiceFx 时生效。 */
   var VOICE_FX_PRESETS={'ai-mech':{hp:130,lp:4200,peak:{f:260,g:4,q:1.0},drive:0.15,ring:0},'robot':{hp:180,lp:3200,peak:{f:1500,g:3,q:0.9},drive:0.35,ring:42},'radio':{hp:420,lp:2800,peak:{f:1800,g:5,q:1.2},drive:0.6,ring:0},'oldtv':{hp:220,lp:2200,peak:null,drive:0.45,ring:0},'dark':{hp:90,lp:1200,peak:{f:180,g:5,q:0.8},drive:0.1,ring:0}};
@@ -190,7 +192,7 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   }
   function eggFrame(sec){showEgg();stopVoice();window.__EGG_T=Math.max(0,sec);eggShownAt=performance.now()-window.__EGG_T*1000;if(sec>=eggLineAt)playKey('line4');eggVoice(window.__EGG_T-eggLineAt);}
   function hideEgg(){eggEl.classList.remove('on');eggEl.setAttribute('aria-hidden','true');try{document.body.classList.remove('egg-on')}catch(e){}shown=false;}
-  function reconnect(){if(done)return;hideEgg();stopVoice();bgmSig(true);resetPlayedAfter(cfg.loadingStart);waitStart=0;window.__WAIT_START__=0;seek(cfg.loadingStart);playing=true;last=performance.now();var pb=document.getElementById('play');if(pb)pb.textContent='暂停';render();}
+  function reconnect(){if(done)return;hideEgg();stopVoice();bgmSig(true);resetPlayedAfter(cfg.loadingStart);played.orig1=true;played.line1=true;playReconnectCue();waitStart=0;window.__WAIT_START__=0;seek(cfg.loadingStart);playing=true;last=performance.now();var pb=document.getElementById('play');if(pb)pb.textContent='暂停';render();}
   function doneEmit(){if(done)return;done=true;try{document.dispatchEvent(new CustomEvent('dsh-startup-done'))}catch(e){}try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-done'},'*')}catch(e){}try{if(typeof window.__DSH_DONE__==='function')window.__DSH_DONE__()}catch(e){}}
   /* v2.15.12：不清 __WAIT_START__，让圆环/波形一直转到 iframe 被移除（转场期间不跳帧） */
   function flashDone(){hideEgg();doneEmit();}
