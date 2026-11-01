@@ -118,4 +118,7 @@ if (!bigfishCfg.includes("[20.0,'line3',3.300]")) throw new Error('config.js 时
 /* v2.15.16：掉线彩蛋等当前配音播完再弹出，不硬切语音/字幕 */
 if (!bigfishApp.includes('掉线彩蛋若正好赶上某句配音')) throw new Error('app.js 缺少彩蛋等待当前配音播完的逻辑')
 if (!bigfishApp.includes('eggWait=true')) throw new Error('app.js 缺少 eggWait 等待状态')
+/* v2.15.17：字幕/波形跟随配音真实播放时钟 */
+if (!bigfishApp.includes('__DSH_AUDIO_T__')) throw new Error('app.js 缺少配音真实时钟镜像 __DSH_AUDIO_T__')
+if (!bigfishApp.includes('function eggVoice(){')) throw new Error('app.js 彩蛋字幕未改为音频时钟驱动')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');
