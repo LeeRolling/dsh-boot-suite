@@ -113,12 +113,40 @@ if (/resetPlayedAfter\(cfg\.loadingStart\)/.test(bigfishApp)) throw new Error('�
 if (!bigfishApp.includes('cueFailTimer')) throw new Error('重连提示音缺少播放失败的兜底解除门控')
 /* v2.15.15：重连提示音也要走插件的配音效果；line3 顺延，避免和 line2 叠音 */
 if (!bigfishApp.includes("attachVoiceFx('reconnect')")) throw new Error('重连提示音未接入配音效果')
-if (!bigfishApp.includes("[20.0,'line3',3.300]")) throw new Error('app.js 默认时间线未把 line3 顺延到 20.0s')
-if (!bigfishCfg.includes("[20.0,'line3',3.300]")) throw new Error('config.js 时间线未把 line3 顺延到 20.0s')
+if (!bigfishApp.includes("[25.0,'line3',3.300]")) throw new Error('app.js 默认时间线未把 line3 顺延到 25.0s')
+if (!bigfishCfg.includes("[25.0,'line3',3.300]")) throw new Error('config.js 时间线未把 line3 顺延到 25.0s')
 /* v2.15.16：掉线彩蛋等当前配音播完再弹出，不硬切语音/字幕 */
 if (!bigfishApp.includes('掉线彩蛋若正好赶上某句配音')) throw new Error('app.js 缺少彩蛋等待当前配音播完的逻辑')
 if (!bigfishApp.includes('eggWait=true')) throw new Error('app.js 缺少 eggWait 等待状态')
 /* v2.15.17：字幕/波形跟随配音真实播放时钟 */
 if (!bigfishApp.includes('__DSH_AUDIO_T__')) throw new Error('app.js 缺少配音真实时钟镜像 __DSH_AUDIO_T__')
 if (!bigfishApp.includes('function eggVoice(){')) throw new Error('app.js 彩蛋字幕未改为音频时钟驱动')
+/* v2.16.0：配音串行播放 + 彩蛋尾部等待（1.5x 加速段避免叠音、最后一句不被截断） */
+if (!bigfishApp.includes('配音串行播放')) throw new Error('app.js 缺少配音串行播放（防叠音）')
+if (!bigfishApp.includes('!__busy')) throw new Error('app.js 未按前一句播完再启动下一句')
+if (!bigfishApp.includes('eggLeft<=6')) throw new Error('app.js 彩蛋等待条件未覆盖动画尾部')
+if (!bigfishApp.includes('!shown&&!eggWait')) throw new Error('app.js 动画收尾未等待彩蛋语音播完')
+
+/* v2.16.0：第一节延长 5s + 插入登录 ID 动画；读取段整体后移 */
+if (!bigfishCfg.includes('loginStart:9.2')) throw new Error('config.js 缺少 loginStart=9.2')
+if (!bigfishCfg.includes('loginDur:5.0')) throw new Error('config.js 缺少 loginDur=5.0')
+if (!bigfishCfg.includes("sched:[[4.6,'orig1',2.65],[9.8,'login',1.79],[14.5,'line1',3.375],[18.4,'line2',3.232],[25.0,'line3',3.300],[30.45,'orig3',2.77]]")) throw new Error('config.js 配音时间线未按三段时间轴重排')
+if (!bigfishApp.includes("[14.5,'line1',3.375],[18.4,'line2',3.232]")) throw new Error('app.js 默认配音时间线未同步')
+if (!bigfishApp.includes('var LOGIN=')) throw new Error('app.js 缺少登录 ID 动画模块')
+if (!bigfishApp.includes('voiceVT')) throw new Error('app.js 缺少静音模式的配音时间轴换算 voiceVT')
+if (!bigfishApp.includes('sanitize')) throw new Error('app.js 缺少用户名安全化处理')
+if (!bigfishHtml.includes('id="login"') || !bigfishHtml.includes('id="login-line1"')) throw new Error('index.html 缺少登录 ID 动画节点')
+if (!bigfishHtml.includes('login-scan-text') || !bigfishHtml.includes('login-name')) throw new Error('index.html 缺少登录动画扫描/用户名节点')
+if (Number(tplJson.duration) !== 33.4) throw new Error('template.json duration 未更新为 33.4')
+/* v2.16.0 第二版：5s 登录段、整体 1/3 尺寸、贝塞尔平移、第二段配音 */
+if (!bigfishCfg.includes("login:'assets/voice-login.wav'")) throw new Error('config.js 缺少第二段登录配音资源')
+if (!bigfishCfg.includes("login:'特工身份确认。'")) throw new Error('config.js 缺少登录配音中文字幕')
+if (!fs.existsSync(path.join(root, 'templates/division-bigfish-codex/assets/voice-login.wav'))) throw new Error('缺少第二段登录配音 voice-login.wav')
+if (!bigfishHtml.includes('login-l2-track')) throw new Error('index.html 缺少贝塞尔平移轨道 login-l2-track')
+if (!bigfishHtml.includes('login-voice-layer')) throw new Error('index.html 缺少登录段配音行图层 login-voice-layer')
+if (!bigfishApp.includes('function bezier(')) throw new Error('app.js 缺少贝塞尔缓动实现')
+if (!bigfishApp.includes("track.style.transform='translateX('")) throw new Error('app.js 未用 track 平移实现平滑过渡')
+if (!bigfishApp.includes("renderVoiceRow($('login-voice')")) throw new Error('app.js 登录段未使用配音行 renderVoiceRow')
+if (!skipCss.includes('width:min(500px,92vw)')) throw new Error('style.css 登录框未缩到 1/3 尺寸')
+
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');

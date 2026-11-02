@@ -46,12 +46,145 @@ function renderVoiceRow(g,se,h,sub,visible){
   g.style.opacity=visible;
   if(se){if(se.textContent!==sub)se.textContent=sub||'';se.setAttribute('x',String(subX));se.setAttribute('y',String(baseY));se.setAttribute('text-anchor','start');se.setAttribute('dominant-baseline','central');se.setAttribute('font-size',String(subFs));se.style.opacity=(visible&&sub)?1:0}
 }
+var loginStart=+(cfg.loginStart!=null?cfg.loginStart:cfg.loadingStart),loginDur=Math.max(0,+(cfg.loginDur||0)),loginEnd=loginStart+loginDur;
+function voiceVT(x){if(x<loginEnd)return Math.max(0,x-(+cfg.startAt||0));return 11.6+(x-cfg.loadingStart)/1.5}
+/* ===== v2.16.0：登录 ID 动画（WELCOME TO DEEPSEEK HARNESS + 正在登录：用户名） ===== */
+var LOGIN=(function(){
+  var el=$('login'),l1=$('login-line1'),l2=$('login-line2'),track=$('login-l2-track'),head=$('login-l2-head'),scanText=$('login-scan-text'),scanWrap=scanText?scanText.parentNode:null,scanBar=$('login-scan-bar'),colon=$('login-colon'),nameEl=$('login-name'),caret=$('login-caret'),meta=$('login-name-meta');
+  if(!el||!l1||!l2||!track||!head||!scanText||!nameEl)return null;
+  var L1='WELCOME TO DEEPSEEK HARNESS';
+  var POOL='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&@$*+-=/<>[]{}';
+  /* 5s 版：第一行 0.18~1.2s、扫描 1.28~1.73s、冒号 1.76~1.88s、用户名 1.94~4.34s、停留到 5s */
+  var L1_START=0.18,L1_SPAN=0.72,L1_FLICK=0.3;
+  var L2_START=1.28,L2_SCAN=0.45,COLON_AT=1.76,COLON_DUR=0.12,NAME_AT=1.94,NAME_DUR=2.4,SLIDE_DUR=0.62;
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  /* 用户名安全化：去掉控制符/双向控制符与 \ / : * ? " < > |，合并空白，最多 20 个字符（按码点计）。 */
+  function sanitize(raw){
+    var s=String(raw==null?'':raw).replace(/[\u0000-\u001F\u007F\u200B-\u200F\u2028-\u202E\uFEFF]/g,'').replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,' ').trim();
+    var cp=Array.from(s);if(cp.length>20)cp=cp.slice(0,20);
+    return cp.join('');
+  }
+  function esc(ch){return ch===' '?'&nbsp;':ch.replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+  var rnd=mulberry32(20261102),l1c=null,order=[],nameChars=[],nmc=null,settles=[],rates=[],builtName=null,HEAD_W=0,NAME_W=0,measuredKey='';
+  function rebuild(name){
+    var s=sanitize(name)||'AGENT';
+    if(s===builtName)return;
+    builtName=s;
+    l1.innerHTML=L1.split('').map(function(ch){return '<span class="l1c">'+(ch===' '?'&nbsp;':ch)+'</span>'}).join('');
+    l1c=l1.children;
+    var idx=[];for(var i=0;i<L1.length;i++)idx.push(i);
+    for(var j=idx.length-1;j>0;j--){var k=Math.floor(rnd()*(j+1));var tmp=idx[j];idx[j]=idx[k];idx[k]=tmp}
+    order=new Array(L1.length);idx.forEach(function(v,rank){order[v]=rank});
+    nameChars=Array.from(s);
+    nameEl.innerHTML=nameChars.map(function(ch){return '<span class="nmc">'+esc(ch)+'</span>'}).join('');
+    nmc=nameEl.children;
+    settles=nameChars.map(function(){return rnd()});
+    rates=nameChars.map(function(){return 12+rnd()*22});
+    /* 按最终字符宽度定宽，乱码阶段不会因为字宽变化而抖动 */
+    for(var m=0;m<nmc.length;m++){nmc[m].style.width=(nmc[m].getBoundingClientRect().width+0.6)+'px';}
+    measuredKey='';measure();
+    colon.style.opacity='0';caret.style.opacity='0';scanBar.style.opacity='0';if(scanWrap)scanWrap.style.setProperty('--p','0%');
+    if(meta)meta.textContent='AUTH MODULE v2.16';
+  }
+  function measure(){
+    var fs=parseFloat(getComputedStyle(l2).fontSize)||17;
+    var key=fs.toFixed(2)+'|'+Math.round(l2.clientWidth);
+    if(key===measuredKey)return;
+    measuredKey=key;
+    HEAD_W=head.getBoundingClientRect().width;
+    NAME_W=nameEl.getBoundingClientRect().width;
+  }
+  /* 三次贝塞尔缓动（cubic-bezier(.22,1,.36,1)），用于「正在登录」平滑左移 */
+  function bezier(p){
+    p=Math.max(0,Math.min(1,p));
+    var x1=.22,y1=1,x2=.36,y2=1;
+    var t=p;
+    for(var i=0;i<4;i++){
+      var mt=1-t;
+      var x=3*mt*mt*t*x1+3*mt*t*t*x2+t*t*t;
+      var dx=3*mt*mt*x1+6*mt*t*(x2-x1)+3*t*t*(1-x2);
+      if(Math.abs(dx)<1e-6)break;
+      t=Math.max(0,Math.min(1,t-(x-p)/dx));
+    }
+    var m2=1-t;
+    return 3*m2*m2*t*y1+3*m2*t*t*y2+t*t*t;
+  }
+  function render(lt,name){
+    rebuild(name);measure();
+    var n=l1c.length;
+    for(var i=0;i<n;i++){
+      var st=L1_START+(order[i]/Math.max(1,n-1))*L1_SPAN,en=st+L1_FLICK,c=l1c[i],final=L1[i];
+      if(lt<st){c.textContent=POOL[(i*131+Math.floor(lt*26)*17)%POOL.length];c.style.opacity=String(0.05+0.22*Math.max(0,Math.sin(lt*11+i)));}
+      else if(lt<en){c.textContent=POOL[(i*97+Math.floor(lt*30)*31)%POOL.length];c.style.opacity=String(0.25+0.75*((lt-st)/L1_FLICK));}
+      else{c.textContent=final===' '?'\u00a0':final;c.style.opacity='1';}
+    }
+    l1.style.opacity=String(0.9+0.1*Math.abs(Math.sin(lt*13)));
+    var p=Math.max(0,Math.min(1,(lt-L2_START)/L2_SCAN));
+    if(scanWrap)scanWrap.style.setProperty('--p',(p*100).toFixed(2)+'%');
+    scanBar.style.top=(p*100).toFixed(2)+'%';
+    if(lt>=L2_START-0.03&&lt<=L2_START+L2_SCAN)scanBar.style.opacity='1';
+    else if(lt>L2_START+L2_SCAN)scanBar.style.opacity=String(Math.max(0,1-(lt-(L2_START+L2_SCAN))/0.12));
+    else scanBar.style.opacity='0';
+    colon.style.opacity=String(Math.max(0,Math.min(1,(lt-COLON_AT)/COLON_DUR)));
+    for(var j=0;j<nmc.length;j++){
+      var cs=NAME_AT+0.04+settles[j]*NAME_DUR,e2=nmc[j];
+      if(lt<NAME_AT){e2.style.opacity='0';continue;}
+      if(lt<cs){e2.textContent=POOL[(j*73+Math.floor(lt*rates[j])*29)%POOL.length];e2.style.opacity=String(0.55+0.25*Math.abs(Math.sin(lt*rates[j])));e2.classList.remove('settled');}
+      else{e2.textContent=nameChars[j]===' '?'\u00a0':nameChars[j];e2.style.opacity='1';e2.classList.add('settled');}
+    }
+    caret.style.opacity=(lt>=NAME_AT&&(Math.floor((lt-NAME_AT)*2.6)%2===0))?'1':'0';
+    /* 用户名出现时整行按贝塞尔曲线平移，避免「正在登录」瞬移 */
+    var W=l2.clientWidth||1;
+    var xHead=Math.max(0,(W-HEAD_W)/2);
+    var xFull=Math.max(0,(W-(HEAD_W+NAME_W))/2);
+    var k=lt<NAME_AT?0:bezier((lt-NAME_AT)/SLIDE_DUR);
+    track.style.transform='translateX('+(xHead+(xFull-xHead)*k).toFixed(2)+'px)';
+  }
+  return {render:render,sanitize:sanitize};
+})();
+function hideLogin(){var el=$('login'),sc=$('scene');if(el)el.classList.remove('on');if(sc)sc.style.opacity='1';}
+
+function voiceState(VT,rt){
+ let vh=null,vOn=false,sub="";
+ const cueOn=!!(window.__DSH_CUE__&&performance.now()<(window.__DSH_CUE_UNTIL__||0));
+ if(cueOn){
+   sub=window.__DSH_CUE__;
+   vh=Array.from({length:20},(_,k)=>4+Math.min(360,Math.abs(Math.sin(rt*7+k*0.55))*300));
+   vOn=true;
+ }else{
+   const vsched=(window.__VSCHED__&&window.__VSCHED__.length)?window.__VSCHED__:(window.VOICE_SCHED||[]).map(function(x){var atV=voiceVT(x.at);return{key:x.key,at:atV,dur:(x.at>=loginEnd?x.dur/1.5:x.dur)};});
+   const audioOn=!!window.__DSH_AUDIO_ON__, avNow=window.__DSH_ACTIVE_VOICE__||'', aNow=+window.__DSH_AUDIO_T__||0, aPlaying=!!window.__DSH_AUDIO_PLAYING__;
+   for(const x of vsched){
+     let vt=null;
+     if(audioOn){if(avNow===x.key&&aPlaying)vt=Math.max(0,aNow);}
+     else if(VT>=x.at-0.02&&VT<x.at+x.dur)vt=VT-x.at;
+     if(vt==null)continue;
+     sub=(cfg.voice&&cfg.voice.subs&&cfg.voice.subs[x.key])||"";
+     const e=(window.VOICE_ENV||{})[x.key];
+     if(e&&e.length){vh=Array.from({length:20},(_,k)=>{const st=Math.max(0,vt-(19-k)*0.055);const fi=st/0.008;const ai=Math.min(e.length-1,Math.floor(fi));const af=fi-Math.floor(fi);const a=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);return 4+Math.min(360,Math.pow(Math.max(0,a),0.9)*360)});vOn=true;}
+     else{vh=Array.from({length:20},(_,k)=>4+Math.min(360,Math.abs(Math.sin(vt*7+k*0.55))*300));vOn=true;}
+     break;
+   }
+ }
+ return {h:vh||Array(20).fill(4),sub:sub,on:vOn};
+}
 function render(){
- const m=HUDMotion.state(t,cfg.loadingStart),loading=m.load,p=progress(t);
- lastLoaded=m.load;
- /* v2.15.12：结尾等配音时 t 冻结在 duration，波形/圆环改用连续时钟 rt，动画不中断 */
  const waitSec=((window.__VTIME__==null)&&window.__WAIT_START__>0&&t>=cfg.duration-0.03)?(performance.now()-window.__WAIT_START__)/1000:0;
  const rt=t+waitSec;
+ let VT=(window.__VTIME__!=null)?+window.__VTIME__:voiceVT(t);VT+=waitSec;
+ const vs=voiceState(VT,rt);
+ /* v2.16.0：登录动画期间只驱动登录层，主场景淡出；台词走同一套「图标+DSH+波形+字幕」行 */
+ if(loginDur>0&&t>=loginStart&&t<loginEnd){
+   var lg=$('login'),sc=$('scene');if(sc)sc.style.opacity='0';if(lg)lg.classList.add('on');
+   if(LOGIN)LOGIN.render(t-loginStart,cfg.username);
+   renderVoiceRow($('login-voice'),$('login-voice-sub'),vs.h,vs.sub,vs.on?1:0);
+   lastLoaded=false;
+   $('seek').value=t;$('time').textContent=(t-(+cfg.startAt||0)).toFixed(2)+' / '+(cfg.duration-(+cfg.startAt||0)).toFixed(2)+' s';
+   return;
+ }
+ hideLogin();
+ const m=HUDMotion.state(t,cfg.loadingStart),loading=m.load,p=progress(t);
+ lastLoaded=m.load;
  $('rings').style.opacity=m.opacity;$('rings').removeAttribute('transform');
  $('outer').setAttribute('transform',`scale(${m.outerScale}) rotate(${rt*5})`);$('outer').style.opacity=m.outerOpacity;
  $('ticks').setAttribute('transform',`scale(${m.outerScale*m.outerPulse})`);$('ticks').style.opacity=m.outerOpacity;
@@ -68,30 +201,7 @@ function render(){
  $('status').textContent=loading?'加载中':'连接中：'+cfg.username;$('status').style.opacity=m.opacity*m.labelOpacity;
  $('statusArrow').style.opacity=m.opacity*m.labelOpacity;
  $('statusDots').style.opacity=m.opacity*m.labelOpacity*(.35+.65*Math.abs(Math.sin(rt*4)));
- let VT=(window.__VTIME__!=null)?+window.__VTIME__:(t<=9.2?t-3.4:5.8+(t-9.2)/1.5);VT+=waitSec;let vh=null,vOn=false,sub="";
- /* v2.15.14：重连接提示音独占一整行（图标+DSH+波形+中文），播完才恢复后续配音 */
- const cueOn=!!(window.__DSH_CUE__&&performance.now()<(window.__DSH_CUE_UNTIL__||0));
- if(cueOn){
-   sub=window.__DSH_CUE__;
-   vh=Array.from({length:20},(_,k)=>4+Math.min(360,Math.abs(Math.sin(rt*7+k*0.55))*300));
-   vOn=true;
- }else{
-   const vsched=(window.__VSCHED__&&window.__VSCHED__.length)?window.__VSCHED__:(window.VOICE_SCHED||[]).map(function(s){var atV=(s.at<=9.2)?s.at-3.4:5.8+(s.at-9.2)/1.5;return{key:s.key,at:atV,dur:s.dur};});
-   /* v2.15.17：有配音时，字幕/波形只跟「真正在播的那句」走（音频时钟），
-      避免时间轴窗口结束得比语音早、字幕提前消失。静音模式仍按时间轴显示。 */
-   const audioOn=!!window.__DSH_AUDIO_ON__, avNow=window.__DSH_ACTIVE_VOICE__||'', aNow=+window.__DSH_AUDIO_T__||0, aPlaying=!!window.__DSH_AUDIO_PLAYING__;
-   for(const s of vsched){
-     let vt=null;
-     if(audioOn){if(avNow===s.key&&aPlaying)vt=Math.max(0,aNow);}
-     else if(VT>=s.at-0.02&&VT<s.at+s.dur)vt=VT-s.at;
-     if(vt==null)continue;
-     sub=(cfg.voice&&cfg.voice.subs&&cfg.voice.subs[s.key])||"";
-     const e=(window.VOICE_ENV||{})[s.key];
-     if(e&&e.length){vh=Array.from({length:20},(_,k)=>{const st=Math.max(0,vt-(19-k)*0.055);const fi=st/0.008;const ai=Math.min(e.length-1,Math.floor(fi));const af=fi-Math.floor(fi);const a=((e[ai]||0)*(1-af)+(e[Math.min(e.length-1,ai+1)]||0)*af);return 4+Math.min(360,Math.pow(Math.max(0,a),0.9)*360)});vOn=true;}
-     break;
-   }
- }
-const h=vh||Array(20).fill(4);const voiceVisible=vOn?1:0;renderVoiceRow($('voice'),$('subtitle'),h,sub,voiceVisible);$('seek').value=t;$('time').textContent=(t-(+cfg.startAt||0)).toFixed(2)+' / '+(cfg.duration-(+cfg.startAt||0)).toFixed(2)+' s';
+  renderVoiceRow($('voice'),$('subtitle'),vs.h,vs.sub,vs.on?1:0);$('seek').value=t;$('time').textContent=(t-(+cfg.startAt||0)).toFixed(2)+' / '+(cfg.duration-(+cfg.startAt||0)).toFixed(2)+' s';
 }
 function syncAudio(){if(!env)return;const at=t- +$('voiceStart').value;if(at<0||at>=env.duration){audio.pause();return}if(Math.abs(audio.currentTime-at)>.12)audio.currentTime=at;if(playing&&audio.paused)audio.play().catch(()=>{$('audioInfo').textContent='请点击播放以启用音频。'});if(!playing)audio.pause()}
 function play(){if(t>=cfg.duration)t=+cfg.startAt||0;playing=true;last=performance.now();$('play').textContent='暂停';syncAudio()}
@@ -128,12 +238,12 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
   function voiceDuck(on){try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-voice',on:!!on},'*')}catch(e){}}
   /* v2.15.10：彩蛋弹出时请宿主截断 BGM；重连后请宿主重新播 */
   function bgmSig(on){try{if(parent&&parent!==window)parent.postMessage({type:'dsh-startup-bgm',on:!!on},'*')}catch(e){}}
-  var sched=vc.sched||[[4.6,'orig1',2.65],[8.0,'line1',3.375],[12.8,'line2',3.232],[20.0,'line3',3.300],[25.45,'orig3',2.77]];
+  var sched=vc.sched||[[4.6,'orig1',2.65],[9.8,'login',1.79],[14.5,'line1',3.375],[18.4,'line2',3.232],[25.0,'line3',3.300],[30.45,'orig3',2.77]];
   var eggLineAt=+(vc.eggLineAt!=null?vc.eggLineAt:2.0), eggReplayWait=+(vc.eggReplayWait!=null?vc.eggReplayWait:2.0), line4Dur=+(vc.line4Dur||1.911);
   var aud={},played={},activeVoice=null,cueGate=false,cueFailTimer=null;window.__DSH_AUDIO_ON__=!mute;window.__DSH_ACTIVE_VOICE__='';window.__DSH_AUDIO_T__=-1;window.__DSH_AUDIO_PLAYING__=false;
   sched.forEach(function(e){var k=e[1];if(!mute&&vc[k]){var a=new Audio(vc[k]);a.preload='auto';a.volume=voiceVol;a.addEventListener('ended',function(){if(activeVoice===k){activeVoice=null;window.__DSH_ACTIVE_VOICE__='';}window.__DSH_AUDIO_PLAYING__=false;window.__DSH_AUDIO_T__=-1;voiceDuck(false)});aud[k]=a;played[k]=false;}});
   if(!mute&&vc.reconnect){var rc=new Audio(vc.reconnect);rc.preload='auto';rc.volume=voiceVol;rc.addEventListener('ended',function(){if(activeVoice==='reconnect'){activeVoice=null;window.__DSH_ACTIVE_VOICE__=''}window.__DSH_CUE__='';window.__DSH_CUE_UNTIL__=0;cueGate=false;voiceDuck(false)});aud.reconnect=rc;played.reconnect=true;}
-  /* v2.15.14：重连提示音只播自己这一行；播完（ended）才解除 cueGate，后续 line2/line3/orig3 才允许开始 */
+  /* v2.15.14：重连接提示音独占一整行；重连提示音只播自己这一行；播完（ended）才解除 cueGate，后续 line2/line3/orig3 才允许开始 */
   function playReconnectCue(){if(mute||!aud.reconnect)return;cueGate=true;setTimeout(function(){try{attachVoiceFx('reconnect');aud.reconnect.currentTime=0;aud.reconnect.play().catch(function(){})}catch(e){}activeVoice='reconnect';window.__DSH_ACTIVE_VOICE__='';var txt=(cfg.voice&&cfg.voice.subs&&cfg.voice.subs.reconnect)||'';var d=isFinite(aud.reconnect.duration)&&aud.reconnect.duration>0?aud.reconnect.duration:2.82;window.__DSH_CUE__=txt;window.__DSH_CUE_UNTIL__=performance.now()+d*1000+150;voiceDuck(true);if(cueFailTimer)clearTimeout(cueFailTimer);
     /* 兜底：音频若因自动播放策略被拒，ended 不会触发；到时强制解除门控，避免后续配音全被卡住 */
     cueFailTimer=setTimeout(function(){if(activeVoice==='reconnect'){activeVoice=null;window.__DSH_ACTIVE_VOICE__='';window.__DSH_CUE__='';window.__DSH_CUE_UNTIL__=0;cueGate=false;voiceDuck(false)}},d*1000+1500)},500)}
@@ -240,13 +350,18 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
          让字幕与波形以音频时钟为准，而不是按时间轴推算。 */
       var __av=activeVoice?aud[activeVoice]:null;
       if(__av){window.__DSH_AUDIO_T__=+__av.currentTime||0;window.__DSH_AUDIO_DUR__=+__av.duration||0;window.__DSH_AUDIO_PLAYING__=!__av.paused&&!__av.ended;}
-      if(playing&&!cueGate){sched.forEach(function(e){if(t>=e[0])playKey(e[1]);});}
+      if(playing&&!cueGate){
+        /* v2.16.0：配音串行播放——上一句没播完（ended/pause）不启动下一句。
+           原因：第三节是 1.5x 加速段，时间轴会比真实音频快，按时间轴 forEach 会让 line1 尾巴和 line2 叠在一起。 */
+        var __busy=!!(activeVoice&&aud[activeVoice]&&!aud[activeVoice].paused&&!aud[activeVoice].ended);
+        if(!__busy){var __next=null;sched.forEach(function(e){if(!__next&&t>=e[0]&&!played[e[1]])__next=e;});if(__next)playKey(__next[1]);}
+      }
       /* v2.15.16：掉线彩蛋若正好赶上某句配音，先等这句播完再弹出，避免语音和字幕被硬切断（有兜底超时）。 */
       if(!rolled&&playing&&!shown&&t>=eggAt){
         if(!hit){rolled=true;}
         else if(!eggWait&&activeVoice&&aud[activeVoice]&&!aud[activeVoice].paused&&!aud[activeVoice].ended){
           var eggA=aud[activeVoice], eggLeft=(+eggA.duration||0)-(+eggA.currentTime||0);
-          if(isFinite(eggLeft)&&eggLeft>0.05&&t+eggLeft<=cfg.duration-0.25){
+          if(isFinite(eggLeft)&&eggLeft>0.05&&eggLeft<=6){
             eggWait=true;
             (function(a){
               var fired=false,fin=function(){if(fired)return;fired=true;eggWait=false;eggWaitTimer=null;rolled=true;showEgg();};
@@ -257,7 +372,7 @@ $('prevFrame').onclick=()=>{pause();seek(t-1/60)};$('nextFrame').onclick=()=>{pa
         } else if(!eggWait){rolled=true;showEgg();}
       }
       if(shown){eggVoice();}
-      if(!shown&&t>=cfg.duration-0.02){if(!waitStart){waitStart=performance.now();window.__WAIT_START__=waitStart;}var waitVoice=(!mute&&aud.orig3&&!v3Ended&&(performance.now()-waitStart<4000));if(!waitVoice)flashDone();}
+      if(!shown&&!eggWait&&t>=cfg.duration-0.02){if(!waitStart){waitStart=performance.now();window.__WAIT_START__=waitStart;}var waitVoice=(!mute&&aud.orig3&&!v3Ended&&(performance.now()-waitStart<4000));if(!waitVoice)flashDone();}
     }
     requestAnimationFrame(watch);
   })();

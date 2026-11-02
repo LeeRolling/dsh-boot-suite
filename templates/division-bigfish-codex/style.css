@@ -16,3 +16,30 @@
 #egg-retry{min-width:280px;padding:14px 26px;background:#15171a;border:1px solid rgba(255,255,255,.35);color:#e8e8e8;font-size:20px;letter-spacing:4px;cursor:pointer}
 #egg-retry:hover{border-color:#f09a2e;color:#fff;background:#1b1d21}
 body.egg-on #skip{display:none!important}
+
+/* ===== v2.16.0：登录 ID 动画（整体缩到原来的 1/3） ===== */
+#scene{transition:opacity .35s ease}
+#login{position:fixed;inset:0;z-index:70;display:none;overflow:hidden;background:radial-gradient(700px 410px at 50% 42%,#0b0a08 0%,#050505 58%,#000 100%);opacity:0;transition:opacity .35s ease;pointer-events:none}
+#login.on{display:block;opacity:1}
+.login-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(240,138,29,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(240,138,29,.055) 1px,transparent 1px);background-size:48px 48px;-webkit-mask-image:radial-gradient(circle at 50% 45%,#000 0%,transparent 72%);mask-image:radial-gradient(circle at 50% 45%,#000 0%,transparent 72%);pointer-events:none}
+.login-scanlines{position:absolute;inset:0;background:repeating-linear-gradient(to bottom,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);pointer-events:none;opacity:.45}
+.login-frame{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(500px,92vw);text-align:center;font-family:'Consolas','Courier New','Microsoft YaHei',monospace;color:#f08a1d}
+.login-frame:before,.login-frame:after{content:'';position:absolute;width:18px;height:18px;border:1px solid rgba(240,138,29,.5);pointer-events:none}
+.login-frame:before{left:-10px;top:-10px;border-right:0;border-bottom:0}
+.login-frame:after{right:-10px;bottom:-10px;border-left:0;border-top:0}
+.login-meta{display:flex;justify-content:space-between;font-size:clamp(5px,0.5vw,9px);letter-spacing:.22em;color:rgba(240,138,29,.55);text-transform:uppercase}
+.login-line1{margin:clamp(6px,1vh,13px) 0 clamp(5px,.8vh,10px);font-size:clamp(9px,1.4vw,27px);font-weight:700;letter-spacing:.03em;white-space:nowrap;color:#f7a23a;text-shadow:0 0 7px rgba(240,138,29,.3)}
+.login-line1 .l1c{display:inline-block;min-width:.32em}
+.login-line2{position:relative;height:1.5em;font-size:clamp(7px,.9vw,17.3px);letter-spacing:.02em;white-space:nowrap;color:#ffb04d;text-shadow:0 0 6px rgba(240,138,29,.3)}
+.login-l2-track{position:absolute;left:0;top:0;display:inline-flex;align-items:baseline;white-space:nowrap;will-change:transform}
+.login-l2-head{display:inline-flex;align-items:baseline}
+.login-scan-wrap{position:relative;display:inline-block;--p:0%;line-height:1}
+#login-scan-text{display:inline-block;line-height:1;-webkit-mask-image:linear-gradient(to bottom,#000 0 var(--p),transparent var(--p));mask-image:linear-gradient(to bottom,#000 0 var(--p),transparent var(--p))}
+#login-scan-bar{position:absolute;left:-3%;width:106%;height:1px;top:0;background:#ffb04d;box-shadow:0 0 5px 1px rgba(240,138,29,.85);pointer-events:none;opacity:0}
+#login-colon{opacity:0}
+#login-name{color:#f08a1d;display:inline-block;white-space:nowrap}
+.login-line2 .nmc{display:inline-block;text-align:center;vertical-align:baseline;line-height:1}
+.login-line2 .nmc.settled{color:#ffc36b}
+#login-caret{display:inline-block;width:.09em;height:.9em;background:#f08a1d;margin-left:.08em;opacity:0;transform:translateY(.08em)}
+.login-foot{margin-top:clamp(8px,1.4vh,18px);color:rgba(240,138,29,.45)}
+.login-voice-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
