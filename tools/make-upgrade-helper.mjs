@@ -61,6 +61,7 @@ const lines = [
   'echo ============================================================',
   `echo  Install dsh-boot-suite v${version} from this staged package.`,
   'echo  IMPORTANT: fully quit DeepSeek Harness first (window + tray).',
+  'echo  If it hangs at step 2: close this window, turn off any proxy, then double-click again.',
   'echo ============================================================',
   'echo.',
   `powershell -NoProfile -ExecutionPolicy Bypass -File "${pkgInstall}"`,

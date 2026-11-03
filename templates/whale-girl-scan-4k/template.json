@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "id": "whale-girl-scan-4k",
-  "name": "鲸鱼娘扫描睁眼（4K）",
+  "name": "鲸鱼娘扫描睁眼（4K AV1）",
   "author": "素材：NativeDog1/dsh-boot-animation（BSD-3-Clause）；8K 超分：1catmint1/dsh-boot-animation-8k；模板维护：LeeRolling",
   "homepage": "https://github.com/LeeRolling/dsh-boot-suite",
   "license": "BSD-3-Clause",
   "version": "1.0.0",
-  "description": "鲸鱼娘「DeepSeek娘扫描睁眼」4K 版（3840×2160，7 秒），全屏播放 + 淡入淡出。由社区作者 1catmint1 的 8K 超分版下采样而来（8K 源：https://github.com/1catmint1/dsh-boot-animation-8k ，BSD-3-Clause）；原片：NativeDog1/dsh-boot-animation（BSD-3-Clause）。桌面版建议用本 4K 版或 2K 版，8K 版在桌面端有内存崩溃风险，仅建议网页端/收藏使用。",
+  "description": "鲸鱼娘「DeepSeek娘扫描睁眼」4K 版（3840×2160，7 秒，AV1 编码），全屏播放 + 淡入淡出。AV1 在部分机器上没有硬解、会走 CPU 软解导致掉帧；遇到掉帧请改用「鲸鱼娘扫描睁眼（4K H.264）」或 2K 版。由社区作者 1catmint1 的 8K 超分版下采样而来（8K 源：https://github.com/1catmint1/dsh-boot-animation-8k ，BSD-3-Clause）；原片：NativeDog1/dsh-boot-animation（BSD-3-Clause）。桌面版建议用本 4K 版或 2K 版，8K 版在桌面端有内存崩溃风险，仅建议网页端/收藏使用。",
   "tags": [
     "anime",
     "whale",

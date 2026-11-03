@@ -22,6 +22,20 @@ $ErrorActionPreference = 'Stop'
 function Say($m) { Write-Host $m }
 function Die($m) { Write-Host ('[x] ' + $m) -ForegroundColor Red; exit 1 }
 
+# v2.16.2：代理探测。开着代理时 pnpm 访问 npm registry 可能长时间卡住（用户实测第二步无响应）。
+function Get-ProxyInfo {
+  $marks = @()
+  foreach ($n in @('HTTP_PROXY','HTTPS_PROXY','ALL_PROXY','http_proxy','https_proxy','all_proxy')) {
+    $v = [Environment]::GetEnvironmentVariable($n)
+    if ($v) { $marks += ($n + '=' + $v) }
+  }
+  try {
+    $reg = Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' -ErrorAction Stop
+    if ($reg.ProxyEnable -eq 1 -and $reg.ProxyServer) { $marks += ('系统代理=' + $reg.ProxyServer) }
+  } catch {}
+  return ($marks -join '；')
+}
+
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 if (-not (Test-Path (Join-Path $RepoRoot 'package.json'))) { Die ('这不像插件目录：' + $RepoRoot) }
 if (-not (Test-Path (Join-Path $RepoRoot 'lib\index.js'))) { Die '源码不完整（缺 lib\index.js），你下载的可能是残缺的压缩包' }
@@ -319,6 +333,22 @@ foreach ($profile in $targets) {
   }
 
   Say '  [2/3] 安装本插件（link 方式，改代码即生效）…'
+  $proxyInfo = Get-ProxyInfo
+  if ($proxyInfo -and -not $ManualMode) {
+    Say ''
+    Say '  [提示] 检测到代理：' + $proxyInfo
+    Say '         已知问题：开着代理时，安装这一步（pnpm 访问 npm registry）可能长时间卡住。'
+    Say '         如果卡住超过 2 分钟：按 Ctrl+C 关窗口 → 暂时关闭代理 → 重新双击本助手。'
+    Say '         也可以把 registry.npmjs.org 设为直连/绕过代理。'
+    Say ''
+    for ($pi = 5; $pi -ge 1; $pi--) { Write-Host ('         5 秒后继续…（' + $pi + '）'); Start-Sleep -Seconds 1 }
+  }
+  $prevFetchTimeout = [Environment]::GetEnvironmentVariable('npm_config_fetch_timeout')
+  $prevFetchRetries = [Environment]::GetEnvironmentVariable('npm_config_fetch_retries')
+  if (-not $ManualMode) {
+    $env:npm_config_fetch_timeout = '30000'
+    $env:npm_config_fetch_retries = '2'
+  }
   if ($ManualMode) {
     Install-Manual $profileDir
   } else {
@@ -328,6 +358,15 @@ foreach ($profile in $targets) {
     try { $outAdd = (& $dsh plugin --profile $profile add $spec 2>&1 | Out-String) } catch { $outAdd = $_.Exception.Message }
     if ($outAdd.Trim()) { $outAdd.Trim().Split([char]10) | ForEach-Object { '        ' + $_ } }
     $addExit = $LASTEXITCODE
+    if ($addExit -ne 0) {
+      Say '        第一次安装没成功，改用 npm 国内镜像重试一次…'
+      $prevRegistry = [Environment]::GetEnvironmentVariable('npm_config_registry')
+      $env:npm_config_registry = 'https://registry.npmmirror.com'
+      try { $outAdd = (& $dsh plugin --profile $profile add $spec 2>&1 | Out-String) } catch { $outAdd = $_.Exception.Message }
+      $addExit = $LASTEXITCODE
+      if ($outAdd.Trim()) { $outAdd.Trim().Split([char]10) | ForEach-Object { '        ' + $_ } }
+      if ($prevRegistry) { $env:npm_config_registry = $prevRegistry } else { Remove-Item Env:npm_config_registry -ErrorAction SilentlyContinue }
+    }
     $ErrorActionPreference = $eapAdd
     $installedOk = Test-InstalledOk $profileDir
     if ($addExit -ne 0 -or $outAdd -match 'managed exclusively' -or -not $installedOk) {
@@ -342,6 +381,8 @@ foreach ($profile in $targets) {
       if (Test-InstalledOk $profileDir) { $addExit = 0 } else { $addExit = 1 }
     }
   }
+  if ($prevFetchTimeout) { $env:npm_config_fetch_timeout = $prevFetchTimeout } else { Remove-Item Env:npm_config_fetch_timeout -ErrorAction SilentlyContinue }
+  if ($prevFetchRetries) { $env:npm_config_fetch_retries = $prevFetchRetries } else { Remove-Item Env:npm_config_fetch_retries -ErrorAction SilentlyContinue }
   if (-not (Test-InstalledOk $profileDir)) {
     Say '  [x] 安装后校验失败：profile 里没有可用的 dsh-boot-suite'
     Say '      （bundles 里不会添加它，避免 DSH 启动时加载一个不存在的插件）'

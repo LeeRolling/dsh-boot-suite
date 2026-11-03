@@ -149,4 +149,25 @@ if (!bigfishApp.includes("track.style.transform='translateX('")) throw new Error
 if (!bigfishApp.includes("renderVoiceRow($('login-voice')")) throw new Error('app.js 登录段未使用配音行 renderVoiceRow')
 if (!skipCss.includes('width:min(500px,92vw)')) throw new Error('style.css 登录框未缩到 1/3 尺寸')
 
+/* v2.16.1：4K AV1 改名 + 新增 4K H.264 模板 + 第二幕视频诊断/暂停恢复 */
+const tpl4k = JSON.parse(fs.readFileSync(path.join(root, 'templates/whale-girl-scan-4k/template.json'), 'utf8'))
+if (tpl4k.name !== '鲸鱼娘扫描睁眼（4K AV1）') throw new Error('4K AV1 模板名称未更新')
+const tpl4kh = JSON.parse(fs.readFileSync(path.join(root, 'templates/whale-girl-scan-4k-h264/template.json'), 'utf8'))
+if (tpl4kh.name !== '鲸鱼娘扫描睁眼（4K H.264）') throw new Error('缺少 4K H.264 模板名称')
+if (!fs.existsSync(path.join(root, 'templates/whale-girl-scan-4k-h264/assets/whale-girl-scan-4k-h264.mp4'))) throw new Error('缺少 4K H.264 视频文件')
+const splashSrc = fs.readFileSync(path.join(root, 'lib/splash.js'), 'utf8')
+if (!splashSrc.includes('video stats ')) throw new Error('splash.js 缺少第二幕视频丢帧统计')
+if (!splashSrc.includes('video meta ')) throw new Error('splash.js 缺少第二幕视频分辨率日志')
+if (!splashSrc.includes('vResumeTimer')) throw new Error('splash.js 缺少省电暂停自动恢复')
+if (!splashSrc.includes('vp0.catch')) throw new Error('splash.js 未静默 play() 失败')
+/* v2.16.2：新增 4K H.264 必须算「正式模板」，否则第二幕下拉里看不到 */
+const clientSrc = fs.readFileSync(path.join(root, 'lib/client.js'), 'utf8')
+if (!clientSrc.includes("'whale-girl-scan-4k-h264': 1")) throw new Error('client.js 的正式模板白名单缺少 4K H.264')
+/* v2.16.2：安装器代理加固 */
+const installPs1V2162 = fs.readFileSync(path.join(root, 'tools/install.ps1'), 'utf8')
+if (!installPs1V2162.includes('Get-ProxyInfo')) throw new Error('install.ps1 缺少代理探测')
+if (!installPs1V2162.includes('npm_config_fetch_timeout')) throw new Error('install.ps1 缺少 pnpm 网络超时设置')
+if (!installPs1V2162.includes('registry.npmmirror.com')) throw new Error('install.ps1 缺少国内镜像重试')
+const helperGen = fs.readFileSync(path.join(root, 'tools/make-upgrade-helper.mjs'), 'utf8')
+if (!helperGen.includes('turn off any proxy')) throw new Error('升级助手缺少代理提示')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');
