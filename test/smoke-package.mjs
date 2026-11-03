@@ -170,4 +170,10 @@ if (!installPs1V2162.includes('npm_config_fetch_timeout')) throw new Error('inst
 if (!installPs1V2162.includes('registry.npmmirror.com')) throw new Error('install.ps1 缺少国内镜像重试')
 const helperGen = fs.readFileSync(path.join(root, 'tools/make-upgrade-helper.mjs'), 'utf8')
 if (!helperGen.includes('turn off any proxy')) throw new Error('升级助手缺少代理提示')
+/* v2.16.3：设置页下拉改自绘，跟随皮肤 3D 面板平面 */
+if (!clientSrc.includes('__ss_selectMenu')) throw new Error('client.js 缺少自绘下拉菜单')
+if (!clientSrc.includes('aria-haspopup')) throw new Error('client.js 自绘下拉缺少 aria 属性')
+if (!clientSrc.includes('function CwSelect(')) throw new Error('client.js 聊天背景缺少 CwSelect')
+if (clientSrc.includes("h('select',")) throw new Error('client.js 仍残留原生 select（设置页）')
+if (clientSrc.includes("cwH('select',")) throw new Error('client.js 仍残留原生 select（聊天背景）')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');

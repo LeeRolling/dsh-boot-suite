@@ -365,10 +365,10 @@ ok(MODEL.lastRootsBody && MODEL.lastRootsBody.action === 'remove' && String(MODE
 const beforeMode = requests.length
 tree = renderPanel()
 const modeSel = findNode(tree, (n) =>
-  n.type === 'select' && Array.isArray(n.props.children) &&
-  n.props.children.some((o) => o && o.type === 'option' && o.props.value === 'video'))
+  typeof n.type === 'function' && Array.isArray(n.props.options) &&
+  n.props.options.some((o) => o && o[0] === 'video'))
 ok(!!modeSel, '「背景类型」下拉含「循环视频」选项')
-modeSel.props.onChange({ target: { value: 'video' } })
+modeSel.props.onChange('video')
 await flushP(); await flushP(); await flushP(); await flushP()
 const modeReq = requests.slice(beforeMode).find((r) => r.url.includes('/chat-wallpaper/set'))
 const modeBody = modeReq && JSON.parse(modeReq.init.body)

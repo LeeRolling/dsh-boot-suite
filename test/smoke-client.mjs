@@ -34,6 +34,13 @@ const React = {
     const i = hookIndex++
     if (!ranEffects.has(i)) { ranEffects.add(i); fn() }
   },
+  useRef(init) {
+    const i = hookIndex++
+    if (hooks[i] === undefined) hooks[i] = { current: init === undefined ? null : init }
+    return hooks[i]
+  },
+  useMemo(fn) { return fn() },
+  useCallback(fn) { return fn },
   useStateReset() {},
 }
 function resetHooks() { hookIndex = 0 }
@@ -180,6 +187,8 @@ function walk(node, out = []) {
   if (typeof node !== 'object') return out          /* 文本节点本身不收集 */
   if (Array.isArray(node)) { node.forEach((n) => walk(n, out)); return out }
   if (node.type) {
+    /* 自绘下拉 Select 有 hooks，不能直接调用；把它当成一个「下拉节点」收集 */
+    if (typeof node.type === 'function' && node.type.name === 'Select') { out.push(node); return out }
     /* 函数组件要展开（Field / Check / TextInput… 都不用 hooks，直接调用即可） */
     if (typeof node.type === 'function') return walk(node.type(node.props || {}), out)
     out.push(node)
@@ -255,8 +264,8 @@ for (const label of ['第一幕入场', '第一幕 → 第二幕', '第二幕 �
 
 /* 三段转场的下拉：8 种类型 × 3 个；方向下拉：4 个 */
 const selectOf = (values) => walk(tree).filter((n) =>
-  n.type === 'select' && Array.isArray(n.props.children) &&
-  values.every((v) => n.props.children.some((o) => o && o.type === 'option' && o.props.value === v)))
+  typeof n.type === 'function' && Array.isArray(n.props.options) &&
+  values.every((v) => n.props.options.some((o) => o && o[0] === v)))
 const TRANSITION_TYPES = ['dissolve', 'flash', 'glitch', 'scanline', 'slide', 'iris', 'black', 'none']
 const TRANSITION_DIRS = ['left', 'right', 'up', 'down']
 const typeSelects = selectOf(TRANSITION_TYPES)
@@ -283,10 +292,10 @@ check('文件选择器 accept 白名单含 mp4/webm/gif/png/jpg/jpeg/webp',
   fileInput && fileInput.accept)
 
 /* 选择转场 → 保存 patch 里必须带上（沿用现有的 vm 渲染 + 保存路径） */
-typeSelects[0].props.onChange({ target: { value: 'glitch' } })
-typeSelects[1].props.onChange({ target: { value: 'flash' } })
-typeSelects[2].props.onChange({ target: { value: 'scanline' } })
-dirSelects[0].props.onChange({ target: { value: 'up' } })
+typeSelects[0].props.onChange('glitch')
+typeSelects[1].props.onChange('flash')
+typeSelects[2].props.onChange('scanline')
+dirSelects[0].props.onChange('up')
 msRange.props.onChange({ target: { value: '900' } })
 tree = renderPanel()
 const typeSelects2 = selectOf(TRANSITION_TYPES)
@@ -322,17 +331,17 @@ console.log('\n[5c] 删除该动画：本地删文件 / 内置隐藏可恢复（
   const groupTitles = () => walk(tree).filter((n) => n.type === 'div' && n.props && n.props.className === '__ss_groupTitle').map((n) => n.props.children)
   const postList = (prefix) => requests.filter((r) => r.init && r.init.method === 'POST' && String(r.url).includes(prefix))
   const restoreBtn = () => find(tree, (n) => n.type === 'button' && /^恢复已隐藏的内置模板（\d+）$/.test(String(n.props.children || '')))
-  const hasOption = (sel, id) => !!sel && Array.isArray(sel.props.children) &&
-    sel.props.children.some((o) => o && o.type === 'option' && o.props.value === id)
+  const hasOption = (sel, id) => !!sel && Array.isArray(sel.props.options) &&
+    sel.props.options.some((o) => o && o[0] === id)
   /* 第一幕/第二幕两个模板下拉：都含内置 archive-warm，且都有一项「内置/不播放」说明 */
   const templateSelects = () => walk(tree).filter((n) =>
-    n.type === 'select' && Array.isArray(n.props.children) &&
-    n.props.children.some((o) => o && o.type === 'option' && (o.props.value === 'archive-warm' || o.props.value === 'whale-girl-scan')) &&
-    n.props.children.some((o) => o && o.type === 'option' && /内置|不播放/.test(String(o.props.children))))
+    typeof n.type === 'function' && Array.isArray(n.props.options) &&
+    n.props.options.some((o) => o && (o[0] === 'archive-warm' || o[0] === 'whale-girl-scan')) &&
+    n.props.options.some((o) => o && /内置|不播放/.test(String(o[1]))))
   /* archive-warm 被隐藏后上面的定位会失效：改用「有内置/不播放说明」来找两个下拉 */
   const templateSelectsAny = () => walk(tree).filter((n) =>
-    n.type === 'select' && Array.isArray(n.props.children) &&
-    n.props.children.some((o) => o && o.type === 'option' && /内置|不播放/.test(String(o.props.children))))
+    typeof n.type === 'function' && Array.isArray(n.props.options) &&
+    n.props.options.some((o) => o && /内置|不播放/.test(String(o[1]))))
 
   /* ── 组顺序：自定义动画 → 模板 → 转场（保留） ── */
   const titles = groupTitles()
@@ -380,7 +389,7 @@ console.log('\n[5c] 删除该动画：本地删文件 / 内置隐藏可恢复（
   /* ── 选内置模板 → 按钮也启用（v2.12.4 不再只对本地生效） ── */
   let tplSel = templateSelects()
   check('找到第一幕 / 第二幕两个模板下拉', tplSel.length === 2, '实际 ' + tplSel.length)
-  tplSel[0].props.onChange({ target: { value: 'archive-warm' } })
+  tplSel[0].props.onChange('archive-warm')
   tree = renderPanel()
   rows = tplRows()
   check('★ 第一幕选内置 archive-warm → 第一幕按钮 enabled（title=隐藏内置模板（可恢复）），第二幕未选仍置灰',
@@ -389,7 +398,7 @@ console.log('\n[5c] 删除该动画：本地删文件 / 内置隐藏可恢复（
     rowValue(rows[1]) === '' && rowBtn(rows[1]).props.disabled === true,
     JSON.stringify(rows.map((r) => ({ v: rowValue(r), disabled: rowBtn(r).props.disabled, title: rowBtn(r).props.title }))))
   tplSel = templateSelects()
-  tplSel[1].props.onChange({ target: { value: 'whale-girl-scan' } })
+  tplSel[1].props.onChange('whale-girl-scan')
   tree = renderPanel()
   rows = tplRows()
   check('★ 第二幕也选内置 whale-girl-scan → 两个按钮都 enabled',
@@ -450,7 +459,7 @@ console.log('\n[5c] 删除该动画：本地删文件 / 内置隐藏可恢复（
 
   /* ── 本地模板删除路径保持不变（删文件、不可恢复、不进 hidden） ── */
   tplSel = templateSelects()
-  tplSel[0].props.onChange({ target: { value: 'custom-local-a' } })
+  tplSel[0].props.onChange('custom-local-a')
   tree = renderPanel()
   rows = tplRows()
   check('第一幕选本地模板 → 按钮 enabled（title=删除这个本地动画）',
@@ -502,10 +511,10 @@ check('立即预览先重新拉配置', requests.length > beforePreview && reque
 check('立即预览调用 __DSH_STARTUP_API__.replay()', windowStub.__replayed === true)
 /* v2.13.15 回归：选完「配音音色」直接点预览（还没点保存）也必须按当前选择播 */
 tree = renderPanel()
-const voiceSel = walk(tree).filter((n) => n.type === 'select' && Array.isArray(n.props.children) && n.props.children.some((o) => o && o.props.value === 'g'))[0]
-check('配音音色下拉能从 /voices 拿到音色G', !!voiceSel, JSON.stringify(walk(tree).filter((n) => n.type === 'select').map((n) => (n.props.children || []).map((o) => o && o.props.value))))
+const voiceSel = walk(tree).filter((n) => typeof n.type === 'function' && Array.isArray(n.props.options) && n.props.options.some((o) => o && o[0] === 'g'))[0]
+check('配音音色下拉能从 /voices 拿到音色G', !!voiceSel, JSON.stringify(walk(tree).filter((n) => typeof n.type === 'function' && Array.isArray(n.props.options)).map((n) => n.props.options.map((o) => o && o[0]))))
 if (voiceSel) {
-  voiceSel.props.onChange({ target: { value: 'g' } })
+  voiceSel.props.onChange('g')
   await flush()
   tree = renderPanel()
   const previewBtn2 = find(tree, (n) => n.type === 'button' && n.props.children === '立即预览')
