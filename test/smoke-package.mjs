@@ -201,4 +201,14 @@ if (!clientSrc.includes('builtinName')) throw new Error('client.js 缺少内置�
 const snowBg = path.join(root, 'lib/assets/builtin-background-snowgirl.png')
 if (!fs.existsSync(snowBg)) throw new Error('缺少第二张内置背景图 builtin-background-snowgirl.png')
 if (fs.statSync(snowBg).size < 1000000) throw new Error('第二张内置背景图疑似不完整')
+/* v2.16.9：内置第二幕 V5（AI 动画，可选） */
+const v5Tpl = path.join(root, 'templates/bigfish-v5-act2/template.json')
+if (!fs.existsSync(v5Tpl)) throw new Error('缺少内置第二幕模板 bigfish-v5-act2')
+const v5Json = JSON.parse(fs.readFileSync(v5Tpl, 'utf8'))
+if (v5Json.id !== 'bigfish-v5-act2') throw new Error('V5 模板 id 不符')
+const v5Mp4 = path.join(root, 'templates/bigfish-v5-act2/assets/bigfish-v5-act2.mp4')
+if (!fs.existsSync(v5Mp4)) throw new Error('缺少 V5 第二幕视频')
+if (fs.statSync(v5Mp4).size < 2000000) throw new Error('V5 第二幕视频疑似不完整')
+if (!clientSrc.includes("'bigfish-v5-act2': 1")) throw new Error('client.js 正式模板白名单缺少 bigfish-v5-act2')
+if (!fs.existsSync(path.join(root, 'templates/bigfish-v5-act2/NOTICE.md'))) throw new Error('缺少 V5 模板 NOTICE')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');

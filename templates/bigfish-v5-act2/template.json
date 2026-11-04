@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "id": "bigfish-v5-act2",
+  "name": "全景大肥鱼 V5 · 第二幕（2K AV1）",
+  "author": "AI 制作（作者提供并授权随本插件分发）；模板维护：LeeRolling",
+  "homepage": "https://github.com/LeeRolling/dsh-boot-suite",
+  "license": "",
+  "version": "1.0.0",
+  "description": "全景大肥鱼 V5 第二幕，AI 制作的 2560×1440 AV1 动画，约 6.3 秒，自带配音原声（到 设置 → 启动动画 → 第二幕视频原声 打开即可听到）。可选内置模板，不改变默认。",
+  "tags": [
+    "bigfish",
+    "video",
+    "ai",
+    "act2",
+    "2k"
+  ],
+  "duration": 6293,
+  "theme": {
+    "accent": "#ff7500",
+    "glitchA": "#ff3b30",
+    "glitchB": "#2971b8"
+  },
+  "segments": [
+    {
+      "name": "全景大肥鱼 V5 · 第二幕",
+      "from": 0,
+      "to": 6293
+    }
+  ],
+  "layers": [
+    {
+      "id": "bg",
+      "type": "panel",
+      "pos": [
+        640,
+        360
+      ],
+      "panelW": 1280,
+      "panelH": 720,
+      "fill": "#000000",
+      "radius": 0,
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "media",
+      "type": "video",
+      "pos": [
+        640,
+        360
+      ],
+      "videoW": 1280,
+      "videoH": 720,
+      "src": "bigfish-v5-act2.mp4",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 1
+        },
+        {
+          "t": 6293,
+          "opacity": 1
+        }
+      ]
+    },
+    {
+      "id": "credit",
+      "type": "text",
+      "text": "PANORAMA BIGFISH V5 · AI GENERATED",
+      "pos": [
+        640,
+        360
+      ],
+      "align": "center",
+      "font": {
+        "size": 9,
+        "weight": 400,
+        "tracking": 0.18
+      },
+      "color": "rgba(255,180,120,.50)",
+      "keyframes": [
+        {
+          "t": 0,
+          "opacity": 0,
+          "offsetY": 318
+        },
+        {
+          "t": 600,
+          "opacity": 1,
+          "offsetY": 318
+        },
+        {
+          "t": 6293,
+          "opacity": 1,
+          "offsetY": 318
+        }
+      ]
+    }
+  ],
+  "effects": []
+}
