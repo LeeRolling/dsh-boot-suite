@@ -85,7 +85,8 @@ for (const f of ['index.html', 'render.html']) {
 if (bigfishApp.includes('flashEl')) throw new Error('app.js 仍引用模板白闪 flashEl')
 if (bigfishApp.includes('flashEl')) throw new Error('app.js 仍残留白闪动画')
 if (skipCss.includes('#flash')) throw new Error('style.css 仍残留 #flash 样式')
-if (!/return done\.then\(function \(\) \{[\s\S]{0,260}transOut\(transType\('Out'\), finish\)/.test(splashJs)) throw new Error('iframe 模板收尾未交给插件退场转场')
+if (!/if \(typeof afterIframe === 'function'\) return afterIframe\(\)/.test(splashJs)) throw new Error('iframe 模板收尾未支持第二幕回调')
+if (!/return done\.then\(function \(\) \{[\s\S]{0,420}transOut\(transType\('Out'\), finish\)/.test(splashJs)) throw new Error('iframe 模板收尾未交给插件退场转场')
 /* v2.15.12：结尾等配音时圆环继续转 */
 if (!bigfishApp.includes('const rt=t+waitSec')) throw new Error('结尾圆环未使用连续旋转时钟 rt')
 if (!bigfishApp.includes('rotate(${rt*5})')) throw new Error('外圈未使用 rt 旋转')
@@ -176,4 +177,28 @@ if (!clientSrc.includes('aria-haspopup')) throw new Error('client.js 自绘下�
 if (!clientSrc.includes('function CwSelect(')) throw new Error('client.js 聊天背景缺少 CwSelect')
 if (clientSrc.includes("h('select',")) throw new Error('client.js 仍残留原生 select（设置页）')
 if (clientSrc.includes("cwH('select',")) throw new Error('client.js 仍残留原生 select（聊天背景）')
+/* v2.16.6：第一幕是 iframe 模板时也要接第二幕 */
+if (!splashSrc.includes('function runIframeTemplate(tpl, afterIframe)')) throw new Error('splash.js 未给 iframe 模板留第二幕回调')
+if (!splashSrc.includes('runIframeTemplate(TEMPLATE, function () {')) throw new Error('splash.js iframe 首幕未接第二幕')
+if (!splashSrc.includes('afterIframe')) throw new Error('splash.js 缺少 afterIframe 处理')
+/* v2.16.7：视频原声开关 + 掉线彩蛋底图 */
+const hostSrcV2167 = fs.readFileSync(path.join(root, 'lib/host-startup.js'), 'utf8')
+if (!hostSrcV2167.includes('act1VideoSound: false')) throw new Error('host-startup 缺少第一幕视频原声默认值')
+if (!hostSrcV2167.includes('act2VideoSound: false')) throw new Error('host-startup 缺少第二幕视频原声默认值')
+if (!hostSrcV2167.includes("'act1VideoSound'") || !hostSrcV2167.includes("'act2VideoSound'")) throw new Error('host-startup 的 BOOL_KEYS 缺少视频原声开关')
+if (!splashSrc.includes('act2VideoSound === true')) throw new Error('splash.js 缺少第二幕视频原声分支')
+if (!splashSrc.includes('fallback muted')) throw new Error('splash.js 缺少未静音自动播放失败回退')
+if (!clientSrc.includes('第一幕视频原声') || !clientSrc.includes('第二幕视频原声')) throw new Error('client.js 缺少视频原声设置项')
+const eggBg = path.join(root, 'templates/division-bigfish-codex/assets/egg-bg.png')
+if (!fs.existsSync(eggBg)) throw new Error('缺少掉线彩蛋底图 egg-bg.png')
+if (fs.statSync(eggBg).size < 1000000) throw new Error('掉线彩蛋底图疑似未替换（文件过小）')
+/* v2.16.8：聊天背景第二张内置背景（可选，不改变默认） */
+const wallSrcV2168 = fs.readFileSync(path.join(root, 'lib/host-wallpaper.js'), 'utf8')
+if (!wallSrcV2168.includes('BUILTIN_IMAGES')) throw new Error('host-wallpaper 缺少多张内置背景表')
+if (!wallSrcV2168.includes("'__snowgirl__'")) throw new Error('host-wallpaper 缺少第二张内置背景哨兵')
+if (!wallSrcV2168.includes('builtinName')) throw new Error('host-wallpaper 缺少内置背景名称回传')
+if (!clientSrc.includes('builtinName')) throw new Error('client.js 缺少内置背景名称显示')
+const snowBg = path.join(root, 'lib/assets/builtin-background-snowgirl.png')
+if (!fs.existsSync(snowBg)) throw new Error('缺少第二张内置背景图 builtin-background-snowgirl.png')
+if (fs.statSync(snowBg).size < 1000000) throw new Error('第二张内置背景图疑似不完整')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');

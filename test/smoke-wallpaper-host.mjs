@@ -196,10 +196,12 @@ try {
     sortKeys(r.json))
   check('/images 的 dropDir 指向临时 DSH_HOME',
     r.json && r.json.dropDir.includes(HOME.replace(/\\/g, '/')), r.json && r.json.dropDir)
-  check('★ /images 默认列出「默认背景（内置）」，且 marked builtin/selected',
-    r.json && Array.isArray(r.json.images) && r.json.images.length === 1 &&
+  check('★ /images 默认列出两张内置背景（默认图 selected，第二张可选）',
+    r.json && Array.isArray(r.json.images) && r.json.images.length === 2 &&
     r.json.images[0].builtin === true && r.json.images[0].selected === true &&
-    r.json.images[0].url.includes('__default__'),
+    r.json.images[0].url.includes('__default__') &&
+    r.json.images[1].builtin === true && r.json.images[1].selected === false &&
+    r.json.images[1].url.includes('__snowgirl__'),
     JSON.stringify(r.json && r.json.images))
   check('/images.imageSource = builtin、imageConfig 为空',
     r.json && r.json.imageSource === 'builtin' && r.json.imageConfig === '',
@@ -323,9 +325,10 @@ try {
     r.json && r.json.imageSource === 'your-library', r.json && r.json.imageSource)
 
   r = await callJson('exact /chat-wallpaper/images')
-  check('★ 丢图后 /images 列出 2 张：内置默认图在前、用户的在后',
-    r.json && Array.isArray(r.json.images) && r.json.images.length === 2 &&
-    r.json.images[0].builtin === true && r.json.images[1].name === 'smoke-bg.png',
+  check('★ 丢图后 /images 列出 3 张：两张内置在前、用户的在后',
+    r.json && Array.isArray(r.json.images) && r.json.images.length === 3 &&
+    r.json.images[0].builtin === true && r.json.images[1].builtin === true &&
+    r.json.images[2].name === 'smoke-bg.png' && r.json.images[2].selected === true,
     JSON.stringify(r.json && r.json.images))
   check('丢图后 /images.current 指向它、imageSource = your-library',
     r.json && typeof r.json.current === 'string' && r.json.current.endsWith('smoke-bg.png') &&
