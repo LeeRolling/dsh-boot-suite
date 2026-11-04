@@ -211,4 +211,9 @@ if (!fs.existsSync(v5Mp4)) throw new Error('缺少 V5 第二幕视频')
 if (fs.statSync(v5Mp4).size < 2000000) throw new Error('V5 第二幕视频疑似不完整')
 if (!clientSrc.includes("'bigfish-v5-act2': 1")) throw new Error('client.js 正式模板白名单缺少 bigfish-v5-act2')
 if (!fs.existsSync(path.join(root, 'templates/bigfish-v5-act2/NOTICE.md'))) throw new Error('缺少 V5 模板 NOTICE')
+/* v2.16.10：鸣谢含两位原作者 */
+if (!clientSrc.includes('之一ONETHING')) throw new Error('鸣谢缺少皮肤原作者之一ONETHING')
+if (!clientSrc.includes('胡萨尔cC')) throw new Error('鸣谢缺少余额表盘原作者胡萨尔cC')
+if (!clientSrc.includes('oenthing/blockade-orange-dsh-skin')) throw new Error('鸣谢缺少皮肤仓库链接')
+if (!clientSrc.includes('goooooooeg/dsh-balance-hud')) throw new Error('鸣谢缺少表盘仓库链接')
 console.log('ok  package.json version=' + pkg.version + '，无 BOM，关键文件齐全（含更新前回滚 checkpoint）');
