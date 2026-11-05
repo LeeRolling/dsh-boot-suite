@@ -209,6 +209,12 @@ if (-not $CheckOnly -and -not $env:DSH_BOOT_SUITE_ROLLBACK) {
       New-Item -ItemType Directory -Force -Path $desk | Out-Null
       $batName = '紧急回滚-V' + $checkpoint.version + '（先完全退出 DSH 再双击）.cmd'
       $batPath = Join-Path $desk $batName
+      $rollbackPs = Join-Path $updatesRoot 'rollback-version.ps1'
+      # F-05：EncodedCommand 里必须用单引号字面量（PowerShell 单引号内不展开 $()/变量），
+      # 单引号本身双写转义；否则路径里的 $(...) 会被当命令执行。
+      $sq = { param([string]$v) "'" + ([string]$v -replace "'", "''") + "'" }
+      $inner = '& ' + (& $sq $rollbackPs) + ' -TargetPkg ' + (& $sq ([string]$checkpoint.path)) + ' -Profile ' + (& $sq ([string]$targets[0]))
+      $encoded = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($inner))
       $lines = @(
         '@echo off',
         'setlocal',
@@ -220,11 +226,11 @@ if (-not $CheckOnly -and -not $env:DSH_BOOT_SUITE_ROLLBACK) {
         'echo  fully quit DSH (window + tray), then double-click this file.',
         'echo  It only switches the plugin version; your settings stay.',
         'echo ============================================================',
-        ('powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\.dsh\boot-suite-updates\rollback-version.ps1" -TargetPkg "' + $checkpoint.path + '" -Profile ' + $targets[0]),
+        ('powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand ' + $encoded),
         'echo.',
         'pause'
       )
-      [System.IO.File]::WriteAllLines($batPath, $lines, [System.Text.Encoding]::Default)
+      [System.IO.File]::WriteAllLines($batPath, $lines, (New-Object System.Text.ASCIIEncoding))
       $checkpoint.bat = $batPath
       Say ''
       Say ('[回滚保护] 当前 v' + $checkpoint.version + ' 已记成桌面按钮：' + $batName)

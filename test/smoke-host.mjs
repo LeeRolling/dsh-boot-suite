@@ -132,7 +132,9 @@ check('没有 Config 导出（普通对象不是 schemastery schema）', mod.Con
 
 console.log('\n[2] apply(ctx)：路由与注入')
 mod.apply(ctx)
-check('注册了 45 条路由（开机动画 34 + 聊天壁纸 11）', ROUTES.size === 45, [...ROUTES.keys()].join(' | '))
+check('注册了 47 条路由（开机动画 36 + 聊天壁纸 11）', ROUTES.size === 47, [...ROUTES.keys()].join(' | '))
+check('F-03 新路由：frame-session', ROUTES.has('exact /dsh-startup/frame-session'))
+check('F-03 新路由：template-frame', ROUTES.has('prefix /dsh-startup/template-frame'))
 check('注册了 1 个 tapIndex', TAPS.length === 1)
 check('用了 ctx.effect 管理生命周期（开机动画 1 + 壁纸 11）', effects === 12, String(effects))
 
@@ -419,15 +421,53 @@ console.log('\n[6f] 检查更新：当前版本 vs GitHub latest')
   } finally { globalThis.fetch = realFetch }
 }
 
-console.log('\n[6g] 更新包完整性：只看 PK 头的半包不再被接受')
+console.log('\n[6g] 更新包完整性：截断/篡改/缺摘要一律拒绝')
 {
-  /* 造一个“头是 PK、实际被截断”的 1MB+ 假包：v2.13.1 更新失败的根因 */
+  const { createHash } = await import('node:crypto')
+  const sha256 = (buf) => createHash('sha256').update(buf).digest('hex')
+  /* 1MB+ 假包：头是 PK、无完整 zip 结构（截断包） */
   const truncated = Buffer.alloc(1024 * 1024 + 32)
   truncated[0] = 0x50; truncated[1] = 0x4b; truncated[2] = 0x03; truncated[3] = 0x04
-  r = await call('exact /dsh-startup/update-upload', 'POST', truncated, '/dsh-startup/update-upload?version=9.9.9')
-  const upBad = JSON.parse(r.body)
-  check('截断 zip 被拒（校验到中央目录）', upBad.ok === false && /不完整|损坏|zip 校验/.test(String(upBad.error || '')), r.body.slice(0, 160))
-  check('坏包不落盘', !fs.existsSync(path.join(SMOKE_HOME, 'boot-suite-updates', '9.9.9.zip')))
+  /* 1MB+ 只是“结构上能被 zipComplete 接受”的包：用于测试摘要不匹配 */
+  const fakeZip = Buffer.alloc(1024 * 1024 + 64)
+  fakeZip.writeUInt32LE(0x04034b50, 0)
+  fakeZip.writeUInt32LE(0x06054b50, fakeZip.length - 22)
+  const realFetch = globalThis.fetch
+  const asset = (buf, digest) => ({
+    name: 'dsh-boot-suite-win-V9.9.9.zip',
+    size: buf.length,
+    digest: digest === undefined ? undefined : 'sha256:' + digest,
+    browser_download_url: 'https://example.test/dsh-boot-suite-win-V9.9.9.zip'
+  })
+  const stub = (buf, digest) => async (url) => {
+    if (String(url).includes('api.github.com')) {
+      return { ok: true, status: 200, text: async () => JSON.stringify({ tag_name: 'v9.9.9', html_url: 'https://example.test/rel', published_at: '2026-10-18T00:00:00Z', assets: [asset(buf, digest)] }) }
+    }
+    return { ok: false, status: 404, text: async () => '' }
+  }
+  const refresh = async () => { await call('exact /dsh-startup/update-check', 'GET', undefined, '/dsh-startup/update-check?refresh=1') }
+  const upload = async (buf) => JSON.parse((await call('exact /dsh-startup/update-upload', 'POST', buf, '/dsh-startup/update-upload?version=9.9.9')).body)
+  try {
+    globalThis.fetch = stub(truncated, sha256(truncated))
+    await refresh()
+    const upBad = await upload(truncated)
+    check('截断 zip 被拒（校验到中央目录）', upBad.ok === false && /不完整|损坏|zip 校验/.test(String(upBad.error || '')), JSON.stringify(upBad).slice(0, 160))
+    check('坏包不落盘', !fs.existsSync(path.join(SMOKE_HOME, 'boot-suite-updates', '9.9.9.zip')))
+
+    globalThis.fetch = stub(fakeZip, '0'.repeat(64))
+    await refresh()
+    const upBadDigest = await upload(fakeZip)
+    check('SHA-256 不匹配被拒', upBadDigest.ok === false && /摘要|SHA-256|不一致/.test(String(upBadDigest.error || '')), JSON.stringify(upBadDigest).slice(0, 160))
+
+    globalThis.fetch = stub(fakeZip, undefined)
+    await refresh()
+    const upNoDigest = await upload(fakeZip)
+    check('缺少官方摘要被拒', upNoDigest.ok === false && /摘要/.test(String(upNoDigest.error || '')), JSON.stringify(upNoDigest).slice(0, 160))
+    check('被拒的包都不落盘', !fs.existsSync(path.join(SMOKE_HOME, 'boot-suite-updates', '9.9.9.zip')))
+  } finally {
+    globalThis.fetch = realFetch
+    try { fs.rmSync(path.join(SMOKE_HOME, 'boot-suite-updates'), { recursive: true, force: true }) } catch {}
+  }
 }
 
 console.log('\n[6h] v2.13.12：打开下载文件夹路由存在且只接受 POST')

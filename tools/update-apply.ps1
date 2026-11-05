@@ -8,16 +8,18 @@ param(
   [Parameter(Mandatory=$true)][string]$Zip,
   [Parameter(Mandatory=$true)][string]$Version,
   [Parameter(Mandatory=$true)][string]$Exe,
-  [Parameter(Mandatory=$true)][string]$Config
+  [Parameter(Mandatory=$true)][string]$Config,
+  [Parameter(Mandatory=$true)][string]$Digest,
+  [switch]$DryRun
 )
 $ErrorActionPreference = 'Continue'
 $work = Join-Path $env:USERPROFILE ('.dsh\boot-suite-updates\' + $Version)
-if (-not (Test-Path $work)) { New-Item -ItemType Directory -Force -Path $work | Out-Null }
+if (-not $DryRun -and -not (Test-Path $work)) { New-Item -ItemType Directory -Force -Path $work | Out-Null }
 $desktop = [Environment]::GetFolderPath('Desktop')
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $logName = 'dsh-boot-suite 更新日志 ' + $stamp + '.txt'
-$log = Join-Path $desktop $logName
-$fallbackLog = Join-Path $work $logName
+$log = if ($DryRun) { '' } else { Join-Path $desktop $logName }
+$fallbackLog = if ($DryRun) { '' } else { Join-Path $work $logName }
 $pkg = Join-Path $work 'pkg'
 $pkgNew = Join-Path $work 'pkg.new'
 $pkgOld = Join-Path $work 'pkg.old'
@@ -27,6 +29,7 @@ function Log($m) {
   $line = (Get-Date -Format 'HH:mm:ss') + '  ' + $m
   Write-Host $line -ForegroundColor Cyan
   foreach ($target in @($log, $fallbackLog)) {
+    if (-not $target) { continue }
     try { Add-Content -Path $target -Value $line -Encoding UTF8; break } catch {}
   }
 }
@@ -38,23 +41,57 @@ function Test-UpdateZip($path, $expectVersion) {
   $fi = Get-Item $path
   Log ('安装包：' + $path)
   Log ('大小：' + $fi.Length + ' 字节')
-  try { Log ('SHA256：' + (Get-FileHash -Path $path -Algorithm SHA256).Hash) } catch { Log 'SHA256：计算失败（继续）' }
+  $actual = (Get-FileHash -Path $path -Algorithm SHA256).Hash.ToLower()
+  Log ('SHA256：' + $actual)
+  $expected = ([string]$Digest).ToLower() -replace '^sha256:', ''
+  if ($expected -notmatch '^[0-9a-f]{64}$') { Fail '缺少官方 SHA-256 摘要，拒绝更新（防止安装包被替换）' }
+  if ($actual -ne $expected) { Fail ('安装包 SHA-256 与官方发布不一致，拒绝更新。实际 ' + $actual) }
+  Log 'SHA256 与官方发布一致'
   try {
     Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction Stop
-    $z = [System.IO.Compression.ZipFile]::OpenRead($path)
-    try { $names = @($z.Entries | ForEach-Object { $_.FullName.Replace('\', '/') }) } finally { $z.Dispose() }
   } catch {
+    Fail ('无法加载 zip 组件：' + $_.Exception.Message)
+  }
+  $z = $null
+  try { $z = [System.IO.Compression.ZipFile]::OpenRead($path) } catch {
     Fail ('安装包不是完整的 zip（可能下载中断或被截断）：' + $_.Exception.Message)
+  }
+  $names = @()
+  $pkgJsonText = $null
+  try {
+    $names = @($z.Entries | ForEach-Object { $_.FullName.Replace('\', '/') })
+    $entry = $z.GetEntry('package.json')
+    if ($entry) {
+      $sr = New-Object System.IO.StreamReader($entry.Open(), [System.Text.Encoding]::UTF8)
+      try { $pkgJsonText = $sr.ReadToEnd() } finally { $sr.Dispose() }
+    }
+  } finally {
+    if ($z) { $z.Dispose() }
   }
   if ($names.Count -lt 50) { Fail ('安装包内容异常（只有 ' + $names.Count + ' 个文件）') }
   foreach ($need in @('package.json', 'tools/install.ps1', 'lib/index.js', 'lib/splash.js', 'lib/client.js')) {
     if (-not ($names -contains $need)) { Fail ('安装包缺少必需文件：' + $need) }
   }
-  Log ('zip 校验通过：' + $names.Count + ' 个文件')
+  $zipObj = $null
+  try { $zipObj = $pkgJsonText | ConvertFrom-Json } catch {
+    Fail ('安装包内 package.json 无法解析：' + $_.Exception.Message)
+  }
+  if ([string]$zipObj.version -ne [string]$expectVersion) {
+    Fail ('安装包版本不匹配：包内 v' + $zipObj.version + '，期望 v' + $expectVersion)
+  }
+  Log ('zip 校验通过：' + $names.Count + ' 个文件，版本 v' + $zipObj.version)
 }
 
 try {
   Log ('更新器已启动，目标版本 v' + $Version)
+  if ($DryRun) { Log 'DryRun：只校验安装包，不修改任何文件' }
+  Log '先校验安装包…'
+  Test-UpdateZip $Zip $Version
+  if ($DryRun) {
+    Log 'DryRun 校验通过：未修改任何文件'
+    exit 0
+  }
+
   Log '请手动完全退出 DeepSeek Harness（窗口 + 右下角托盘）'
   Log '检测到 DSH 退出后会自动安装并重新打开，请勿关闭本窗口'
 
@@ -67,8 +104,7 @@ try {
   $still = Get-Process -Name 'DeepSeek Harness' -ErrorAction SilentlyContinue
   if ($still) { Fail '等待 15 分钟仍未检测到 DSH 退出，已取消本次更新' }
 
-  Log '已检测到 DSH 退出，开始校验安装包…'
-  Test-UpdateZip $Zip $Version
+  Log '已检测到 DSH 退出，开始安装…'
 
   Log '备份配置…'
   $bk = Join-Path $work 'backup'

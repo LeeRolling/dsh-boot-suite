@@ -1,6 +1,6 @@
 {
   "name": "dsh-boot-suite",
-  "version": "2.16.10",
+  "version": "2.16.11",
   "description": "两幕启动动画（默认档案暖白 + 鲸鱼娘扫描睁眼，2K/4K 可切），支持导入视频/图片、三段转场、11→6 套配音音色与 5 种声音效果、聊天背景/循环视频、内置 iframe 启动模板（全景大肥鱼-含彩蛋版）与更新前自动回滚。",
   "keywords": [
     "dsh",
@@ -40,9 +40,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node test/smoke-host.mjs && node test/smoke-splash.mjs && node test/smoke-splash-tl.mjs && node test/smoke-client.mjs && node test/smoke-desktop-boot.mjs && node test/smoke-import.mjs && node test/smoke-wallpaper-host.mjs && node test/smoke-wallpaper-client.mjs && node test/smoke-wallpaper-apply.mjs && node test/smoke-wallpaper-panel.mjs && node test/smoke-merge.mjs && node test/smoke-coords.mjs && node test/smoke-package.mjs",
+    "test": "node test/smoke-security.mjs && node test/smoke-update-dryrun.mjs && node test/smoke-host.mjs && node test/smoke-splash.mjs && node test/smoke-splash-tl.mjs && node test/smoke-client.mjs && node test/smoke-desktop-boot.mjs && node test/smoke-import.mjs && node test/smoke-wallpaper-host.mjs && node test/smoke-wallpaper-client.mjs && node test/smoke-wallpaper-apply.mjs && node test/smoke-wallpaper-panel.mjs && node test/smoke-merge.mjs && node test/smoke-coords.mjs && node test/smoke-package.mjs",
     "motion:check": "node tools/motion-check.mjs --template=deep-sonar --speed=2",
-    "ui:detect": "npx --yes impeccable@latest detect --no-config tools/editor.html preview/index.html",
+    "ui:detect": "npx --yes impeccable@4.8.0 detect --no-config tools/editor.html preview/index.html",
     "release": "node tools/build-release.mjs"
   },
   "license": "MIT",

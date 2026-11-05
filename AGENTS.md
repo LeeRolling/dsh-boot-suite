@@ -46,7 +46,7 @@ npm run ui:detect            # impeccable 61 条规则（需要网络，跑不�
 ## 四、impeccable 的用法（2026-10-18 决定：只当发布前检查，不装 skill）
 
 ```powershell
-npx --yes impeccable@latest detect --json --no-config tools/editor.html preview/index.html
+npx --yes impeccable@4.8.0 detect --json --no-config tools/editor.html preview/index.html
 ```
 
 - 61 条确定性规则，不需要 LLM；发现问题会以 `warning` / `advisory` 标出
@@ -105,3 +105,23 @@ npx --yes impeccable@latest detect --json --no-config tools/editor.html preview/
 - 用户是创作者不是程序员：能点就别让他打字；能预览就别让他重启
 - 不确定就问，别猜着做；做错了直接认，别圆
 - **子智能体（Agent Teams）：觉得需要就自由开，数量 < 10 个，不必每次请示**（用户 2026-10-25 授权：“当你觉得需要开子智能体的时候，请自由开启。数量小于10个即可。”）
+
+## 十、安全与隔离测试铁律（2026-11-05）
+
+### 隔离测试（必须）
+- 任何需要 DSH_HOME 的测试/子智能体，必须显式设置 `$env:DSH_HOME = '<临时目录>'`，并在启动前打印 + `Test-Path` 校验。
+- 禁止使用 `$home` / `$HOME` 作为变量名：PowerShell 里它们是只读自动变量，赋值会被静默忽略，DSH_HOME 会落到 `C:\Users\<用户>`，污染真实目录。
+- 测试结束清理临时 home；真实 `~/.dsh` 只读，除非用户明确要求。
+
+### 发布清单（每次发版）
+1. `npm test` 全绿（含 smoke-security / smoke-update-dryrun）。
+2. `npm run release`，确认 `03-发布包\SHA256SUMS.txt` 包含 `dsh-boot-suite-win.zip` 与 `dsh-boot-suite.tgz` 两行。
+3. GitHub Release 上传三件套：`dsh-boot-suite-win.zip`、`dsh-boot-suite.tgz`、`SHA256SUMS.txt`。
+4. `npm publish` 后确认 registry latest。
+5. 更新 CHANGELOG 与桌面升级助手。
+
+### 安全边界
+- 用户 iframe 模板：能力 token + sandbox(allow-scripts) + CSP（connect-src 'none'）；内置模板不在 sandbox 路径。
+- 更新/在线安装：必须校验官方 SHA-256（SHA256SUMS 或 GitHub API digest），缺摘要一律拒绝。
+- 第三方依赖：`ui:detect` 固定 impeccable@4.8.0，禁止 @latest。
+- CI：`.github/workflows/test.yml` 在 push/PR 跑 `npm test`。

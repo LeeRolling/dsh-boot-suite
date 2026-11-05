@@ -48,6 +48,21 @@ fs.rmSync(verify, { recursive: true, force: true });
    少了它市场里的“安装”按钮就会指向旧版。所以打包脚本自己产，不靠手打。 */
 const outDir = path.dirname(out);
 const tgz = path.join(outDir, 'dsh-boot-suite.tgz');
+/* 对称性保护：zip 会跳过 02-文档/03-发布包/备份，而 npm pack 只按 package.json files 打包。
+   若 lib/tools/test/templates 里夹带了 zip/tgz，两产物会不对称；发布前直接失败。 */
+for (const relDir of ['lib', 'tools', 'test', 'templates']) {
+  const absDir = path.join(root, relDir);
+  if (!fs.existsSync(absDir)) continue;
+  const stack = [absDir];
+  while (stack.length) {
+    const dir = stack.pop();
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, ent.name);
+      if (ent.isDirectory()) stack.push(p);
+      else if (/\.(zip|tgz)$/i.test(ent.name)) throw new Error('打包内容里夹带了归档文件（会导致 zip/tgz 不对称）：' + p);
+    }
+  }
+}
 if (fs.existsSync(tgz)) fs.renameSync(tgz, tgz.replace(/\.tgz$/, '-bak-' + Date.now() + '.tgz'));
 /* Node 24 在 Windows 上不允许直接 spawn .cmd（CVE 修复），所以直接找 npm-cli.js
    用当前 node 执行；找不到才退回 shell 调 npm。 */
@@ -66,4 +81,10 @@ const tbuf = fs.readFileSync(tgz);
 if (tbuf.length < 3 || tbuf[0] !== 0x1f || tbuf[1] !== 0x8b) throw new Error('dsh-boot-suite.tgz 不是合法的 gzip');
 if (tbuf.length < 1024 * 1024) throw new Error('dsh-boot-suite.tgz 太小（' + tbuf.length + ' B），疑似打包不完整');
 console.log('TGZ OK version=' + vpkg.version + ' size=' + tbuf.length + ' bytes -> ' + tgz);
+const sha = (p) => execFileSync(process.execPath, ['-e', "const c=require('node:crypto'),f=require('node:fs');const b=f.readFileSync(process.argv[1]);process.stdout.write(c.createHash('sha256').update(b).digest('hex'))", p], { encoding: 'utf8' }).trim()
+const sumFile = path.join(outDir, 'SHA256SUMS.txt')
+const sumLines = [sha(out) + '  ' + path.basename(out), sha(tgz) + '  ' + path.basename(tgz)].join('\n') + '\n'
+fs.writeFileSync(sumFile, sumLines, 'utf8')
+console.log('SHA256SUMS OK -> ' + sumFile)
+console.log(sumLines.trim())
 console.log('RELEASE OK version=' + vpkg.version + ' size=' + fs.statSync(out).size + ' bytes -> ' + out);

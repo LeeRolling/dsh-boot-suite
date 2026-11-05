@@ -398,6 +398,7 @@ document.addEventListener('keydown',function(e){
   if(nextTip()){e.preventDefault();e.stopPropagation();}
 });
 window.addEventListener('message',function(e){
+  if(e.source!==parent)return;
   var d=e&&e.data;
   if(d&&typeof d==='object'&&d.type==='dsh-tip-next')nextTip();
 });

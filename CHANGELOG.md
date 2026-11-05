@@ -1,3 +1,11 @@
+## [2.16.11] — 2026-11-05
+
+- 安全加固（更新链）：更新与在线安装强制 SHA-256 校验（官方 `SHA256SUMS.txt` + GitHub Release digest 双通道）；本地下载监视缺摘要即拒绝；更新器先校验摘要/版本再等待退出，新增 `-DryRun`。
+- 安全加固（信任边界）：插件路由信任栅栏改 fail-closed；畸形 URI 返回 400；模板结构做 schema 校验；用户 iframe 模板加 sandbox，模板服务加 CSP/nosniff；token 预览路由只读；身份卡参数、商店条目路径白名单校验。
+- 安装/回滚：回滚按钮改用 EncodedCommand，消除命令注入；在线安装脚本修复 SHA256SUMS 缺失时的摘要兜底。
+- 工程化：新增 `.github/workflows/test.yml`（Windows + Node 20/22）、`test/smoke-security.mjs`、`test/smoke-update-dryrun.mjs`；`ui:detect` 锁定 `impeccable@4.8.0`；AGENTS 增加隔离测试铁律与发布三件套清单。
+- 版本 2.16.11，构建号 cw-77。
+
 ## [2.16.10] — 2026-11-04
 
 - 设置页「鸣谢」新增两位原作者：皮肤「封锁橙」原作者 之一ONETHING（B 站）、余额表盘原作者 胡萨尔cC（B 站 / @goooooooeg），并附仓库链接。
