@@ -30,6 +30,7 @@
 10. **装/更新插件后禁止自动启动 DSH**：助手只负责安装，最后让用户手动打开；不要连续快速重启。若 DSH 报 `desktop welcome: Web authentication failed`，先备份 webstate/profile 再按官方恢复流程处理（2026-10-26 事故，详见交接文档第 2/7 节）。
 11. **每次 Release 必须同步发 npm**：GitHub Release 上传完三资产（两 zip + `dsh-boot-suite.tgz`）后，在仓库根目录跑 `npm publish`（账号 `leerolling`，令牌存 `~/.npmrc`，带 bypass 2FA、2027-01-26 到期），再用 `npm view dsh-boot-suite version` 核对版本；若出现 EOTP 浏览器确认，先 `npm login` 再重试，必要时临时重建发布助手。只发 Release 不发 npm 视为发版未完成。
 12. **跨窗口互通记忆必须带时间 + 窗口标题**：写入互通记忆/摘要时，第一行必须是 `YYYY年M月D日HH:mm（窗口：<窗口标题>）`，时间到分钟，然后另起一行写「记忆如下：」或「摘要如下：」；标题识别不到就写「窗口标题未知（待用户补）」，禁止省略或猜。示例：`2026年10月30日13:24（窗口：开机动画修复和维护）`。本窗口标题：`开机动画修复和维护`（可从 `~/.dsh/storages/session_projcache/sessions/*.json` 查到）。
+13. **发布前必须过测试机**：本机 `npm test` 通过后，按 `docs/测试机交接模板.md` 生成候选版本 MD，交独立测试机复测；测试机全部通过、回传截图/日志并核对 SHA256 后，才允许创建 Release 与 npm publish。测试机未过，禁止发布。
 
 ## 三、每轮收尾清单（做完功能必跑）
 
@@ -40,7 +41,9 @@ npm run motion:check         # 动效回归：画面在动/分幕换过/根节�
 npm run ui:detect            # impeccable 61 条规则（需要网络，跑不跑都可）
 ```
 
-然后：`git add -A` → 提交（中文说明"为什么"）→ push → 如有发版：tag + `gh release create`（三资产含 tgz）→ `npm publish`（若弹浏览器确认就用桌面发布助手）→ 两处都复核版本。
+4. 生成 `docs/测试机交接模板.md` 候选版本交接 MD → 测试机复测 → 回传通过证据（截图/日志/SHA256 核对）。
+
+然后：`git add -A` → 提交（中文说明"为什么"）→ push → 如有发版：tag + `gh release create`（三资产含 tgz）→ `npm publish`（若弹浏览器确认就用桌面发布助手）→ 两处都复核版本。**测试机未通过不得执行这一段。**
 **push 完成要用 `git ls-remote` 核对远端**，网络经常 reset，命令"看起来成功"不算数。
 
 ## 四、impeccable 的用法（2026-10-18 决定：只当发布前检查，不装 skill）
