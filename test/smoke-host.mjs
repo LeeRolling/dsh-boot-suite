@@ -316,10 +316,26 @@ await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { templa
   check('模板列表带 active 字段', typeof list.active === 'string')
 }
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: '../etc/passwd' } }))
-check('非法的模板 id 被忽略（不读文件、不多行）', collectRows().length === 10)
+{
+  const rowsBad = collectRows()
+  const tplBad = rowsBad.find((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_TEMPLATE__')
+  check('非法的模板 id 被忽略并回落内置（11 行）', rowsBad.length === 11 && !!tplBad && tplBad.value.id === 'archive-warm', String(rowsBad.length))
+}
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: 'no-such-template' } }))
-check('模板不存在时回落内置（不报错、不多行）', collectRows().length === 10)
+{
+  const rowsMissing = collectRows()
+  const tplMissing = rowsMissing.find((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_TEMPLATE__')
+  check('模板不存在时回落内置（不报错、11 行）', rowsMissing.length === 11 && !!tplMissing && tplMissing.value.id === 'archive-warm', String(rowsMissing.length))
+}
 await call('exact /dsh-startup/config', 'POST', JSON.stringify({ patch: { template: '' } }))
+{
+  /* 回归 #4：旧配置/设置页第一项会保存空串；空串必须回落 archive-warm，
+     不能少注入 __DSH_STARTUP_TEMPLATE__ 导致开机动画秒退。 */
+  const rowsEmpty = collectRows()
+  const tplEmpty = rowsEmpty.find((r) => r.kind === 'global' && r.name === '__DSH_STARTUP_TEMPLATE__')
+  check('空模板回落 archive-warm（仍 11 行）', rowsEmpty.length === 11, String(rowsEmpty.length))
+  check('空模板回落时模板行 id = archive-warm', !!tplEmpty && tplEmpty.value.id === 'archive-warm', tplEmpty && tplEmpty.value.id)
+}
 
 console.log('\n[6c] 编辑器：模板读写')
 {

@@ -36,12 +36,28 @@ function Log($m) {
 
 function Fail($m) { throw $m }
 
+/* Get-FileHash 在部分 CI/精简 PowerShell 环境里不存在（模块被裁掉），
+   这里用 .NET SHA256 兜底，避免更新器 dry-run 在 CI 里整段失败。 */
+function Get-Sha256([string]$Path) {
+  try { return (Get-FileHash -Path $Path -Algorithm SHA256).Hash.ToLower() } catch { }
+  $sha = $null; $fs = $null
+  try {
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    $fs = [System.IO.File]::OpenRead($Path)
+    $bytes = $sha.ComputeHash($fs)
+    return ([System.BitConverter]::ToString($bytes) -replace '-', '').ToLower()
+  } finally {
+    if ($fs) { $fs.Dispose() }
+    if ($sha) { $sha.Dispose() }
+  }
+}
+
 function Test-UpdateZip($path, $expectVersion) {
   if (-not (Test-Path $path)) { Fail ('安装包不存在：' + $path) }
   $fi = Get-Item $path
   Log ('安装包：' + $path)
   Log ('大小：' + $fi.Length + ' 字节')
-  $actual = (Get-FileHash -Path $path -Algorithm SHA256).Hash.ToLower()
+  $actual = Get-Sha256 $path
   Log ('SHA256：' + $actual)
   $expected = ([string]$Digest).ToLower() -replace '^sha256:', ''
   if ($expected -notmatch '^[0-9a-f]{64}$') { Fail '缺少官方 SHA-256 摘要，拒绝更新（防止安装包被替换）' }

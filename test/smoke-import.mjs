@@ -357,8 +357,8 @@ try {
   check('config 文件的 hiddenTemplates 含 ' + BUILTIN_ID,
     !!diskCfg && Array.isArray(diskCfg.hiddenTemplates) && diskCfg.hiddenTemplates.includes(BUILTIN_ID),
     diskCfg && JSON.stringify(diskCfg.hiddenTemplates))
-  check('★ 被引用的 template 被宿主自动清空（避免下次开机找不到）',
-    !!diskCfg && (diskCfg.template || '') === '', diskCfg && JSON.stringify(diskCfg.template))
+  check('★ 被引用的 template 删除后回落 archive-warm（避免下次开机找不到）',
+    !!diskCfg && diskCfg.template === 'archive-warm', diskCfg && JSON.stringify(diskCfg.template))
   let tplNow = await call('templates')
   check('★ /templates 不再列出被隐藏的内置模板',
     !listedIds(tplNow.json).includes(BUILTIN_ID), listedIds(tplNow.json).slice(0, 5).join(','))

@@ -210,8 +210,10 @@ const closes = (css.match(/\}/g) || []).length
 ok(opens === closes, '花括号平衡', `${opens} { / ${closes} }`)
 ok(!/,\s*\{/.test(css), '没有 "…, {" 这种悬空选择器')
 ok(css.includes('--dsw-alias-bg-base: transparent'), '外壳透明变量在位')
-ok(css.includes('--dsw-specific-sidebar-fill: rgba(255,255,255,.78)'), '浅色侧栏半透白在位')
-ok(css.includes('--dsw-specific-sidebar-fill: rgba(22,24,32,.74)'), '深色侧栏半透黑在位')
+/* v2.16.12：DSH 0.2.2 外壳把 --dsw-specific-sidebar-fill 当整窗底色用，
+   填 sidebar 色会变成盖住壁纸的一层膜；改为 transparent，侧栏由 panel 类兜底。 */
+ok(css.includes('--dsw-specific-sidebar-fill: transparent !important'), '外壳侧栏填充让位（transparent，避免整窗白膜）')
+ok(!css.includes('--dsw-specific-sidebar-fill: rgba(255,255,255,.78)') && !css.includes('--dsw-specific-sidebar-fill: rgba(22,24,32,.74)'), '不再把 sidebar 色写进整窗变量')
 ok(css.includes('#dsh-cw-bg'), '底图选择器 #dsh-cw-bg 在位')
 ok(css.includes('pointer-events: none'), '底图不拦点击')
 ok(css.includes('#dsh-cw-bg > img'), '底图的 <img> 规则在位')
