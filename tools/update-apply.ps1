@@ -197,9 +197,11 @@ try {
     Log '配置已恢复。'
   } catch {}
 
-  Log '旧版插件应仍可用，正在重新打开 DSH…'
-  if (Test-Path $Exe) { Start-Process -FilePath $Exe }
-  Log ('请把「更新日志」文件发给作者：' + $log)
-  Start-Sleep -Seconds 30
+  if (-not $DryRun) {
+    Log '旧版插件应仍可用，正在重新打开 DSH…'
+    if (Test-Path $Exe) { Start-Process -FilePath $Exe }
+    Log ('请把「更新日志」文件发给作者：' + $log)
+    Start-Sleep -Seconds 30
+  }
   exit 1
 }
