@@ -40,7 +40,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node test/smoke-security.mjs && node test/smoke-update-dryrun.mjs && node test/smoke-host.mjs && node test/smoke-splash.mjs && node test/smoke-splash-tl.mjs && node test/smoke-client.mjs && node test/smoke-desktop-boot.mjs && node test/smoke-import.mjs && node test/smoke-wallpaper-host.mjs && node test/smoke-wallpaper-client.mjs && node test/smoke-wallpaper-apply.mjs && node test/smoke-wallpaper-panel.mjs && node test/smoke-merge.mjs && node test/smoke-coords.mjs && node test/smoke-package.mjs",
+    "test": "node test/smoke-security.mjs && node test/smoke-update-dryrun.mjs && node test/smoke-host.mjs && node test/smoke-splash.mjs && node test/smoke-splash-tl.mjs && node test/smoke-client.mjs && node test/smoke-desktop-boot.mjs && node test/smoke-import.mjs && node test/smoke-wallpaper-host.mjs && node test/smoke-wallpaper-client.mjs && node test/smoke-wallpaper-apply.mjs && node test/smoke-wallpaper-panel.mjs && node test/smoke-open-path.mjs && node test/smoke-merge.mjs && node test/smoke-coords.mjs && node test/smoke-package.mjs",
     "motion:check": "node tools/motion-check.mjs --template=deep-sonar --speed=2",
     "ui:detect": "npx --yes impeccable@4.8.0 detect --no-config tools/editor.html preview/index.html",
     "release": "node tools/build-release.mjs"
