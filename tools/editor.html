@@ -223,7 +223,20 @@
 
 <script>
 (function () {
-  var API = '/dsh-startup'
+  /* 反代/子路径前缀：与 lib/client.js 同一套算法（src 是 srcdoc 时取父页面
+     路径 = 挂载目录；独立打开编辑器时路径里带 /dsh-startup）。根部署下前缀
+     为空串，行为与旧版一致。 */
+  var mountPrefix = (function () {
+    try {
+      var loc = (window.parent && window.parent !== window) ? window.parent.location : location
+      var p = String(loc.pathname || '/')
+      var i = p.lastIndexOf('/dsh-startup')
+      if (i >= 0) return p.slice(0, i)
+      while (p.length > 1 && p.charAt(p.length - 1) === '/') p = p.slice(0, -1)
+      return p === '/' ? '' : p
+    } catch (e) { return '' }
+  })()
+  var API = mountPrefix + '/dsh-startup'
   var tpl = null
   var draftId = ''
   var timer = 0
