@@ -36,8 +36,8 @@ function Log($m) {
 
 function Fail($m) { throw $m }
 
-/* Get-FileHash 在部分 CI/精简 PowerShell 环境里不存在（模块被裁掉），
-   这里用 .NET SHA256 兜底，避免更新器 dry-run 在 CI 里整段失败。 */
+# Get-FileHash 在部分 CI/精简 PowerShell 环境里不存在（模块被裁掉），
+# 这里用 .NET SHA256 兜底，避免更新器 dry-run 在 CI 里整段失败。
 function Get-Sha256([string]$Path) {
   try { return (Get-FileHash -Path $Path -Algorithm SHA256).Hash.ToLower() } catch { }
   $sha = $null; $fs = $null

@@ -46,7 +46,9 @@ function makeFixture(name, opts) {
 
 function run(args) {
   const r = spawnSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', SCRIPT].concat(args), { encoding: 'utf8', timeout: 120000 })
-  return { status: r.status, out: String(r.stdout || '') + String(r.stderr || '') }
+  /* stdout / stderr 分开返回：PowerShell 的注释语法错误会写 stderr，
+     但退出码仍可能是 0；混在一起会漏掉这类“看起来通过”的故障。 */
+  return { status: r.status, out: String(r.stdout || ''), err: String(r.stderr || '') }
 }
 function args(fx, version, digest) {
   return ['-Zip', fx.zip, '-Version', version || '9.9.9', '-Exe', path.join(process.env.WINDIR || 'C:\\Windows', 'System32', 'notepad.exe'), '-Config', path.join(tmp, 'dsh-startup.json'), '-Digest', 'sha256:' + (digest || fx.sha), '-DryRun']
@@ -54,7 +56,8 @@ function args(fx, version, digest) {
 
 const good = makeFixture('good', {})
 const r1 = run(args(good))
-check('正确摘要 → DryRun 通过', r1.status === 0 && r1.out.includes('DryRun 校验通过'), r1.out.slice(-500))
+check('正确摘要 → DryRun 通过', r1.status === 0 && r1.out.includes('DryRun 校验通过'), (r1.out + r1.err).slice(-500))
+check('DryRun 的 stderr 没有命令解析错误', !/CommandNotFoundException|not recognized|无法识别/i.test(r1.err), r1.err.slice(-500))
 check('DryRun 不创建真实版本目录', fs.existsSync(profileDir) === existedBefore, profileDir)
 
 const r2 = run(args(good, '9.9.9', '0'.repeat(64)))
