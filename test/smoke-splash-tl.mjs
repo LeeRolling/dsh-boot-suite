@@ -252,5 +252,43 @@ check('转场引擎收尾后覆盖层无残留（overlays 归零）', state().ov
     page2.root._classAdds.filter((c) => /out-content|handoff/.test(c)).join(','))
 }
 
+
+/* ── v2.16.16 回归：自定义图片/GIF 图层必须有非零宽高 ─────────────────────
+   2.16.15 及以前 image 分支只写 background，元素 0×0；通用 transform 用
+   translate(-50%,-50%) 后图片缩成一个点，用户导入 GIF 当两幕模板时两段全黑。 */
+{
+  const imgTpl = {
+    id: 'img-smoke', duration: 1000,
+    layers: [
+      { id: 'bg', type: 'panel', pos: [640, 360], panelW: 1280, panelH: 720,
+        fill: '#000000', radius: 0,
+        keyframes: [{ t: 0, opacity: 1 }, { t: 1000, opacity: 1 }] },
+      { id: 'pic', type: 'image', pos: [640, 360], width: 1280, height: 960, src: 'demo.gif',
+        keyframes: [{ t: 0, opacity: 1 }, { t: 1000, opacity: 1 }] },
+    ],
+  }
+  const page3 = boot({ transitionIn: 'none', transitionJoin: 'none', transitionOut: 'dissolve', transitionMs: 300 }, imgTpl)
+  check('图片模板初始化不抛异常', page3.thrown === null, page3.thrown && page3.thrown.message)
+  await flush(); await flush()
+
+  const stage = page3.root.children.find((c) => String(c._cls || '').includes('dsu-tl-stage'))
+  check('图片模板生成了舞台', !!stage, String(page3.root.children.length))
+  const img = stage && stage.children.find((c) => String(c._cls || '').includes('dsu-tl-image'))
+  check('图片模板生成了 image 图层节点', !!img, stage ? String(stage.children.length) : 'no-stage')
+  check('★ image 图层有非零宽高（不再 0×0）',
+    !!img && img.style.width === '1280px' && img.style.height === '960px',
+    img ? img.style.width + 'x' + img.style.height : 'no-img')
+
+  if (img) {
+    let t = 0
+    const cbs = page3.rafQueue.splice(0, page3.rafQueue.length)
+    cbs.forEach((fn) => fn((t += 16)))
+    check('★ image 图层按中心定位（transform 含 -50%/-50%）',
+      /translate\(-50%,\s*-50%\)/.test(String(img.style.transform || '')), String(img.style.transform || ''))
+    check('image 图层背景铺满自身尺寸',
+      img.style.backgroundSize === '100% 100%', String(img.style.backgroundSize || ''))
+  }
+}
+
 console.log(`\n${fail === 0 ? '✓ 全部通过' : `✗ ${fail} 项失败`}（${pass} 项通过）\n`)
 process.exit(fail === 0 ? 0 : 1)

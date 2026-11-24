@@ -1,6 +1,6 @@
 # PR 巡检记录
 
-> 自 2026-11-04 起：只巡检 dsh-boot-suite；dsh-startup-screen / dsh-chat-wallpaper 已停止维护，不再巡检。
+> 自 2026-11-12 起：巡检 dsh-boot-suite 的 PR、Issue、GitHub 通知与 CI/Release；dsh-startup-screen / dsh-chat-wallpaper 已停止维护，不再巡检。
 
 ## 2026-10-21 00:00（定时巡检）
 

@@ -1,3 +1,10 @@
+## [2.16.16] — 2026-11-24
+
+- 新增：合入 PR #6，打开下载目录/浏览器链接改用跨平台 `lib/open-path.js`（Windows / macOS / Linux），打开失败返回 `{ok:false}`，不再只支持 Windows；补 28 项回归测试。
+- 修复：自定义导入的 GIF / 图片作为第一幕或第二幕时两幕全黑。导入模板本身带 `width/height`，但时间线白名单漏了 `height`，图片图层又没有设置宽高，元素实际 0×0；现在按导入尺寸铺满并居中显示，补图片图层回归测试。
+- 本版不包含 Issue #10 子路径挂载、#8 外壳 frame 底色、#9 时间线不追赶、PR #7。
+- 版本 2.16.16，构建号 cw-82。
+
 ## [2.16.15] — 2026-11-24
 
 - 修复（阻断）：DSH 0.2.3 起 connection 服务移除 requestRejection，旧信任栅栏把“缺 API”当成故障 fail-closed，导致设置页读配置 403、片头配音 403、第二幕视频 403 黑屏。现在检测到 0.2.3+ 时不再手写栅栏，改由 WebServer 的 webserver/authorize 授权：动态路由 auth:'required'，splash.js/css/音效等静态资源 auth:'anonymous'；Host/Origin 检查仍由平台执行。旧版 DSH 继续走原 requestRejection 路径。
