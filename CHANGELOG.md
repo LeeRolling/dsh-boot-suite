@@ -1,3 +1,24 @@
+## [2.16.15] — 2026-11-24
+
+- 修复（阻断）：DSH 0.2.3 起 connection 服务移除 requestRejection，旧信任栅栏把“缺 API”当成故障 fail-closed，导致设置页读配置 403、片头配音 403、第二幕视频 403 黑屏。现在检测到 0.2.3+ 时不再手写栅栏，改由 WebServer 的 webserver/authorize 授权：动态路由 auth:'required'，splash.js/css/音效等静态资源 auth:'anonymous'；Host/Origin 检查仍由平台执行。旧版 DSH 继续走原 requestRejection 路径。
+- 修复：更新器 PowerShell 注释误用 C 风格 /* ... */，Windows PowerShell 5.1 报 CommandNotFoundException；改为 # 注释，DryRun 的 stderr 增加回归断言（smoke-update-dryrun.mjs）。
+- 2.16.14 候选包在独立测试机复测未通过（第 3、10 项失败），该候选包与测试 MD 作废，未发布 GitHub Release / npm。
+- 版本 2.16.15，构建号 cw-81。
+
+## [2.16.14] — 2026-11-24（未发布）
+
+- 性能：聊天区/侧栏/标题栏的对比度刷新不再每 1.5 秒对整棵子树重加 class；侧栏/标题栏根节点找到后缓存，元素断开才重找，连续未找到时 3 秒内不重复全页扫描（#11）。
+- 性能：开机动画两幕播放期间暂停聊天壁纸的对比度扫描，片头结束后补一次，减少片头掉帧。
+- 聊天背景文字阴影默认关闭；开启时只保留单层轻微阴影，去掉 10px 大模糊层（#11）。
+- 更新器 `-DryRun` 只做校验，不修改文件、不等待退出、不启动 DSH；SHA-256 计算在旧 PowerShell 下用 .NET 兜底；打包前清理 package.json BOM。
+- 本版未包含 #10（fnOS 子路径）与 #8/#9。
+- 版本 2.16.14，构建号 cw-80。
+
+## [2.16.13] — 2026-11-12
+
+- 修复 2.16.12 的版本兜底常量未同步（FALLBACK_VERSION 仍是 2.16.11），CI 版本一致性测试失败；同步到 2.16.13。
+- 功能与 2.16.12 相同。
+
 ## [2.16.12] — 2026-11-12
 
 - 修复：第一幕配置为 `template: ""`（设置页「内置档案暖白」历史保存值）时不再丢模板行、开机动画秒退；空值/非法 id 统一回落 `archive-warm`（#4）。

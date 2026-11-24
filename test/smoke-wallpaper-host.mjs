@@ -163,10 +163,10 @@ try {
     sortKeys(r.json) === 'config,image,imageOk,imageSource,ok,video', sortKeys(r.json))
   check('/config ok=true', r.json && r.json.ok === true, r.json && String(r.json.ok))
   const CONFIG_KEYS = ['banner', 'bannerOpacity', 'fallbackDark', 'fallbackLight', 'image', 'imageFit',
-    'sidebarDark', 'sidebarLight', 'veilBlur', 'veilDarkA', 'veilDarkB', 'veilLightA', 'veilLightB', 'colorMode',
+    'sidebarDark', 'sidebarLight', 'veilBlur', 'textShadow', 'veilDarkA', 'veilDarkB', 'veilLightA', 'veilLightB', 'colorMode',
     /* v2.13.0 循环视频 */
     'bgMode', 'videoMode', 'videoId', 'videoRoots', 'videoShuffleMinutes']
-  check('config 恰好 19 个键（12 旧 + 5 循环视频 + 1 镜头模糊 + 1 色彩模式）',
+  check('config 恰好 20 个键（12 旧 + 5 循环视频 + 1 镜头模糊 + 1 色彩模式 + 1 文字阴影）',
     sortKeys(r.json && r.json.config) === CONFIG_KEYS.slice().sort().join(','), sortKeys(r.json && r.json.config))
   const DEAD_KEYS = ['video', 'mode', 'placement', 'loopStart', 'loopEnd', 'oncePerSession',
     'waitForBoot', 'fadeOutMs', 'objectFit', 'opacity', 'playbackRate', 'fps']
@@ -177,6 +177,7 @@ try {
   check('/config 的 imageSource = builtin', r.json && r.json.imageSource === 'builtin', String(r.json && r.json.imageSource))
   check('★ v2.13.4 config.imageFit 默认 cover', r.json && r.json.config && r.json.config.imageFit === 'cover', String(r.json && r.json.config && r.json.config.imageFit))
   check('★ v2.13.11 config.veilBlur 默认 0（不模糊）', r.json && r.json.config && r.json.config.veilBlur === 0, String(r.json && r.json.config && r.json.config.veilBlur))
+  check('★ v2.16.14 config.textShadow 默认 false（#11 默认不画阴影）', r.json && r.json.config && r.json.config.textShadow === false, String(r.json && r.json.config && r.json.config.textShadow))
   check('★ v2.13.17 config.colorMode 默认 color', r.json && r.json.config && r.json.config.colorMode === 'color', String(r.json && r.json.config && r.json.config.colorMode))
   const v0 = (r.json && r.json.video) || {}
   check('★ /config.video 默认值：enabled=false / mode=single / shuffleMinutes=0 / selectedId 空 / count=0 / current=null',
@@ -231,6 +232,12 @@ try {
   check('★ veilBlur 下限夹到 0', r.json && r.json.applied && r.json.applied.veilBlur === 0, JSON.stringify(r.json && r.json.applied))
   r = await postJson('exact /chat-wallpaper/set', { veilBlur: 'abc' })
   check('★ 非法 veilBlur 被忽略', r.json && r.json.applied && !('veilBlur' in r.json.applied), JSON.stringify(r.json && r.json.applied))
+  r = await postJson('exact /chat-wallpaper/set', { textShadow: true })
+  check('★ v2.16.14 /set 接受 textShadow=true', r.json && r.json.applied && r.json.applied.textShadow === true, JSON.stringify(r.json && r.json.applied))
+  r = await postJson('exact /chat-wallpaper/set', { textShadow: false })
+  check('★ v2.16.14 /set 接受 textShadow=false', r.json && r.json.applied && r.json.applied.textShadow === false, JSON.stringify(r.json && r.json.applied))
+  r = await postJson('exact /chat-wallpaper/set', { textShadow: 'yes' })
+  check('★ 非布尔 textShadow 被忽略', r.json && r.json.applied && !('textShadow' in r.json.applied), JSON.stringify(r.json && r.json.applied))
   r = await postJson('exact /chat-wallpaper/set', { colorMode: 'mono' })
   check('★ v2.13.17 /set 接受 colorMode=mono', r.json && r.json.applied && r.json.applied.colorMode === 'mono', JSON.stringify(r.json && r.json.applied))
   r = await postJson('exact /chat-wallpaper/set', { colorMode: 'rainbow' })
@@ -245,7 +252,7 @@ try {
     try { disk = JSON.parse(raw) } catch { /* 下面会红 */ }
     check('落盘 JSON 可解析且无 BOM', !!disk && raw.charCodeAt(0) !== 0xFEFF)
     check('★ 落盘配置里没有旧视频时代字段', !!disk && DEAD_KEYS.every((k) => !(k in disk)), disk && Object.keys(disk).join(','))
-    check('落盘配置恰好 17 键（12 旧 + 5 循环视频）', !!disk && sortKeys(disk) === CONFIG_KEYS.slice().sort().join(','), disk && sortKeys(disk))
+    check('落盘配置恰好 20 键（含文字阴影）', !!disk && sortKeys(disk) === CONFIG_KEYS.slice().sort().join(','), disk && sortKeys(disk))
   }
 
   /* ── [6] /status ────────────────────────────────────────────────────── */

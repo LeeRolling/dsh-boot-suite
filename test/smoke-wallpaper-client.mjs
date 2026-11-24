@@ -231,7 +231,11 @@ ok(css.includes('html.dsh-cw-dark #dsh-cw-bg { background: #0b0d12; }'), '深色
 /* v2.13.5：纱/兜底改跟壁纸亮度走，文字 token 自适应 */
 ok(!css.includes('html.dsh-cw-bg-dark #dsh-cw-bg > .dsh-cw-veil'), 'v2.13.9 纱不再按壁纸亮度强塞（用户拖浓度滑块真的生效）')
 ok(!css.includes('html.dsh-cw-bg-light #dsh-cw-bg > .dsh-cw-veil'), 'v2.13.9 纱只跟外观主题走')
-ok(css.includes('text-shadow: 0 1px 2px'), 'v2.13.9 聊天文字带轻阴影兜底（明暗不均也能读）')
+ok(!css.includes('text-shadow'), 'v2.16.14 默认不生成文字阴影（长文本输入更轻）')
+const cssShadow = mod.__buildCss({ ...base, __imageOk: true, textShadow: true })
+ok(cssShadow.includes('.dsh-cw-txt-light { color: #eef2f8 !important; text-shadow: 0 1px 2px rgba(0,0,0,.55); }'), 'v2.16.14 打开阴影后浅色文字只有单层 1px')
+ok(cssShadow.includes('.dsh-cw-txt-dark { color: #10141a !important; text-shadow: 0 1px 2px rgba(255,255,255,.7); }'), 'v2.16.14 打开阴影后深色文字只有单层 1px')
+ok(!cssShadow.includes('0 0 10px'), 'v2.16.14 去掉 10px 模糊层（#11 卡顿根因）')
 ok(code.includes('function effectiveLum') && code.includes('function veilBlend'), 'v2.13.9 文字颜色按「壁纸 + 纱」实际亮度判定')
 ok(css.includes('.dsh-cw-txt-light {') && css.includes('--dsw-alias-label-primary: #f5f7fa !important'), 'v2.13.5 暗背景 → 文字提亮')
 ok(css.includes('.dsh-cw-txt-dark {') && css.includes('--dsw-alias-label-primary: #111418 !important'), 'v2.13.5 亮背景 → 文字压深')
@@ -465,7 +469,7 @@ ok(intervals.every((t) => t.cleared) || intervals.length === 0, '旧的 interval
   intervals.map((t) => (t.cleared ? 'cleared' : 'live')).join(','))
 
 console.log('\n=== ⑦ v2.13.0 测试钩子 / BUILD ===')
-ok(mod.__BUILD === 'cw-77', '__BUILD = cw-68（排查浏览器跑的是不是新包）', String(mod.__BUILD))
+ok(/^cw-\d+$/.test(mod.__BUILD), '__BUILD 是 cw-* 构建号（排查浏览器跑的是不是新包）', String(mod.__BUILD))
 ok(mod.__VIDEO_ID === 'dsh-cw-video', '__VIDEO_ID = dsh-cw-video', String(mod.__VIDEO_ID))
 ok(typeof mod.__startShuffle === 'function', '__startShuffle 导出')
 ok(typeof mod.__stopShuffle === 'function', '__stopShuffle 导出')

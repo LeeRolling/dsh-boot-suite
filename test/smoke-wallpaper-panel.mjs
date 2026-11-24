@@ -374,5 +374,17 @@ const modeReq = requests.slice(beforeMode).find((r) => r.url.includes('/chat-wal
 const modeBody = modeReq && JSON.parse(modeReq.init.body)
 ok(!!modeBody && modeBody.bgMode === 'video', '★ 背景类型切到循环视频 → POST /set {bgMode:"video"}', JSON.stringify(modeBody))
 
+/* v2.16.14（#11）：文字阴影开关，默认关，打开后写布尔 */
+tree = renderPanel()
+const shadowToggle = findNode(tree, (n) => typeof n.type === 'function' && n.props && n.props.label === '文字阴影')
+ok(!!shadowToggle, '★ 渲染出「文字阴影」开关')
+ok(!!shadowToggle && shadowToggle.props.checked === false, '★ 文字阴影默认关闭（避免长文本输入卡顿）')
+const beforeShadow = requests.length
+if (shadowToggle) shadowToggle.props.onChange(true)
+await flushP(); await flushP(); await flushP(); await flushP()
+const shadowReq = requests.slice(beforeShadow).find((r) => r.url.includes('/chat-wallpaper/set'))
+const shadowBody = shadowReq && JSON.parse(shadowReq.init.body)
+ok(!!shadowBody && shadowBody.textShadow === true, '★ 打开文字阴影 → POST /set {textShadow:true}', JSON.stringify(shadowBody))
+
 console.log(`\n${fails === 0 ? '✓ 全部通过' : `✗ ${fails} 项失败`}\n`)
 process.exit(fails === 0 ? 0 : 1)

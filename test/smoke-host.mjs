@@ -205,6 +205,42 @@ r = await call('exact /dsh-startup/config')
 check('connection 拒绝时返回 403 且不吐配置', r.statusCode === 403 && r.body === '', r.statusCode + ' body=' + JSON.stringify(r.body.slice(0, 40)))
 rejectNext = undefined
 
+console.log('\n[5b] DSH 0.2.3 平台授权（无 requestRejection）')
+/* 0.2.3 的 connection 服务只有 admit()，Host/Origin 与认证已下沉到
+   webserver/authorize；插件应只声明 route.auth，不再手写栅栏。 */
+const P_ROUTES = new Map()
+const pctx = {
+  webServer: {
+    register(route) {
+      P_ROUTES.set(route.kind + ' ' + route.path, route)
+      return () => P_ROUTES.delete(route.kind + ' ' + route.path)
+    },
+    tapIndex() { return () => {} },
+  },
+  get(name) {
+    if (name === 'webServer') return this.webServer
+    if (name === 'connection') {
+      return {
+        admit() { return { peer: { id: 'smoke' } } },
+      }
+    }
+    return undefined
+  },
+  on() { return () => {} },
+  effect(fn) { const d = fn(); return () => { if (typeof d === 'function') d() } },
+  logger: { warn() {} },
+}
+mod.apply(pctx)
+const pStatic = P_ROUTES.get('exact /dsh-startup/splash.css')
+const pConfig = P_ROUTES.get('exact /dsh-startup/config')
+const pFrame = P_ROUTES.get('prefix /dsh-startup/template-frame')
+check('0.2.3 静态路由 auth=anonymous', pStatic && pStatic.auth === 'anonymous', pStatic && pStatic.auth)
+check('0.2.3 动态路由 auth=required', pConfig && pConfig.auth === 'required', pConfig && pConfig.auth)
+check('0.2.3 iframe 能力路由 auth=anonymous', pFrame && pFrame.auth === 'anonymous', pFrame && pFrame.auth)
+r = fakeRes()
+await pConfig.handler(new FakeReq('GET'), r)
+check('0.2.3 config 路由不再被旧栅栏 403', r.statusCode === 200 && JSON.parse(r.body).ok === true, r.statusCode + ' ' + r.body.slice(0, 80))
+
 /* ── DSH 0.2.x 的注入行渲染器（照抄 dsh-host-webserver 的 renderRow/renderIndexInjections 语义：
       head 行插到 <head> 之后、body 行插到 <body> 之后，各自按表内顺序；末尾补 __DSH_BOOT_READY__）。
    桌面端（file:// + IPC）拿的就是这张表，所以这里按表断言才算数。 */
