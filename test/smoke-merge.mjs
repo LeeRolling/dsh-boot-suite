@@ -39,7 +39,8 @@ const loads = client.match(/__ModuleLoader__\.load\(/g) || []
 check('ModuleLoader.load 只调用 1 次', loads.length === 1, String(loads.length))
 check('注册 id = dsh-boot-suite', client.includes("id: 'dsh-boot-suite'"))
 check('地址栏常量没有被误改（/dsh-startup 与 /chat-wallpaper 都还在）',
-  client.includes("var API = '/dsh-startup/config'") && client.includes("var API = '/chat-wallpaper'"))
+  (client.includes("var API = withBase('/dsh-startup/config')") || client.includes("var API = '/dsh-startup/config'"))
+  && (client.includes("var API = withBase('/chat-wallpaper')") || client.includes("var API = '/chat-wallpaper'")))
 check('开机动画半侧的设置页契约还在（exports.apply / inject slots）',
   client.includes('exports.apply = apply') && client.includes('module.exports.inject = __bootHalf.inject'))
 check('壁纸半侧的测试钩子还在（__applyNow / __buildCss / __teardown）',
