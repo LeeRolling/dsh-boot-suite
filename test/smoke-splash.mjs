@@ -521,6 +521,31 @@ console.log('\n[11] v2.12.1：时间线结束不再内嵌淡出（两幕独立�
      而本文件是纯同步的（混入 await 会让其它用例里未完成动画链的延迟异常提前跑出来）。 */
 }
 
+console.log('\n[12] 交互与兜底：黑幕不挡鼠标、按键走捕获、启动后有硬止损')
+{
+  const src = fs.readFileSync(BUNDLE, 'utf8')
+  const cssSrc = fs.readFileSync(fileURLToPath(new URL('../lib/splash.css', import.meta.url)), 'utf8')
+  const blackAt = cssSrc.indexOf('.dsu-black {')
+  const blackEnd = blackAt >= 0 ? cssSrc.indexOf('}', blackAt) : -1
+  const blackBlock = (blackAt >= 0 && blackEnd > blackAt) ? cssSrc.slice(blackAt, blackEnd + 1) : ''
+  check('透明黑幕也不挡鼠标（pointer-events:none）',
+    /pointer-events\s*:\s*none/.test(blackBlock), blackBlock.replace(/\s+/g, ' ').slice(0, 140))
+  check('等待确认的 keydown 挂在捕获阶段',
+    /document\.addEventListener\('keydown', onKey, true\)/.test(src))
+  check('清理时也按捕获阶段移除 keydown',
+    /document\.removeEventListener\('keydown', onKey, true\)/.test(src))
+
+  const rr = run(true)
+  const hard = rr.timers.find((t) => t.ms >= 120000)
+  check('启动后安排了硬止损定时器（>= 120 秒）',
+    !!hard, rr.timers.map((t) => t.ms).join(','))
+  if (hard) {
+    hard.fn()
+    check('硬止损触发 → 解开 dsu-lock', !rr.htmlEl.classList.contains('dsu-lock'))
+    check('硬止损触发 → 亮 FAILED 标记', rr.windowStub.__DSH_STARTUP_FAILED__ === true)
+  }
+}
+
 console.log('\n============================')
 console.log(`  通过 ${pass} / 失败 ${fail}`)
 console.log('============================\n')

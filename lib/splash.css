@@ -165,6 +165,8 @@
   place-items: center;
   z-index: 40;
   opacity: 1;
+  /* 黑幕只负责遮画面，不参与交互；淡出到透明后也不许挡住下面的按钮 */
+  pointer-events: none;
 }
 .dsu-black-inner {
   display: flex;
